@@ -4,14 +4,13 @@ RestAPI for single cell clusters.
 ### Install
 
 You will need to have installed:
-    Python with [Virtualenv](https://virtualenv.pypa.io/en/stable/installation/)
-    [Git](https://git-scm.com/) installed on your machine.
+    Python3 with Virtualenv and Git installed on your machine.
 
 First clone the repo somewhere on your disk.
 
 `cd /path/to/my/workspace/`
 
-`git clone https://github.com/Stuartlab-UCSC/clusterDb`
+`git clone https://github.com/terraswat/clusterDb`
 
 `cd clusterDb`
 

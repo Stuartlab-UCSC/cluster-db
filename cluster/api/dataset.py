@@ -1,15 +1,17 @@
 
-# dataset/routes.py
+# api/dataset.py
 
 from flask_restplus import Resource, fields
 from cluster.api.restplus import api
+from cluster.database.dataset import dataset
+from cluster.database.db import get_db
 
 ns = api.namespace('dataset', description='operations')
 
 
 model = api.model('Dataset', {
     'id': fields.Integer(readOnly=True, description='The unique identifier'),
-    'dataset': fields.String(required=True, description='The details')
+    'detail': fields.String(required=True, description='The details')
 })
 
 
@@ -64,20 +66,16 @@ class DatasetList(Resource):
     @ns.doc('list_all')
     def get(self):
         '''List all'''
-        return rowsToTsv(DAO.datasets)
-        #return datasetTable.getAll()
-    '''
-    def getAll():
-    data = cellDataset.getAll(appCtx)
-    raise SuccessResp(data)
-    '''
+        #return rowsToTsv(DAO.datasets)
+        data = dataset.getAll()
+        return data
 
     @ns.doc('create_one')
     @ns.expect(model)
     @ns.marshal_with(model, code=201)
     def post(self):
         '''Add a new one'''
-        return DAO.create(api.payload), 201
+        return dataset.addOne(api.payload), 201
 
 
 @ns.route('/<int:id>')

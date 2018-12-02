@@ -9,7 +9,7 @@ from cluster import settings
 from cluster.api.dataset import ns as dataset_namespace
 from cluster.api.todo import ns as todo_namespace
 from cluster.api.restplus import api
-import cluster.database.tableBase as db
+import cluster.database.db as db
 
 app = Flask(__name__)
 logging_conf_path = os.path.normpath(os.path.join(os.path.dirname(__file__), '../logging.conf'))
@@ -37,7 +37,8 @@ def initialize_blueprint(flask_app):
 def initialize_app(flask_app):
     configure_app(flask_app)
     initialize_blueprint(flask_app)
-    db.init_app(flask_app)
+    with app.app_context():
+        db.init_db()
 
 
 def main():
