@@ -2,12 +2,11 @@
 # api/dataset.py
 
 from flask_restplus import Resource, fields
+from werkzeug.exceptions import abort
 from cluster.api.restplus import api
-from cluster.database.dataset import dataset
-from cluster.database.db import get_db
+from cluster.database.dataset import dataset as table
 
 ns = api.namespace('dataset', description='operations')
-
 
 model = api.model('Dataset', {
     'id': fields.Integer(readOnly=True, description='The unique identifier'),
@@ -15,67 +14,24 @@ model = api.model('Dataset', {
 })
 
 
-class DatasetDAO(object):
-    def __init__(self):
-        self.counter = 0
-        self.datasets = []
-
-    def get(self, id):
-        for dataset in self.datasets:
-            if dataset['id'] == id:
-                return dataset
-        api.abort(404, "Dataset {} doesn't exist".format(id))
-
-    def create(self, data):
-        dataset = data
-        dataset['id'] = self.counter = self.counter + 1
-        self.datasets.append(dataset)
-        return dataset
-
-    def update(self, id, data):
-        dataset = self.get(id)
-        dataset.update(data)
-        return dataset
-
-    def delete(self, id):
-        dataset = self.get(id)
-        self.datasets.remove(dataset)
-
-
-DAO = DatasetDAO()
-DAO.create({'dataset': 'Build an API'})
-DAO.create({'dataset': '?????'})
-DAO.create({'dataset': 'profit!'})
-
-
-def rowToTsv(row):
-    return str(row['id']) + '\t' + row['dataset']
-
-
-def rowsToTsv(rows):
-    tsv = rowToTsv(rows[0])
-    for row in rows[1:]:
-        tsv += '\n' + rowToTsv(row)
-    return tsv
-
-
 @ns.route('/')
 class DatasetList(Resource):
-    '''Get a list of all, or add a new one'''
 
+    '''Get a list of all, or add a new one'''
     @ns.doc('list_all')
+    @ns.marshal_list_with(model)
     def get(self):
-        '''List all'''
-        #return rowsToTsv(DAO.datasets)
-        data = dataset.getAll()
-        return data
+        return table.get()
 
     @ns.doc('create_one')
     @ns.expect(model)
     @ns.marshal_with(model, code=201)
     def post(self):
         '''Add a new one'''
-        return dataset.addOne(api.payload), 201
+        row = table.add(api.payload)
+        if row == None:
+            abort(400, 'add failed')
+        return row, 201
 
 
 @ns.route('/<int:id>')
@@ -88,20 +44,28 @@ class Dataset(Resource):
     @ns.marshal_with(model)
     def get(self, id):
         '''Get one given its ID'''
-        return DAO.get(id)
+        row = table.get(id)
+        if row is None:
+            abort(404, 'ID ' + str(id) + ' does not exist.')
+        return row
 
     @ns.doc('delete_one')
     @ns.response(204, 'Object deleted')
     def delete(self, id):
         '''Delete one given its ID'''
-        DAO.delete(id)
+        table.delete(id)
         return '', 204
 
     @ns.expect(model)
     @ns.marshal_with(model)
     def put(self, id):
         '''Update one given its ID'''
-        return DAO.update(id, api.payload)
+        row = table.update(id, api.payload)
+        # TODO best way to pass more detailed error info?
+        if row is None:
+            abort(400, 'ID ' + str(id) + \
+                ' failed to update. Maybe it does not exist.')
+        return row
 
 
 if __name__ == '__main__':

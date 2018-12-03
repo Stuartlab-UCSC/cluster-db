@@ -7,7 +7,6 @@ from cluster import settings
 log = logging.getLogger(__name__)
 
 api = Api(version='0.1.0', title='Cluster Database API')
-          #description='A simple demonstration of a Flask RestPlus powered API')
 
 
 def NoResultFound(e):
