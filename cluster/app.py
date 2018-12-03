@@ -7,7 +7,6 @@ import os
 from flask import Flask, Blueprint
 from cluster import settings
 from cluster.api.dataset import ns as dataset_namespace
-from cluster.api.todo import ns as todo_namespace
 from cluster.api.restplus import api
 import cluster.database.db as db
 
@@ -30,7 +29,6 @@ def initialize_blueprint(flask_app):
     blueprint = Blueprint('api', __name__, url_prefix='/api')
     api.init_app(blueprint)
     api.add_namespace(dataset_namespace)
-    api.add_namespace(todo_namespace)
     flask_app.register_blueprint(blueprint)
 
 

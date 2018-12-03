@@ -3,7 +3,7 @@ from cluster.database.db import get_db
 from cluster.database.tableBase import TableBase
 
 
-class Dataset(TableBase):
+class DatasetTable(TableBase):
 
     table = 'dataset'
 
@@ -24,5 +24,5 @@ class Dataset(TableBase):
         )
 
 
-dataset = Dataset()
+dataset = DatasetTable()
 

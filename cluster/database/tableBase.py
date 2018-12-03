@@ -1,4 +1,6 @@
 
+# The base class for single table access.
+
 from cluster.database.db import get_db
 
 
@@ -61,7 +63,7 @@ class TableBase(object):
         # Return all rows as a list of dicts.
         return list(s._getAllRows())
 
-    def getTsv(s):
+    def tsvGetAll(s):
 
         # Return all rows as a TSV-formatted string.
         return s._rowsToTsv(s._getAllRows())
