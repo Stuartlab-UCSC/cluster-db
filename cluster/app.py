@@ -7,7 +7,7 @@ import os
 from flask import Flask, Blueprint
 from cluster import settings
 from cluster.api.dataset import ns as dataset_namespace
-from cluster.api.restplus import api
+from cluster.api.restplus import api, init as apiInit
 import cluster.database.db as db
 
 app = Flask(__name__)
@@ -37,6 +37,7 @@ def initialize_app(flask_app):
     initialize_blueprint(flask_app)
     with app.app_context():
         db.init_db()
+        apiInit(flask_app)
 
 
 def main():

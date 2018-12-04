@@ -1,6 +1,7 @@
 
 # api/dataset.py
 
+from flask import request
 from flask_restplus import Resource, fields
 from werkzeug.exceptions import abort
 from cluster.api.restplus import api
@@ -13,6 +14,18 @@ model = api.model('Dataset', {
     'detail': fields.String(required=True, description='The details')
 })
 
+tsvUnsupported = 'TSV IS ONLY SUPPORTED FOR MULTI-ROW QUERIES'
+#tsvUnsupported = {'message': 'TSV is only supported for multi-row queries'}
+
+
+def isTsv():
+    return request.headers['accept'] == 'text/tsv'
+
+
+def abortIfTsv():
+    if isTsv():
+        abort(400, tsvUnsupported)
+
 
 @ns.route('/')
 class DatasetList(Resource):
@@ -20,10 +33,12 @@ class DatasetList(Resource):
     '''Get a list of all, or add a new one'''
 
     @ns.doc('list_all')
-    @ns.marshal_list_with(model)
+    #$@ns.marshal_list_with(model)
     def get(self):
 
         '''Get all'''
+        if isTsv():
+            return table.getTsv()
         return table.get()
 
     @ns.doc('create_one')
@@ -32,8 +47,9 @@ class DatasetList(Resource):
     def post(self):
 
         '''Add a new one'''
+        abortIfTsv()
         row = table.add(api.payload)
-        if row == None:
+        if row is None:
             abort(400, 'add failed')
         return row, 201
 
@@ -50,6 +66,7 @@ class Dataset(Resource):
     def get(self, id):
 
         '''Get one given its ID'''
+        abortIfTsv()
         row = table.get(id)
         if row is None:
             abort(404, 'ID ' + str(id) + ' does not exist.')
@@ -60,7 +77,9 @@ class Dataset(Resource):
     def delete(self, id):
 
         '''Delete one given its ID'''
+        abortIfTsv()
         table.delete(id)
+        # TODO this is deleting and returning code 204, but no message
         return '', 204
 
     @ns.expect(model)
@@ -68,6 +87,7 @@ class Dataset(Resource):
     def put(self, id):
 
         '''Update one given its ID'''
+        abortIfTsv()
         row = table.update(id, api.payload)
         # TODO best way to pass more detailed error info?
         if row is None:
