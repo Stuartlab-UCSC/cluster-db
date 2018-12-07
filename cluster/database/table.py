@@ -1,10 +1,13 @@
 
 # The base class for single table access.
 
+import logging, traceback
+from werkzeug.exceptions import abort
 from cluster.database.db import get_db
 
+log = logging.getLogger(__name__)
 
-class TableBase(object):
+class Table(object):
 
     def _rowHeaderToTsv(s, row):
         return '#' + s._rowToTsv(row.keys())
@@ -34,8 +37,6 @@ class TableBase(object):
     def _rowsToListOfDicts(s, rows):
 
         # Convert sqlite rows to a list of dicts.
-        # TODO not required if we use marshalling, but marshalling is not
-        # compatible with tsv return type
         listOfDicts = []
         for row in rows:
             listOfDicts.append(dict(row))
@@ -53,25 +54,27 @@ class TableBase(object):
         # Add one row.
         db = get_db()
         try:
-            s._add(data, db)
-        except:
-            return None
-        db.commit()
-        return data
+            cursor = s._add(data, db)
+            db.commit()
+        except Exception as e:
+            trace = traceback.format_exc(100)
+            log.error(trace)
+            abort(400, str(trace))
+        return {"id": cursor.lastrowid}
 
-    def delete(s, id):
-        s.get(id)
+    def delete(s, name):
+        s.get(name)
         db = get_db()
-        db.execute('DELETE FROM ' + s.table + ' WHERE id = ?', (id,))
+        db.execute('DELETE FROM ' + s.table + ' WHERE name = ?', (name,))
         db.commit()
 
-    def get(s, id=None):
+    def get(s, name=None):
 
-        # Return one by ID or return all rows.
-        if id:
+        # Return one by name or return all rows.
+        if name:
             # Return one row by ID.
             row = get_db().execute(
-                'SELECT * FROM ' + s.table + ' WHERE id = ?', (id,)).fetchone()
+                'SELECT * FROM ' + s.table + ' WHERE name = ?', (name,)).fetchone()
             return row
 
         # Return all rows as a list of dicts.
@@ -107,17 +110,3 @@ class TableBase(object):
                 return 1
         db.commit()
         return 0
-
-    def update(s, id, data):
-        row = s.get(id)
-        if row == None:
-            return None
-
-        db = get_db()
-        try:
-            s._update(id, data, db)
-        except:
-            return None
-        db.commit()
-        return data
-

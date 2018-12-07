@@ -1,30 +1,38 @@
 
 # api/dataset.py
 
-from flask import request
 from flask_restplus import Resource, fields
 from werkzeug.exceptions import abort
+from cluster.api.restplus import modelId, isTsv, abortIfTsv
 from cluster.api.restplus import api
-from cluster.database.datasetDb import dataset as table
+from cluster.database.datasetTable import dataset as table
 
 ns = api.namespace('dataset', description='operations')
 
 model = api.model('Dataset', {
-    'id': fields.Integer(readOnly=True, description='The unique identifier'),
-    'detail': fields.String(required=True, description='The details')
+    'name': fields.String(required=True, description='Unique dataset name'),
+    'species': fields.String(required=True, description='Species studied'),
+    'organ': fields.String(description='source organ'),
+    'sampleCount': fields.Integer(description='Count of samples in the dataset'),
+    'abnormality': fields.String(description='Any abnormality of the dataset, i.e. cancer'),
+    'primaryData': fields.String(description='location of initial data'),
+    'scanpyObjectOfPrimaryData': fields.String(description='location of initial scanpy object'),
+    'sampleMetadata': fields.String(description='Initial metadata of samples'),
+    'primaryDataNormalizationStatus': fields.String(description='Normalization status of initial data'),
+    'reasonableForTrajectoryAnalysis': fields.Boolean(description='Is suitable for trajectory analysis'),
+    'platform': fields.String(description='Genomic sequencing platform'),
+    'expressionDataSource': fields.String(description='Source of expression data'),
+    'expressionDataSourceURL': fields.String(description='URL of expression source'),
 })
 
-tsvUnsupported = 'TSV IS ONLY SUPPORTED FOR MULTI-ROW QUERIES'
-#tsvUnsupported = {'message': 'TSV is only supported for multi-row queries'}
+modelWithId = api.clone('Dataset with ID', model, {
+    'id': fields.Integer(description='Unique identifier assigned by the database')
+})
 
-
-def isTsv():
-    return request.headers['accept'] == 'text/tsv'
-
-
-def abortIfTsv():
-    if isTsv():
-        abort(400, tsvUnsupported)
+modelTsv = api.model('Dataset TSV', {
+    'url': fields.String(required=True, description='URL of the file to load into the database'),
+    'replace': fields.Boolean(description='true to replace the entire table in the database'),
+})
 
 
 @ns.route('/')
@@ -32,68 +40,48 @@ class DatasetList(Resource):
 
     '''Get a list of all, or add a new one'''
 
-    @ns.doc('list_all')
-    #$@ns.marshal_list_with(model)
+    @ns.response(200, 'list of all as JSON or TSV')
     def get(self):
 
         '''Get all'''
         if isTsv():
             return table.getTsv()
-        return table.get()
+        return table.get(), 200
 
-    @ns.doc('create_one')
     @ns.expect(model)
-    @ns.marshal_with(model, code=201)
+    @ns.response(200, 'ID of added', modelId)
     def post(self):
 
         '''Add a new one'''
         abortIfTsv()
-        row = table.add(api.payload)
-        if row is None:
-            abort(400, 'add failed')
-        return row, 201
+        return table.add(api.payload), 200
 
 
-@ns.route('/<int:id>')
+@ns.route('/<string:name>')
 @ns.response(404, 'Not found')
-@ns.param('id', 'The identifier')
+@ns.param('name', 'The name')
 class Dataset(Resource):
 
     '''Get, update or delete one'''
 
-    @ns.doc('get_one')
-    @ns.marshal_with(model)
-    def get(self, id):
+    @ns.marshal_with(modelWithId)
+    def get(self, name):
 
-        '''Get one given its ID'''
+        '''Get one by name'''
         abortIfTsv()
-        row = table.get(id)
+        row = table.get(name)
         if row is None:
-            abort(404, 'ID ' + str(id) + ' does not exist.')
+            abort(404, name + ' does not exist.')
         return row
 
-    @ns.doc('delete_one')
-    @ns.response(204, 'Object deleted')
-    def delete(self, id):
+    @ns.response(200, 'Deleted one')
+    def delete(self, name):
 
-        '''Delete one given its ID'''
+        '''Delete one by name'''
         abortIfTsv()
-        table.delete(id)
-        # TODO this is deleting and returning code 204, but no message
-        return '', 204
-
-    @ns.expect(model)
-    @ns.marshal_with(model)
-    def put(self, id):
-
-        '''Update one given its ID'''
-        abortIfTsv()
-        row = table.update(id, api.payload)
-        # TODO best way to pass more detailed error info?
-        if row is None:
-            abort(400, 'ID ' + str(id) + \
-                ' failed to update. Maybe it does not exist.')
-        return row
+        table.delete(name)
+        return 'Deleted one', 200
+        # TODO implement not found response
 
 
 if __name__ == '__main__':

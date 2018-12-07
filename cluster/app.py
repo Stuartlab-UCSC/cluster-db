@@ -6,6 +6,7 @@ import logging.config
 import os
 from flask import Flask, Blueprint
 from cluster import settings
+from cluster.api.clustering import ns as clustering_namespace
 from cluster.api.dataset import ns as dataset_namespace
 from cluster.api.restplus import api, init as apiInit
 import cluster.database.db as db
@@ -28,6 +29,7 @@ def configure_app(flask_app):
 def initialize_blueprint(flask_app):
     blueprint = Blueprint('api', __name__, url_prefix='/api')
     api.init_app(blueprint)
+    api.add_namespace(clustering_namespace)
     api.add_namespace(dataset_namespace)
     flask_app.register_blueprint(blueprint)
 

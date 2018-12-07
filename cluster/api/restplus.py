@@ -1,13 +1,28 @@
 import logging
 import traceback
-
-from flask_restplus import Api
+from flask import request
+from flask_restplus import Api, fields
 from cluster import settings
 
 log = logging.getLogger(__name__)
 
 api = Api(version='0.1.0', title='Cluster Database API')
 app = None
+
+modelId = api.model('ID model', {
+    'id': fields.Integer(readOnly=True, description='The unique identifier'),
+})
+
+tsvUnsupported = 'TSV IS ONLY SUPPORTED FOR MULTI-ROW QUERIES'
+
+
+def isTsv():
+    return request.headers['accept'] == 'text/tsv'
+
+
+def abortIfTsv():
+    if isTsv():
+        abort(400, tsvUnsupported)
 
 
 def NoResultFound(e):
@@ -25,7 +40,7 @@ def default_error_handler(e):
 @api.errorhandler(NoResultFound)
 def database_not_found_error_handler(e):
     log.warning(traceback.format_exc())
-    return {'message': 'A database result was required but none was found.'}, 40
+    return {'message': 'A database result was required but none was found.'}, 400
 
 
 @api.representation('text/tsv')
