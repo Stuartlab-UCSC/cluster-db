@@ -63,10 +63,22 @@ class Table(object):
         return {"id": cursor.lastrowid}
 
     def delete(s, name):
-        s.get(name)
+        row = s.get(name)
+        if row == None:
+            return None
         db = get_db()
         db.execute('DELETE FROM ' + s.table + ' WHERE name = ?', (name,))
         db.commit()
+        return { 'id': row['id'] }
+
+    def replace(s, name, data):
+        row = s.get(name)
+        if row == None:
+            return None
+        db = get_db()
+        s._replace(name, data, db)
+        db.commit()
+        return { 'id': row['id'] }
 
     def get(s, name=None):
 

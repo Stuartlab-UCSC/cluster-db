@@ -4,7 +4,7 @@
 import logging.config
 
 import os
-from flask import Flask, Blueprint
+from flask import Flask, Blueprint, redirect
 from cluster import settings
 from cluster.api.clustering import ns as clustering_namespace
 from cluster.api.dataset import ns as dataset_namespace
@@ -46,6 +46,12 @@ def main():
     initialize_app(app)
     log.info('>>>>> Starting development server at http://{}/api/ <<<<<'.format(app.config['SERVER_NAME']))
     app.run(debug=settings.FLASK_DEBUG)
+
+
+# Handle the base route.
+@app.route('/')
+def baseRoute():
+    return redirect("/api", code=302)
 
 
 if __name__ == "__main__":

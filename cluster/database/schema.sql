@@ -1,18 +1,18 @@
--- DROP TABLE IF EXISTS clustering;
+--DROP TABLE IF EXISTS clustering;
 
 CREATE TABLE IF NOT EXISTS dataset (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name text UNIQUE NOT NULL,
     species text NOT NULL,
     organ text,
-    sampleCount integer,
+    sampleCount INTEGER,
     abnormality text,
     primaryData text,
     scanpyObjectOfPrimaryData text,
     sampleMetadata text,
     primaryDataNormalizationStatus text,
     clusteringScript text,
-    reasonableForTrajectoryAnalysis bool,
+    reasonableForTrajectoryAnalysis INTEGER,
     trajectoryAnalysisScript text,
     platform text,
     expressionDataSource text,
@@ -22,52 +22,40 @@ CREATE TABLE IF NOT EXISTS clustering (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name text UNIQUE NOT NULL,
     method text,
+    method_implementation text,
     method_url text,
     method_parameters text,
     analyst text,
-    secondary bool,
+    secondary INTEGER,
     dataset INTEGER,
     FOREIGN KEY(dataset) REFERENCES dataset(id)
 );
+CREATE TABLE IF NOT EXISTS signature_gene_set (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name text UNIQUE NOT NULL,
+    method text,
+    clustering INTEGER,
+    FOREIGN KEY(clustering) REFERENCES cluster(id)
+);
+CREATE TABLE IF NOT EXISTS signature_gene (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name text UNIQUE NOT NULL,
+    signature_gene_set INTEGER,
+    FOREIGN KEY(signature_gene_set) REFERENCES signature_gene_set(id)
+);
+
+/*
 CREATE TABLE IF NOT EXISTS cluster (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name text UNIQUE NOT NULL,
-    clustering,
+    clustering INTEGER,
     FOREIGN KEY(clustering) REFERENCES clustering(id)
 );
-CREATE TABLE IF NOT EXISTS marker_gene (
+CREATE TABLE IF NOT EXISTS cluster_assignment (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name text UNIQUE NOT NULL,
+    sample text UNIQUE NOT NULL,
     cluster INTEGER,
     FOREIGN KEY(cluster) REFERENCES cluster(id)
-);
-CREATE TABLE IF NOT EXISTS ranked_gene (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name text UNIQUE NOT NULL,
-    rank INTEGER,
-    cluster INTEGER,
-    FOREIGN KEY(cluster) REFERENCES cluster(id)
-);
-CREATE TABLE IF NOT EXISTS gene_module (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name text UNIQUE NOT NULL,
-    descr text,
-    gene_count INTEGER
-);
-CREATE TABLE IF NOT EXISTS ranked_gene_module (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name text UNIQUE NOT NULL,
-    rank INTEGER,
-    cluster INTEGER,
-    gene_module INTEGER,
-    FOREIGN KEY(cluster) REFERENCES cluster(id),
-    FOREIGN KEY(gene_module) REFERENCES gene_module(id)
-);
-CREATE TABLE IF NOT EXISTS gene_of_module (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name text UNIQUE NOT NULL,
-    gene_module INTEGER,
-    FOREIGN KEY(gene_module) REFERENCES gene_module(id)
 );
 CREATE TABLE IF NOT EXISTS attribute (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -76,3 +64,4 @@ CREATE TABLE IF NOT EXISTS attribute (
     cluster INTEGER,
     FOREIGN KEY(cluster) REFERENCES cluster(id)
 );
+*/

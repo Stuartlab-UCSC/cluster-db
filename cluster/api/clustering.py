@@ -12,6 +12,7 @@ ns = api.namespace('clustering', description='operations')
 model = api.model('Clustering', {
     'name': fields.String(required=True, description='Unique clustering name'),
     'method': fields.String(description='Clustering method applied'),
+    'method_implementation': fields.String(description='Clustering method implementation'),
     'method_url': fields.String(description='URL of clustering method'),
     'method_parameters': fields.String(description='Clustering method parameters'),
     'analyst': fields.String(description='Person who ran the analysis'),
@@ -59,17 +60,30 @@ class Clustering(Resource):
         abortIfTsv()
         row = table.get(name)
         if row is None:
-            abort(404, name + ' does not exist.')
+            abort(404, 'Name not found: ' + str(name))
         return row
 
     @ns.response(200, 'Deleted one')
+    @ns.marshal_with(modelId)
     def delete(self, name):
 
         '''Delete one by name'''
         abortIfTsv()
-        table.delete(name)
-        return 'Deleted one', 200
-        # TODO implement not found response
+        id = table.delete(name)
+        if id is None:
+            abort(404, 'Name not found: ' + str(name))
+        return id, 200
+
+    @ns.expect(model)
+    @ns.marshal_with(modelId)
+    def put(self, name):
+
+        '''Replace one by name'''
+        abortIfTsv()
+        id = table.replace(name, api.payload)
+        if id is None:
+            abort(404, 'Name not found: ' + str(name))
+        return id, 200
 
 
 if __name__ == '__main__':

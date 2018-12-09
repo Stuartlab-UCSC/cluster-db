@@ -75,13 +75,26 @@ class Dataset(Resource):
         return row
 
     @ns.response(200, 'Deleted one')
+    @ns.marshal_with(modelId)
     def delete(self, name):
 
         '''Delete one by name'''
         abortIfTsv()
-        table.delete(name)
-        return 'Deleted one', 200
-        # TODO implement not found response
+        id = table.delete(name)
+        if id is None:
+            abort(404, 'Name not found: ' + str(name))
+        return id, 200
+
+    @ns.expect(model)
+    @ns.marshal_with(modelId)
+    def put(self, name):
+
+        '''Replace one by name'''
+        abortIfTsv()
+        id = table.replace(name, api.payload)
+        if id is None:
+            abort(404, 'Name not found: ' + str(name))
+        return id, 200
 
 
 if __name__ == '__main__':

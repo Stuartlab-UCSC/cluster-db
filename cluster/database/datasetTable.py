@@ -24,6 +24,14 @@ class DatasetTable(Table):
         )
         return cursor
 
+    def _replace(s, name, data, db):
+        db.execute(
+            'UPDATE ' + s.table + ' SET'
+            ' name = ?,'
+            ' species = ?'
+            ' WHERE name = ?',
+            (s._getVals(data, name))
+        )
 
 
 dataset = DatasetTable()
