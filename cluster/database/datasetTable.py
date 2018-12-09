@@ -5,13 +5,13 @@ class DatasetTable(Table):
 
     table = 'dataset'
 
-    def _getVals(s, data, id=None):
+    def _getVals(s, data, name=None):
         vals = [
             data['name'],
             data['species'],
         ]
-        if id:
-            vals.append(id)
+        if name:
+            vals.append(name)
         return vals
 
     def _add(s, data, db):

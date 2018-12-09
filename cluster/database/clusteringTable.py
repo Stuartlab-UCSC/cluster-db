@@ -5,7 +5,7 @@ class ClusteringTable(Table):
 
     table = 'clustering'
 
-    def _getVals(s, data, name):
+    def _getVals(s, data, name=None):
         vals = [
             data['name'],
             data['method'],
@@ -16,15 +16,23 @@ class ClusteringTable(Table):
             data['secondary'],
             data['dataset']
         ]
-        if name:
+        if name != None:
             vals.append(name)
         return vals
 
     def _add(s, data, db):
+        vals = s._getVals(data)
+        print('vals:', vals)
         cursor = db.execute(
             'INSERT INTO ' + s.table + ' ('
             ' name,'
             ' method,'
+            ' method_implementation,'
+            ' method_url,'
+            ' method_parameters,'
+            ' analyst,'
+            ' secondary,'
+            ' dataset)'
             ' VALUES (?,?,?,?,?,?,?,?)',
             s._getVals(data)
         )

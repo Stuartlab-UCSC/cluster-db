@@ -2,9 +2,8 @@
 # api/dataset.py
 
 from flask_restplus import Resource, fields
-from werkzeug.exceptions import abort
-from cluster.api.restplus import modelId, isTsv, abortIfTsv
-from cluster.api.restplus import api
+from cluster.api.restplus import api, modelId
+from cluster.api.baseRoute import delete, getAll, getOne, post, put
 from cluster.database.datasetTable import dataset as table
 
 ns = api.namespace('dataset', description='operations')
@@ -37,64 +36,43 @@ modelTsv = api.model('Dataset TSV', {
 
 @ns.route('/')
 class DatasetList(Resource):
-
-    '''Get a list of all, or add a new one'''
+    '''Get all, or add a new one'''
 
     @ns.response(200, 'list of all as JSON or TSV')
     def get(self):
-
         '''Get all'''
-        if isTsv():
-            return table.getTsv()
-        return table.get(), 200
+        return getAll(table)
 
     @ns.expect(model)
     @ns.response(200, 'ID of added', modelId)
     def post(self):
-
         '''Add a new one'''
-        abortIfTsv()
-        return table.add(api.payload), 200
+        return post(table, api.payload)
 
 
 @ns.route('/<string:name>')
 @ns.response(404, 'Not found')
 @ns.param('name', 'The name')
 class Dataset(Resource):
-
     '''Get, update or delete one'''
 
     @ns.marshal_with(modelWithId)
     def get(self, name):
-
         '''Get one by name'''
-        abortIfTsv()
-        row = table.get(name)
-        if row is None:
-            abort(404, name + ' does not exist.')
-        return row
+        return getOne(table, name)
 
-    @ns.response(200, 'Deleted one')
     @ns.marshal_with(modelId)
+    @ns.response(200, 'ID of deleted', modelId)
     def delete(self, name):
-
         '''Delete one by name'''
-        abortIfTsv()
-        id = table.delete(name)
-        if id is None:
-            abort(404, 'Name not found: ' + str(name))
-        return id, 200
+        return delete(table, name)
 
     @ns.expect(model)
     @ns.marshal_with(modelId)
+    @ns.response(200, 'ID of replaced', modelId)
     def put(self, name):
-
         '''Replace one by name'''
-        abortIfTsv()
-        id = table.replace(name, api.payload)
-        if id is None:
-            abort(404, 'Name not found: ' + str(name))
-        return id, 200
+        return put(table, name, api.payload)
 
 
 if __name__ == '__main__':
