@@ -1,68 +1,27 @@
 
 # api/clustering.py
 
-from flask_restplus import Resource, fields
-from cluster.api.restplus import api, modelId
-from cluster.api.baseRoute import delete, getAll, getOne, post, put
+from flask_restplus import fields
+from cluster.api.restplus import api
 from cluster.database.clusteringTable import clustering as table
 
-ns = api.namespace('clustering', description='operations')
-
-model = api.model('Clustering', {
+ns = api.namespace('clustering')
+model = api.model('clustering', {
     'name': fields.String(required=True, description='Unique clustering name'),
-    'method': fields.String(description='Clustering method applied'),
-    'method_implementation': fields.String(description='Clustering method implementation'),
-    'method_url': fields.String(description='URL of clustering method'),
-    'method_parameters': fields.String(description='Clustering method parameters'),
-    'analyst': fields.String(description='Person who ran the analysis'),
-    'secondary': fields.Boolean(description='True means this is a secondary clustering and another is the default'),
-    'dataset': fields.Integer(description='Dataset upon which the analysis was performed'),
-})
-
-modelWithId = api.clone('Clustering with ID', model, {
+    'method': fields.String(required=True, description='Clustering method applied'),
+    'method_implementation': fields.String(required=True, description='Clustering method implementation'),
+    'method_url': fields.String(required=True, description='URL of clustering method'),
+    'method_parameters': fields.String(required=True, description='Clustering method parameters'),
+    'analyst': fields.String(required=True, description='Person who ran the analysis'),
+    'secondary': fields.Integer(required=True,
+        description='One means this is a secondary clustering and another is the default'),
+    'dataset': fields.String(required=True, description='Dataset upon which the analysis was performed'),
     'id': fields.Integer(description='Unique identifier assigned by the database')
 })
+modelTsvLoad = api.model('Clustering TSV', {
+    'url': fields.String(required=True, description='URL of the filename to load into the database'),
+})
 
-@ns.route('/')
-class ClusteringList(Resource):
-    '''Get all, or add a new one'''
-
-    @ns.response(200, 'list of all as JSON or TSV')
-    def get(self):
-        '''Get all'''
-        return getAll(table)
-
-    @ns.expect(model)
-    @ns.response(200, 'ID of added', modelId)
-    def post(self):
-        '''Add a new one'''
-        return post(table, api.payload)
-
-
-@ns.route('/<string:name>')
-@ns.response(404, 'Not found')
-@ns.param('name', 'The name')
-class Clustering(Resource):
-    '''Get, update or delete one'''
-
-    @ns.marshal_with(modelWithId)
-    def get(self, name):
-        '''Get one by name'''
-        return getOne(table, name)
-
-    @ns.marshal_with(modelId)
-    @ns.response(200, 'ID of deleted', modelId)
-    def delete(self, name):
-        '''Delete one by name'''
-        return delete(table, name)
-
-    @ns.expect(model)
-    @ns.marshal_with(modelId)
-    @ns.response(200, 'ID of replaced', modelId)
-    def put(self, name):
-        '''Replace one by name'''
-        return put(table, name, api.payload)
-
-
-if __name__ == '__main__':
-    app.run(debug=True)
+# Do the equivalent of a bash shell 'source' to get the base routes.
+filename = "/Users/swat/dev/cdb/clusterDb/cluster/api/base_source.py"
+exec(compile(source=open(filename).read(), filename='filename', mode='exec'))

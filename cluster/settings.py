@@ -8,5 +8,6 @@ RESTPLUS_VALIDATE = True
 RESTPLUS_MASK_SWAGGER = False
 RESTPLUS_ERROR_404_HELP = False
 
-# Application instance settings
+# Application settings
 DATABASE = '/Users/swat/dev/cdb/cluster.db'
+UPLOADS = '/Users/swat/dev/cdb/uploads'

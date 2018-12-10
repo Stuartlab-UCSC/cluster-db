@@ -1,8 +1,10 @@
 
 # The base class for single table access.
 
-import logging, traceback
+import logging, traceback, csv
+from flask import current_app
 from werkzeug.exceptions import abort
+from cluster.api.restplus import abortIfJson, abortIfTsv, isJson, isTsv
 from cluster.database.db import get_db
 
 log = logging.getLogger(__name__)
@@ -52,6 +54,7 @@ class Table(object):
     def add(s, data):
 
         # Add one row.
+        abortIfTsv()
         db = get_db()
         try:
             cursor = s._add(data, db)
@@ -64,19 +67,11 @@ class Table(object):
 
     def delete(s, name):
         row = s.get(name)
+        print('delete:row:', row)
         if row == None:
-            return None
+            abort(404, 'Name not found: ' + str(name))
         db = get_db()
         db.execute('DELETE FROM ' + s.table + ' WHERE name = ?', (name,))
-        db.commit()
-        return { 'id': row['id'] }
-
-    def replace(s, name, data):
-        row = s.get(name)
-        if row == None:
-            return None
-        db = get_db()
-        s._replace(name, data, db)
         db.commit()
         return { 'id': row['id'] }
 
@@ -84,41 +79,66 @@ class Table(object):
 
         # Return one by name or return all rows.
         if name:
+
             # Return one row by ID.
+            abortIfTsv()
             row = get_db().execute(
                 'SELECT * FROM ' + s.table + ' WHERE name = ?', (name,)).fetchone()
+            if row is None:
+                abort(404, 'Name not found: ' + str(name))
             return row
+
+        # Return all as TSV.
+        elif isTsv():
+            return s._rowsToTsv(s._getAllRows())
 
         # Return all rows as a list of dicts.
         return s._rowsToListOfDicts(s._getAllRows())
 
-    def getTsv(s):
+    def loadTsv(name, file_path):
 
-        # Return all rows as a TSV-formatted string.
-        print('in getTsv()')
-        return s._rowsToTsv(s._getAllRows())
+        # Add rows from a TSV file to the table.
+        # @param name: name of parent of new rows
+        # @param file_path: TSV file path to load
+        # @returns: row count or error, plus http code
+        # TODO test that name exists
+        try:
+            db = get_db()
+            with open(os.path(current_app.UPLOADS, file_path), 'r') as f:
+                f = csv.reader(f, delimiter='\t')
+                if not f.fieldnames == s._getFieldnames():
+                    return { 'error': 'field name mismatch' }, 400
+                try:
+                    for row in f:
+                        s._add(row.append(name), db)
+                except:
+                    return { 'error': 'load failed' }, 400
+            db.commit()
+        except:
+            return { 'error': 'load failed, file not found' }, 404
+        return { 'row_count': f.line_num }
 
-    def _deleteAll(s):
+    def update(s, name, field, value):
+        abortIfTsv()
+        try:
+            row = dict(s.get(name))
+            if row == None:
+                abort(404, 'Name not found: ' + str(name))
 
-        # Clear the table of all data, usually to reload the table.
-        # @returns: nothing
-        get_db().execute('DELETE FROM ' + s.table)
+            # Convert the value to the expected data type.
+            # We only handle int, float, str.
+            data_type = type(row[field]).__name__
+            if data_type == 'int' or data_type == 'long':
+                row[field] = int(value)
+            elif data_type == 'float':
+                row[field] = float(value)
+            else:
+                row[field] = value
 
-    def tsvAddManyFromFile(s, filePath, replace=False):
+            db = get_db()
+            s._replace(name, row, db)
+            db.commit()
+        except:
+            return { 'error': 'update failed' }, 400
+        return { 'id': row['id'] }
 
-        # Add many rows from a file to the table.
-        # @param filePath: the full path to the TSV file
-        # @param replace: True to replace all rows, False to append
-        # @returns: 0 on success, 1 on failue
-        if replace:
-            s._deleteAll()
-        db = get_db()
-        with open(filePath, 'r') as f:
-            f = csv.reader(f, delimiter='\t')
-            try:
-                for row in f:
-                    s._add(row, db)
-            except:
-                return 1
-        db.commit()
-        return 0

@@ -5,6 +5,12 @@ class ClusteringTable(Table):
 
     table = 'clustering'
 
+    def _getFieldnames(s):
+        return [
+            'name',
+            'signature_gene_set',
+        ]
+
     def _getVals(s, data, name=None):
         vals = [
             data['name'],
@@ -21,6 +27,8 @@ class ClusteringTable(Table):
         return vals
 
     def _add(s, data, db):
+        vals = s._getVals(data)
+        print('vals:', vals)
         cursor = db.execute(
             'INSERT INTO ' + s.table + ' ('
             ' name,'
@@ -36,20 +44,7 @@ class ClusteringTable(Table):
         )
         return cursor
 
-    def _replace(s, name, data, db):
-        db.execute(
-            'UPDATE ' + s.table + ' SET'
-            ' name = ?,'
-            ' method = ?,'
-            ' method_implementation = ?,'
-            ' method_url = ?,'
-            ' method_parameters = ?,'
-            ' analyst = ?,'
-            ' secondary = ?,'
-            ' dataset = ?'
-            ' WHERE name = ?',
-            (s._getVals(data, name))
-        )
+
 
 
 clustering = ClusteringTable()

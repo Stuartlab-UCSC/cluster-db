@@ -2,6 +2,7 @@ import logging
 import traceback
 from flask import request
 from flask_restplus import Api, fields
+from werkzeug.exceptions import abort
 from cluster import settings
 
 log = logging.getLogger(__name__)
@@ -13,11 +14,25 @@ modelId = api.model('ID model', {
     'id': fields.Integer(readOnly=True, description='The unique identifier'),
 })
 
+modelRowCount = api.model('Row Count', {
+    'row-count': fields.String(description='Number of rows'),
+})
+
 tsvUnsupported = 'TSV IS ONLY SUPPORTED FOR MULTI-ROW QUERIES'
+JsonUnsupported = 'JSON IS ONLY SUPPORTED FOR SINGLE-ROW QUERIES'
 
 
 def isTsv():
     return request.headers['accept'] == 'text/tsv'
+
+
+def isJson():
+    return request.headers['accept'] == 'application/json'
+
+
+def abortIfJson():
+    if isJson():
+        abort(400, jsonUnsupported)
 
 
 def abortIfTsv():
