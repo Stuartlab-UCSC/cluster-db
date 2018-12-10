@@ -3,7 +3,7 @@
 # It should be included in the table route file with exec().
 
 from flask_restplus import Resource
-from cluster.api.restplus import api, modelId
+from cluster.api.restplus import api, model_id
 
 
 # Get all
@@ -41,7 +41,7 @@ class GetOne(Resource):
 class Update(Resource):
     @ns.response(200, 'Success with ID of updated')
     @ns.response(404, 'Not found')
-    @ns.marshal_with(modelId)
+    @ns.marshal_with(model_id)
     def put(self, name, field, value):
         '''UPDATE'''
         return table.update(name, field, value)
@@ -53,7 +53,7 @@ class Update(Resource):
 class Delete(Resource):
     @ns.response(200, 'Success with ID of deleted')
     @ns.response(404, 'Not found')
-    @ns.marshal_with(modelId)
+    @ns.marshal_with(model_id)
     def delete(self, name):
         '''DELETE'''
         return table.delete(name)

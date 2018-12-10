@@ -14,11 +14,10 @@ model = api.model('clustering', {
     'method_parameters': fields.String(required=True, description='Clustering method parameters'),
     'analyst': fields.String(required=True, description='Person who ran the analysis'),
     'secondary': fields.Integer(required=True,
-        description='One means this is a secondary clustering and another is the default'),
-    'dataset': fields.String(required=True, description='Dataset upon which the analysis was performed'),
-    'id': fields.Integer(description='Unique identifier assigned by the database')
+        description='One means this is a secondary clustering and another clustering is the default'),
+    'dataset': fields.String(required=True, description='Dataset name upon which the analysis was performed'),
 })
-modelTsvLoad = api.model('Clustering TSV', {
+model_tsv_load = api.model('Clustering TSV', {
     'url': fields.String(required=True, description='URL of the filename to load into the database'),
 })
 

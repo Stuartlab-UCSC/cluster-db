@@ -10,7 +10,7 @@ from cluster.api.clustering import ns as clustering_namespace
 from cluster.api.dataset import ns as dataset_namespace
 #from cluster.api.signature_gene import ns as signature_gene_namespace
 #from cluster.api.signature_gene_set import ns as signature_gene_set_namespace
-from cluster.api.restplus import api, init as apiInit
+from cluster.api.restplus import api, init as api_init
 import cluster.database.db as db
 
 app = Flask(__name__)
@@ -44,7 +44,7 @@ def initialize_app(flask_app):
     initialize_blueprint(flask_app)
     with app.app_context():
         db.init_db()
-        apiInit(flask_app)
+        api_init(flask_app)
 
 
 def main():

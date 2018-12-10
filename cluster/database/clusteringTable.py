@@ -1,24 +1,10 @@
 
 from cluster.database.table import Table
+from cluster.database.datasetTable import dataset
 
 class ClusteringTable(Table):
 
     table = 'clustering'
-
-    def _getVals(s, data, name=None):
-        vals = [
-            data['name'],
-            data['method'],
-            data['method_implementation'],
-            data['method_url'],
-            data['method_parameters'],
-            data['analyst'],
-            data['secondary'],
-            data['dataset']
-        ]
-        if name != None:
-            vals.append(name)
-        return vals
 
     def _add(s, data, db):
         cursor = db.execute(
@@ -30,11 +16,33 @@ class ClusteringTable(Table):
             ' method_parameters,'
             ' analyst,'
             ' secondary,'
-            ' dataset)'
+            ' dataset_id)'
             ' VALUES (?,?,?,?,?,?,?,?)',
-            s._getVals(data)
+            s._get_vals(data)
         )
         return cursor
+
+    def _get_foreign_key(s, db, data):
+        name = data['dataset']
+        if name == None:
+            return None, None
+        return 'dataset_id', dataset.get(name)['id']
+
+
+    def _get_vals(s, data, name=None):
+        vals = [
+            data['name'],
+            data['method'],
+            data['method_implementation'],
+            data['method_url'],
+            data['method_parameters'],
+            data['analyst'],
+            data['secondary'],
+            data['dataset_id']
+        ]
+        if name != None:
+            vals.append(name)
+        return vals
 
     def _replace(s, name, data, db):
         db.execute(
@@ -46,9 +54,9 @@ class ClusteringTable(Table):
             ' method_parameters = ?,'
             ' analyst = ?,'
             ' secondary = ?,'
-            ' dataset = ?'
+            ' dataset_id = ?'
             ' WHERE name = ?',
-            (s._getVals(data, name))
+            (s._get_vals(data, name))
         )
 
 

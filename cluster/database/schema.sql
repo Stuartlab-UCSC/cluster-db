@@ -1,6 +1,8 @@
 
-DROP TABLE IF EXISTS dataset;
-DROP TABLE IF EXISTS clustering;
+--DROP TABLE IF EXISTS dataset;
+--DROP TABLE IF EXISTS clustering;
+--DROP TABLE IF EXISTS signature_gene_set;
+--DROP TABLE IF EXISTS signature_gene;
 
 
 CREATE TABLE IF NOT EXISTS dataset (
@@ -21,6 +23,7 @@ CREATE TABLE IF NOT EXISTS dataset (
     expressionDataSource text,
     expressionDataSourceURL text
 );
+
 CREATE TABLE IF NOT EXISTS clustering (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name text UNIQUE NOT NULL,
@@ -30,41 +33,46 @@ CREATE TABLE IF NOT EXISTS clustering (
     method_parameters text,
     analyst text,
     secondary INTEGER,
-    dataset INTEGER NOT NULL REFERENCES dataset(id)
+
+    dataset_id INTEGER NOT NULL,
+        FOREIGN KEY(dataset_id) REFERENCES dataset(id)
+
+
 );
 /*
 CREATE TABLE IF NOT EXISTS signature_gene_set (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name text UNIQUE NOT NULL,
     method text,
-    clustering INTEGER NOT NULL
-        FOREIGN KEY(clustering) REFERENCES cluster(id)
+    clustering_id INTEGER NOT NULL,
+        CONSTRAINT fk_clustering
+        FOREIGN KEY (clustering_id)
+        REFERENCES clustering(id)
 );
 CREATE TABLE IF NOT EXISTS signature_gene (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name text UNIQUE NOT NULL,
-    signature_gene_set INTEGER NOT NULL,
-        FOREIGN KEY(signature_gene_set) REFERENCES signature_gene_set(id)
+    signature_gene_set_id INTEGER NOT NULL,
+        CONSTRAINT fk_signature_gene_set
+        FOREIGN KEY (signature_gene_set_id)
+        REFERENCES signature_gene_set(id)
 );
 */
 /*
 CREATE TABLE IF NOT EXISTS cluster (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name text UNIQUE NOT NULL,
-    clustering INTEGER NOT NULL,
-        FOREIGN KEY(clustering) REFERENCES clustering(id)
+    clustering_id INTEGER NOT NULL REFERENCES clustering(id)
 );
 CREATE TABLE IF NOT EXISTS cluster_assignment (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     sample text UNIQUE NOT NULL,
-    cluster INTEGER NOT NULL,
-        FOREIGN KEY(cluster) REFERENCES cluster(id)
+    cluster_id INTEGER NOT NULL REFERENCES cluster(id)
 );
 CREATE TABLE IF NOT EXISTS attribute (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name text UNIQUE NOT NULL,
     value text,
-    cluster INTEGER NOT NULL,
-        FOREIGN KEY(cluster) REFERENCES cluster(id)
+    cluster_id INTEGER NOT NULL REFERENCES cluster(id)
 );
 */

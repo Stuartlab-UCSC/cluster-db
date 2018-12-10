@@ -20,7 +20,6 @@ model = api.model('dataset', {
     'platform': fields.String(description='Genomic sequencing platform'),
     'expressionDataSource': fields.String(description='Source of expression data'),
     'expressionDataSourceURL': fields.String(description='URL of expression source'),
-    'id': fields.Integer(description='Unique identifier assigned by the database')
 })
 
 # Do the equivalent of a bash shell 'source' to get the base routes.
