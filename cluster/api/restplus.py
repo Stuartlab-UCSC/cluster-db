@@ -53,6 +53,7 @@ def default_error_handler(e):
         return {'message': message}, 500
 
 
+"""
 @api.errorhandler(bad_request)
 def default_error_handler(e):
     print('!!!!!!!!!!!! in app_error_handler() !!!!!!!!!!!!!')
@@ -60,6 +61,7 @@ def default_error_handler(e):
     log.exception(message)
     if not settings.FLASK_DEBUG:
         return {'message': message}, 500
+"""
 
 
 @api.errorhandler(no_result_found)
