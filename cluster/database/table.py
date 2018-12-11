@@ -3,11 +3,10 @@
 
 from flask import current_app
 from werkzeug.exceptions import abort
-import logging, traceback, csv, sqlite3
-from cluster.api.restplus import app_error, abort_if_json, abort_if_tsv, is_json, is_tsv
+import csv, sqlite3
+from cluster.api.restplus import exception_if_tsv, is_tsv
 from cluster.database.db import get_db
-
-log = logging.getLogger(__name__)
+from cluster.database.error import abort_400_trace
 
 class Table(object):
 
@@ -52,70 +51,68 @@ class Table(object):
         return cursor.fetchall()
 
     def add(s, data):
-
-        # Add one row.
-        abort_if_tsv()
-        db = get_db()
-
-        # Find the foreign key ID by the foreign key name.
-        fk_field, fk_id = s._get_foreign_key(db, data)
-        if fk_field != None:
-            data[fk_field] = fk_id
-
         try:
+            # Add one row.
+            exception_if_tsv()
+            db = get_db()
+
+            # Find the foreign key ID by the foreign key name.
+            fk_field, fk_id = s._get_foreign_key(db, data)
+            if fk_field != None:
+                if fk_id == None:
+                    raise Exception('TODO: text: Parent row does not exist.')
+                data[fk_field] = fk_id
+
             cursor = s._add(data, db)
             db.commit()
+            return {"id": cursor.lastrowid}
         except Exception as e:
-            trace = traceback.format_exc(100)
-            log.error(trace)
-            abort(400, str(trace))
-        return {"id": cursor.lastrowid}
+            abort_400_trace(str(e))
+
 
     def delete(s, name):
         try:
             row = s.get(name)
             print('delete:row:', row)
             if row == None:
-                abort(404, 'Name not found: ' + str(name))
+                raise Exception(s.table + ' table name not found: ' + str(name))
             db = get_db()
             db.execute('DELETE FROM ' + s.table + ' WHERE name = ?', (name,))
             db.commit()
+            return {'id': row['id']}
         except sqlite3.IntegrityError as e:
-            print ('delete sqlite3.IntegrityError:', str(e))
-            trace = traceback.format_exc(100)
-            log.error(trace)
-            #raise Exception
-            #raise app_error('This row is owned by another row connected by a foreign key')
-            #abort(400, str(trace))
-            abort(400, 'My custom message', custom='value')
-
+            abort(400, 'This row is owned by another row connected by a foreign key')
         except Exception as e:
-            print ('delete exception:', str(e))
-            trace = traceback.format_exc(100)
-            log.error(trace)
-            abort(400, str(trace))
-        return { 'id': row['id'] }
+            abort_400_trace(str(e))
+
+
+    def _get_one(s, name):
+        return get_db().execute(
+            'SELECT * FROM ' + s.table + ' WHERE name = ?', (name,)).fetchone()
 
     def get(s, name=None):
+        try:
+            # Return one by name or return all rows.
+            if name:
 
-        # Return one by name or return all rows.
-        if name:
+                # Return one row by ID.
+                exception_if_tsv()
+                row = s._get_one(name)
+                if row is None:
+                    raise (s.table + ' table name not found: ' + str(name))
+                return row
 
-            # Return one row by ID.
-            abort_if_tsv()
-            row = get_db().execute(
-                'SELECT * FROM ' + s.table + ' WHERE name = ?', (name,)).fetchone()
-            if row is None:
-                abort(404, 'Name not found: ' + str(name))
-            return row
+            # Return all as TSV.
+            elif is_tsv():
+                return s._rows_to_tsv(s.get_all_rows())
 
-        # Return all as TSV.
-        elif is_tsv():
-            return s._rows_to_tsv(s.get_all_rows())
+            # Return all rows as a list of dicts.
+            return s._rows_to_list_of_dicts(s.get_all_rows())
 
-        # Return all rows as a list of dicts.
-        return s._rows_to_list_of_dicts(s.get_all_rows())
+        except Exception as e:
+            abort_400_trace(str(e))
 
+    """
     def load_tsv(name, file_path):
 
         # Add rows from a TSV file to the table.
@@ -128,7 +125,7 @@ class Table(object):
             with open(os.path(current_app.UPLOADS, file_path), 'r') as f:
                 f = csv.reader(f, delimiter='\t')
                 if not f.fieldnames == s._getFieldnames():
-                    return { 'error': 'field name mismatch' }, 400
+                    abort(400, 'field name mismatch')
                 try:
                     for row in f:
                         s._add(row.append(name), db)
@@ -138,13 +135,14 @@ class Table(object):
         except:
             return { 'error': 'load failed, file not found' }, 404
         return { 'row_count': f.line_num }
+    """
 
     def update(s, name, field, value):
-        abort_if_tsv()
         try:
+            exception_if_tsv()
             row = dict(s.get(name))
             if row == None:
-                abort(404, 'Name not found: ' + str(name))
+                raise Exception(s.table + ' table name not found: ' + str(name))
 
             # Convert the value to the expected data type.
             # We only handle int, float, str.
@@ -159,7 +157,7 @@ class Table(object):
             db = get_db()
             s._replace(name, row, db)
             db.commit()
-        except:
-            return { 'error': 'update failed' }, 400
-        return { 'id': row['id'] }
+            return {'id': row['id']}
 
+        except Exception as e:
+            abort_400_trace(str(e))

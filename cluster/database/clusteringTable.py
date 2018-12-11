@@ -23,10 +23,10 @@ class ClusteringTable(Table):
         return cursor
 
     def _get_foreign_key(s, db, data):
-        name = data['dataset']
-        if name == None:
-            return None, None
-        return 'dataset_id', dataset.get(name)['id']
+        row = dataset._get_one(data['dataset'])
+        if row == None:
+            return 'dataset_id', None
+        return 'dataset_id', row['id']
 
 
     def _get_vals(s, data, name=None):

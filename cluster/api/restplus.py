@@ -2,7 +2,6 @@ import logging
 import traceback
 from flask import request
 from flask_restplus import Api, fields
-from werkzeug.exceptions import abort
 from cluster import settings
 
 log = logging.getLogger(__name__)
@@ -26,18 +25,9 @@ def is_tsv():
     return request.headers['accept'] == 'text/tsv'
 
 
-def is_json():
-    return request.headers['accept'] == 'application/json'
-
-
-def abort_if_json():
-    if is_json():
-        abort(400, jsonUnsupported)
-
-
-def abort_if_tsv():
+def exception_if_tsv():
     if is_tsv():
-        abort(400, tsv_unsupported)
+        raise Exception(tsv_unsupported)
 
 
 def no_result_found(e):
