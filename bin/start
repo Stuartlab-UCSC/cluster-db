@@ -1,7 +1,7 @@
-
-# start
 # !/usr/bin/env bash
+# start
 
+export CLUSTERDB=/Users/swat/dev/cdb/
 source venv/bin/activate
 python setup.py develop
 python cluster/app.py

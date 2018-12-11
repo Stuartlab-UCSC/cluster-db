@@ -2,7 +2,8 @@ import logging
 import traceback
 from flask import request
 from flask_restplus import Api, fields
-from cluster import settings
+from cluster import config
+
 
 log = logging.getLogger(__name__)
 
@@ -39,7 +40,7 @@ def default_error_handler(e):
     print('!!!!!!!!!!!! in default_error_handler() !!!!!!!!!!!!!')
     message = 'An unhandled exception occurred.'
     log.exception(message)
-    if not settings.FLASK_DEBUG:
+    if not config.FLASK_DEBUG:
         return {'message': message}, 500
 
 
@@ -49,7 +50,7 @@ def default_error_handler(e):
     print('!!!!!!!!!!!! in app_error_handler() !!!!!!!!!!!!!')
     message = 'An app exception occurred.'
     log.exception(message)
-    if not settings.FLASK_DEBUG:
+    if not config.FLASK_DEBUG:
         return {'message': message}, 500
 """
 
