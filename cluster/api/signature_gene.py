@@ -3,13 +3,12 @@
 
 from flask_restplus import fields
 from cluster.api.restplus import api
-from cluster.database.datasetTable import dataset as table
+from cluster.database.dataset_table import dataset as table
 
 ns = api.namespace('signature_gene')
 model = api.model('signature_gene', {
     'name': fields.String(required=True, description='Gene name'),
-    'signature_gene_set': fields.String(required=True, description='Name of signature gene set'),
-    'id': fields.Integer(description='Unique identifier assigned by the database')
+    'signature_gene_set': fields.String(required=True, description='Name of the signature gene set'),
 })
 
 # Do the equivalent of a bash shell 'source' to get the base routes.

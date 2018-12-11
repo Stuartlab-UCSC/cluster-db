@@ -1,51 +1,30 @@
 
 from cluster.database.table import Table
+from cluster.database.signature_gene_set_table import signature_gene_set
 
-class ClusteringTable(Table):
 
-    table = 'clustering'
+class Signature_gene_table(Table):
 
-    def _getFieldnames(s):
-        return [
-            'name',
-            'signature_gene_set',
-        ]
-
-    def _getVals(s, data, name=None):
-        vals = [
-            data['name'],
-            data['method'],
-            data['method_implementation'],
-            data['method_url'],
-            data['method_parameters'],
-            data['analyst'],
-            data['secondary'],
-            data['dataset']
-        ]
-        if name != None:
-            vals.append(name)
-        return vals
+    table = 'signature_gene'
+    foreign_key_names = ['signature_gene_set']
 
     def _add(s, data, db):
-        vals = s._getVals(data)
-        print('vals:', vals)
-        cursor = db.execute(
-            'INSERT INTO ' + s.table + ' ('
-            ' name,'
-            ' method,'
-            ' method_implementation,'
-            ' method_url,'
-            ' method_parameters,'
-            ' analyst,'
-            ' secondary,'
-            ' dataset)'
-            ' VALUES (?,?,?,?,?,?,?,?)',
-            s._getVals(data)
+        cursor = db.execute('''
+            INSERT INTO signature_gene (
+                name,
+                signature_gene_set
+            )
+            VALUES (?,?)
+            ''', s._get_vals(data)
         )
         return cursor
 
+    def _get_foreign_key(s, db, data):
+        row = signature_gene_set._get_one(data['signature_gene_set'])
+        if row == None:
+            return 'signature_gene_set_id', None
+        return 'signature_gene_set_id', row['id']
 
 
-
-clustering = ClusteringTable()
+signature_gene = Signature_gene_table()
 

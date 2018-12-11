@@ -1,6 +1,6 @@
 
 from cluster.database.table import Table
-from cluster.database.datasetTable import dataset
+from cluster.database.dataset_table import dataset
 
 class ClusteringTable(Table):
 

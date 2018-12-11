@@ -3,7 +3,7 @@
 
 from flask_restplus import fields
 from cluster.api.restplus import api
-from cluster.database.datasetTable import dataset as table
+from cluster.database.dataset_table import dataset as table
 
 ns = api.namespace('dataset')
 model = api.model('dataset', {

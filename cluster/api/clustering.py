@@ -3,7 +3,7 @@
 
 from flask_restplus import fields
 from cluster.api.restplus import api
-from cluster.database.clusteringTable import clustering as table
+from cluster.database.clustering_table import clustering as table
 
 ns = api.namespace('clustering')
 model = api.model('clustering', {
@@ -15,7 +15,7 @@ model = api.model('clustering', {
     'analyst': fields.String(required=True, description='Person who ran the analysis'),
     'secondary': fields.Integer(required=True,
         description='One means this is a secondary clustering and another clustering is the default'),
-    'dataset': fields.String(required=True, description='Dataset name upon which the analysis was performed'),
+    'dataset': fields.String(required=True, description='Name of dataset that was analyzed'),
 })
 model_tsv_load = api.model('Clustering TSV', {
     'url': fields.String(required=True, description='URL of the filename to load into the database'),
