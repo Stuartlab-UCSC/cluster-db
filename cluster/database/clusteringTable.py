@@ -7,18 +7,19 @@ class ClusteringTable(Table):
     table = 'clustering'
 
     def _add(s, data, db):
-        cursor = db.execute(
-            'INSERT INTO ' + s.table + ' ('
-            ' name,'
-            ' method,'
-            ' method_implementation,'
-            ' method_url,'
-            ' method_parameters,'
-            ' analyst,'
-            ' secondary,'
-            ' dataset_id)'
-            ' VALUES (?,?,?,?,?,?,?,?)',
-            s._get_vals(data)
+        cursor = db.execute('''
+            INSERT INTO clustering (
+                name,
+                method,
+                method_implementation,
+                method_url,
+                method_parameters,
+                analyst,
+                secondary,
+                dataset_id
+            )
+            VALUES (?,?,?, ?,?,?, ?,?)
+            ''', s._get_vals(data)
         )
         return cursor
 
@@ -30,33 +31,30 @@ class ClusteringTable(Table):
 
 
     def _get_vals(s, data, name=None):
-        vals = [
-            data['name'],
-            data['method'],
-            data['method_implementation'],
-            data['method_url'],
-            data['method_parameters'],
-            data['analyst'],
-            data['secondary'],
-            data['dataset_id']
-        ]
+
+        # The flask_restplus model guarantees the order in the dict.
+        vals = []
+        for key in data.keys():
+            if key != 'dataset':  # don't include the dataset name
+                vals.append(data[key])
+
         if name != None:
             vals.append(name)
         return vals
 
     def _replace(s, name, data, db):
-        db.execute(
-            'UPDATE ' + s.table + ' SET'
-            ' name = ?,'
-            ' method = ?,'
-            ' method_implementation = ?,'
-            ' method_url = ?,'
-            ' method_parameters = ?,'
-            ' analyst = ?,'
-            ' secondary = ?,'
-            ' dataset_id = ?'
-            ' WHERE name = ?',
-            (s._get_vals(data, name))
+        db.execute('''
+            UPDATE clustering SET
+                name = ?,
+                method = ?,
+                method_implementation = ?,
+                method_url = ?,
+                method_parameters = ?,
+                analyst = ?,
+                secondary = ?,
+                dataset_id = ?
+            WHERE name = ?
+            ''', (s._get_vals(data, name))
         )
 
 

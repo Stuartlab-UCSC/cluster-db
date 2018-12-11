@@ -2,7 +2,7 @@
 # The base class for single table access.
 
 from flask import current_app
-from werkzeug.exceptions import abort
+from flask_restplus import abort
 import csv, sqlite3
 from cluster.api.restplus import exception_if_tsv, is_tsv
 from cluster.database.db import get_db
@@ -66,6 +66,9 @@ class Table(object):
             cursor = s._add(data, db)
             db.commit()
             return {"id": cursor.lastrowid}
+
+        except sqlite3.IntegrityError as e:
+            abort(400, e)
         except Exception as e:
             abort_400_trace(str(e))
 
@@ -81,7 +84,7 @@ class Table(object):
             db.commit()
             return {'id': row['id']}
         except sqlite3.IntegrityError as e:
-            abort(400, 'This row is owned by another row connected by a foreign key')
+            abort(400, 'This row is owned by another row connected by a foreign key. ' + str(e))
         except Exception as e:
             abort_400_trace(str(e))
 

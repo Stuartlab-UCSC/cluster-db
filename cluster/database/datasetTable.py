@@ -6,12 +6,13 @@ class DatasetTable(Table):
     table = 'dataset'
 
     def _add(s, data, db):
-        cursor = db.execute(
-            'INSERT INTO ' + s.table + ' ('
-            ' name,'
-            ' species)'
-            ' VALUES (?,?)',
-            s._get_vals(data)
+        cursor = db.execute('''
+            INSERT INTO dataset (
+                name,
+                species
+            )
+            VALUES (?,?)
+            ''', s._get_vals(data)
         )
         return cursor
 
@@ -23,17 +24,23 @@ class DatasetTable(Table):
             data['name'],
             data['species'],
         ]
-        if name:
+        """
+        # The flask_restplus model guarantees the order in the dict.
+        vals = []
+        for key in data.keys():
+            vals.append(data[key])
+        """
+        if name != None:
             vals.append(name)
         return vals
 
     def _replace(s, name, data, db):
-        db.execute(
-            'UPDATE ' + s.table + ' SET'
-            ' name = ?,'
-            ' species = ?'
-            ' WHERE name = ?',
-            (s._get_vals(data, name))
+        db.execute('''
+            UPDATE dataset SET
+                name = ?,
+                species = ?
+            WHERE name = ?
+            ''', (s._get_vals(data, name))
         )
 
 
