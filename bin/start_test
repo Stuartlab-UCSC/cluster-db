@@ -1,0 +1,35 @@
+# !/usr/bin/env bash
+# start_test
+echo
+echo
+echo
+echo
+echo
+echo
+echo
+echo
+echo
+echo
+echo
+echo
+echo
+echo
+echo
+echo
+echo
+echo
+echo
+echo
+echo
+echo
+echo
+echo
+echo
+echo
+echo
+echo
+echo
+echo
+source venv/bin/activate
+export CLUSTERDB=/Users/swat/dev/cdb/
+pytest

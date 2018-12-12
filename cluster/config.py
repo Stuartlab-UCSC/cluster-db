@@ -13,5 +13,5 @@ SWAGGER_UI_DOC_EXPANSION = 'list'
 
 # Application settings
 CLUSTERDB = os.environ['CLUSTERDB']
-DATABASE = CLUSTERDB + 'cluster.db'
-UPLOADS = CLUSTERDB + 'uploads'
+DATABASE = CLUSTERDB + '../cluster.db'
+UPLOADS = CLUSTERDB + '../uploads'

@@ -3,5 +3,9 @@
 
 export CLUSTERDB=/Users/swat/dev/cdb/
 source venv/bin/activate
-python setup.py develop
-python cluster/app.py
+export FLASK_APP=cluster
+export FLASK_ENV=development
+flask run -h localhost -p 5555
+
+#python setup.py develop
+#python cluster/app.py

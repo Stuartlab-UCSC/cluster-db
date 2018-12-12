@@ -33,22 +33,18 @@ CREATE TABLE IF NOT EXISTS clustering (
     method_parameters text,
     analyst text,
     secondary INTEGER,
-
-    dataset_id INTEGER NOT NULL,
-        FOREIGN KEY(dataset_id) REFERENCES dataset(id)
-
-
+    dataset_id INTEGER,
+    FOREIGN KEY(dataset_id) REFERENCES dataset(id)
 );
-/*
+
 CREATE TABLE IF NOT EXISTS signature_gene_set (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name text UNIQUE NOT NULL,
     method text,
-    clustering_id INTEGER NOT NULL,
-        CONSTRAINT fk_clustering
-        FOREIGN KEY (clustering_id)
-        REFERENCES clustering(id)
+    clustering_id INTEGER,
+    FOREIGN KEY(clustering_id) REFERENCES clustering(id)
 );
+/*
 CREATE TABLE IF NOT EXISTS signature_gene (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name text UNIQUE NOT NULL,
