@@ -2,14 +2,14 @@
 from cluster.database.table import Table
 from cluster.database.dataset_table import dataset
 
-class ClusteringTable(Table):
+class Clustering_solution_table(Table):
 
-    table = 'clustering'
+    table = 'clustering_solution'
     foreign_key_names = ['dataset']
 
     def _add(s, data, db):
         cursor = db.execute('''
-            INSERT INTO clustering (
+            INSERT INTO clustering_solution (
                 name,
                 method,
                 method_implementation,
@@ -31,5 +31,5 @@ class ClusteringTable(Table):
         return 'dataset_id', row['id']
 
 
-clustering = ClusteringTable()
+clustering_solution = Clustering_solution_table()
 

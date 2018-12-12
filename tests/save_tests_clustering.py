@@ -64,7 +64,7 @@ def test_create(client, '''auth,''' app):
 
     with app.app_context():
         db = get_db()
-        count = db.execute('SELECT COUNT(id) FROM clustering').fetchone()[0]
+        count = db.execute('SELECT COUNT(id) FROM clustering_solution').fetchone()[0]
         assert count == 2
 
 
@@ -76,7 +76,7 @@ def test_update(client, '''auth,''' app):
 
     with app.app_context():
         db = get_db()
-        post = db.execute('SELECT * FROM clustering WHERE id = 1').fetchone()
+        post = db.execute('SELECT * FROM clustering_solution WHERE id = 1').fetchone()
         assert post['name'] == 'updated'
 
 # TODO
@@ -98,8 +98,8 @@ def test_delete(client, '''auth,''' app):
 
     with app.app_context():
         db = get_db()
-        clustering = db.execute('SELECT * FROM clustering WHERE id = 1').fetchone()
-        assert clustering is None
+        clustering_solution = db.execute('SELECT * FROM clustering_solution WHERE id = 1').fetchone()
+        assert clustering_solution is None
 
 
 

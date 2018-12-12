@@ -6,7 +6,7 @@ from flask_restplus import abort
 import csv, sqlite3
 from cluster.api.restplus import exception_if_tsv, is_tsv
 from cluster.database.db import get_db
-from cluster.database.error import abort_400_trace
+from cluster.database.error import abort_400_trace, Bail_404, message_404
 
 class Table(object):
 
@@ -105,14 +105,17 @@ class Table(object):
 
     def delete(s, name):
         try:
-            row = s.get(name)
+            row = s._get_one(name)
             print('delete:row:', row)
             if row == None:
-                raise Exception(s.table + ' table name not found: ' + str(name))
+                raise Bail_404()
             db = get_db()
             db.execute('DELETE FROM ' + s.table + ' WHERE name = ?', (name,))
             db.commit()
             return {'id': row['id']}
+
+        except Bail_404 as e:
+            abort(404, message_404(s.table, name))
         except sqlite3.IntegrityError as e:
             abort(400, 'This row is owned by another row connected by a foreign key. ' + str(e))
         except Exception as e:
@@ -127,7 +130,7 @@ class Table(object):
                 exception_if_tsv()
                 row = s._get_one(name)
                 if row is None:
-                    raise (s.table + ' table name not found: ' + str(name))
+                    raise Bail_404()
                 return row
 
             # Return all as TSV.
@@ -136,6 +139,9 @@ class Table(object):
 
             # Return all rows as a list of dicts.
             return s._rows_to_list_of_dicts(s.get_all_rows())
+
+        except Bail_404 as e:
+            abort(404, message_404(s.table, name))
 
         except Exception as e:
             abort_400_trace(str(e))
@@ -160,11 +166,12 @@ class Table(object):
     def update(s, name, field, value):
         try:
             exception_if_tsv()
-            row = dict(s.get(name))
+            row = s._get_one(name)
             if row == None:
-                raise Exception(s.table + ' table name not found: ' + str(name))
+                raise Bail_404()
+            drow = dict(row)
 
-            row[field] = s._transform_data_type(row[field], value)
+            drow[field] = s._transform_data_type(drow[field], value)
             db = get_db()
             db.execute(
                  'UPDATE ' + s.table + ' SET ' +
@@ -172,7 +179,9 @@ class Table(object):
                  ' WHERE name = ?',
                  (value, name))
             db.commit()
-            return {'id': row['id']}
+            return {'id': drow['id']}
 
+        except Bail_404 as e:
+            abort(404, message_404(s.table, name))
         except Exception as e:
             abort_400_trace(str(e))

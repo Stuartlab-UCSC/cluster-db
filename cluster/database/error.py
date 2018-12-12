@@ -14,4 +14,9 @@ def abort_400_trace(message):
     abort(400, error=message, trace=trace)
 
 
+class Bail_404(Exception):
+    pass
 
+
+def message_404(table, name):
+    return('Not found: ' + table + ': ' + str(name))

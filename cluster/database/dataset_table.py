@@ -1,7 +1,7 @@
 
 from cluster.database.table import Table
 
-class DatasetTable(Table):
+class Dataset_table(Table):
 
     table = 'dataset'
     foreign_key_names = []
@@ -31,5 +31,5 @@ class DatasetTable(Table):
         return vals
 
 
-dataset = DatasetTable()
+dataset = Dataset_table()
 

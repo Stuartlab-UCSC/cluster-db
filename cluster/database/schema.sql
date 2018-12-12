@@ -1,6 +1,6 @@
 
 --DROP TABLE IF EXISTS dataset;
---DROP TABLE IF EXISTS clustering;
+--DROP TABLE IF EXISTS clustering_solution;
 --DROP TABLE IF EXISTS signature_gene_set;
 --DROP TABLE IF EXISTS signature_gene;
 
@@ -24,7 +24,7 @@ CREATE TABLE IF NOT EXISTS dataset (
     expressionDataSourceURL text
 );
 
-CREATE TABLE IF NOT EXISTS clustering (
+CREATE TABLE IF NOT EXISTS clustering_solution (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name text UNIQUE NOT NULL,
     method text,
@@ -41,8 +41,8 @@ CREATE TABLE IF NOT EXISTS signature_gene_set (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name text UNIQUE NOT NULL,
     method text,
-    clustering_id INTEGER,
-    FOREIGN KEY(clustering_id) REFERENCES clustering(id)
+    clustering_solution_id INTEGER,
+    FOREIGN KEY(clustering_solution_id) REFERENCES clustering_solution(id)
 );
 /*
 CREATE TABLE IF NOT EXISTS signature_gene (
@@ -58,7 +58,8 @@ CREATE TABLE IF NOT EXISTS signature_gene (
 CREATE TABLE IF NOT EXISTS cluster (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name text UNIQUE NOT NULL,
-    clustering_id INTEGER NOT NULL REFERENCES clustering(id)
+    clustering_solution_id INTEGER,
+    FOREIGN KEY(clustering_solution_id) REFERENCES clustering_solution(id)
 );
 CREATE TABLE IF NOT EXISTS cluster_assignment (
     id INTEGER PRIMARY KEY AUTOINCREMENT,

@@ -5,7 +5,7 @@ import logging.config
 import os
 from cluster import settings
 from flask import Flask, Blueprint, redirect
-from cluster.api.clustering import ns as clustering_namespace
+from cluster.api.clustering_solution import ns as clustering_solution_namespace
 from cluster.api.dataset import ns as dataset_namespace
 #from cluster.api.signature_gene import ns as signature_gene_namespace
 #from cluster.api.signature_gene_set import ns as signature_gene_set_namespace
@@ -49,7 +49,7 @@ def configure_app(flask_app, test_config):
 def initialize_blueprint(flask_app):
     blueprint = Blueprint('api', __name__, url_prefix='/api')
     api.init_app(blueprint)
-    api.add_namespace(clustering_namespace)
+    api.add_namespace(clustering_solution_namespace)
     api.add_namespace(dataset_namespace)
     #api.add_namespace(signature_gene_namespace)
     #api.add_namespace(signature_gene_set_namespace)
