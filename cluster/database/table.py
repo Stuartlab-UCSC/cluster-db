@@ -10,8 +10,37 @@ from cluster.database.error import abort_400_trace
 
 class Table(object):
 
+    def _transform_data_type(s, oldValue, newValue):
+
+        # Convert the value to the expected data type.
+        # We only handle int, float, str.
+        dtype = type(oldValue).__name__
+        val = None
+        print('dtype:', dtype)
+        if dtype == 'int' or dtype == 'long':
+            val = int(newValue)
+        elif dtype == 'float':
+            val = float(newValue)
+        else:
+            val = newValue
+        print('_transform_data_type:', type(val).__name__)
+        return val
+
+    def _get_one(s, name):
+       return get_db().execute(
+            'SELECT * FROM ' + s.table + ' WHERE name = ?', (name,)).fetchone()
+
+    def _get_vals(s, data, name=None):
+
+        # Extract the values of a data dict, leaving out foreign key names.
+        vals = []
+        for key in data.keys():
+            if not key in s.foreign_key_names:
+                vals.append(data[key])
+        return vals
+
     def _row_header_to_tsv(s, row):
-        return '#' + s._row_to_tsv(row.keys())
+        return s._row_to_tsv(row.keys())
 
     def _row_to_tsv(s, row):
 
@@ -50,19 +79,21 @@ class Table(object):
         cursor = db.execute('SELECT * FROM ' + s.table)
         return cursor.fetchall()
 
+    def _update_foreign_key(s,data):
+
+        # Update the foreign key ID given its name.
+        fk_field, fk_id = s._get_foreign_key(get_db(), data)
+        if fk_field != None:
+            if fk_id == None:
+                raise Exception('TODO: text: Parent row does not exist.')
+            data[fk_field] = fk_id
+
     def add(s, data):
         try:
             # Add one row.
             exception_if_tsv()
             db = get_db()
-
-            # Find the foreign key ID by the foreign key name.
-            fk_field, fk_id = s._get_foreign_key(db, data)
-            if fk_field != None:
-                if fk_id == None:
-                    raise Exception('TODO: text: Parent row does not exist.')
-                data[fk_field] = fk_id
-
+            s._update_foreign_key(data)
             cursor = s._add(data, db)
             db.commit()
             return {"id": cursor.lastrowid}
@@ -71,7 +102,6 @@ class Table(object):
             abort(400, e)
         except Exception as e:
             abort_400_trace(str(e))
-
 
     def delete(s, name):
         try:
@@ -87,11 +117,6 @@ class Table(object):
             abort(400, 'This row is owned by another row connected by a foreign key. ' + str(e))
         except Exception as e:
             abort_400_trace(str(e))
-
-
-    def _get_one(s, name):
-        return get_db().execute(
-            'SELECT * FROM ' + s.table + ' WHERE name = ?', (name,)).fetchone()
 
     def get(s, name=None):
         try:
@@ -115,30 +140,22 @@ class Table(object):
         except Exception as e:
             abort_400_trace(str(e))
 
-    """
-    def load_tsv(name, file_path):
-
-        # Add rows from a TSV file to the table.
-        # @param name: name of parent of new rows
-        # @param file_path: TSV file path to load
-        # @returns: row count or error, plus http code
-        # TODO test that name exists
+    def load_tsv(s, parent_name, file_path):
         try:
             db = get_db()
             with open(os.path(current_app.UPLOADS, file_path), 'r') as f:
                 f = csv.reader(f, delimiter='\t')
                 if not f.fieldnames == s._getFieldnames():
-                    abort(400, 'field name mismatch')
-                try:
-                    for row in f:
-                        s._add(row.append(name), db)
-                except:
-                    return { 'error': 'load failed' }, 400
+                    raise Exception('field name mismatch')
+                for row in f:
+                    s._add(row.append(parent_name), db)
             db.commit()
+            return {'row_count': f.line_num}
+
+        except sqlite3.IntegrityError as e:
+            abort(400, 'TODO: wording: This row has no parent foreign key. ' + str(e))
         except:
-            return { 'error': 'load failed, file not found' }, 404
-        return { 'row_count': f.line_num }
-    """
+            abort_400_trace(str(e))
 
     def update(s, name, field, value):
         try:
@@ -147,18 +164,13 @@ class Table(object):
             if row == None:
                 raise Exception(s.table + ' table name not found: ' + str(name))
 
-            # Convert the value to the expected data type.
-            # We only handle int, float, str.
-            data_type = type(row[field]).__name__
-            if data_type == 'int' or data_type == 'long':
-                row[field] = int(value)
-            elif data_type == 'float':
-                row[field] = float(value)
-            else:
-                row[field] = value
-
+            row[field] = s._transform_data_type(row[field], value)
             db = get_db()
-            s._replace(name, row, db)
+            db.execute(
+                 'UPDATE ' + s.table + ' SET ' +
+                    field + ' = ?'
+                 ' WHERE name = ?',
+                 (value, name))
             db.commit()
             return {'id': row['id']}
 

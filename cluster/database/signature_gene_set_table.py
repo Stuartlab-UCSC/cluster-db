@@ -26,30 +26,6 @@ class Signature_gene_table(Table):
             return 'clustering_id', None
         return 'clustering_id', row['id']
 
-    """
-    def _get_vals(s, data, name=None):
-        vals = []
-        for key in data.keys():
-            if not key in s.foreign_key_names:
-            #if key != 'clustering':  # don't include the foreign key name
-                vals.append(data[key])
-        #if name != None:
-        #    vals.append(name)
-        return vals
-    """
-
-    """
-    def _replace(s, name, data, db):
-        db.execute('''
-            UPDATE signature_gene_set SET
-                name = ?,
-                method = ?,
-                clustering = ?
-            WHERE name = ?
-            ''', (s._get_vals(data, name))
-        )
-    """
-
 
 signature_gene_set = Signature_gene_set_table()
 
