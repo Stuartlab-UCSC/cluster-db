@@ -3,33 +3,6 @@
 echo
 echo
 echo
-echo
-echo
-echo
-echo
-echo
-echo
-echo
-echo
-echo
-echo
-echo
-echo
-echo
-echo
-echo
-echo
-echo
-echo
-echo
-echo
-echo
-echo
-echo
-echo
-echo
-echo
-echo
-source venv/bin/activate
-export CLUSTERDB=/Users/swat/dev/cdb/
+export CLUSTERDB=/Users/swat/dev/cdb
+source $CLUSTERDB/clusterDb/venv/bin/activate
 pytest
