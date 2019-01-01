@@ -1,10 +1,7 @@
 
 import os
 import tempfile
-
 import pytest
-from flask import current_app, g
-
 from cluster.app import create_app
 from cluster.database.db import get_db, init_db
 
@@ -16,17 +13,14 @@ with open(os.path.join(os.path.dirname(__file__), 'data.sql'), 'rb') as f:
 def app():
     db_fd, db_path = tempfile.mkstemp()
 
-    config = {
+    app = create_app({
         'TESTING': True,
-        'DATABASE': db_path
-    }
-    app = create_app(config)
+        'DATABASE': db_path,
+    })
 
-    file = '/Users/swat/dev/cdb/clusterDB/cluster/database/schema.sql'
     with app.app_context():
-        with app.open_resource(file) as f:
-            get_db().executescript(f.read().decode('utf8'))
-
+        init_db()
+        get_db().executescript(_data_sql)
     yield app
 
     os.close(db_fd)
