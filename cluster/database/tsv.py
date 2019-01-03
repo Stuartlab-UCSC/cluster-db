@@ -16,6 +16,10 @@ def _lists_equal(l1, l2):
     return ((l1 > l2) - (l1 < l2)) == 0
 
 def add_many(table, tsv_file, parent_names=None):
+    # Note: Rows that are too short don't error out,
+    #       but will simply add null values at the end.
+    #       Rows that are too long are interpreted as a new row and may error
+    #       out if non-nulls are required for this bad row.
     f = os.path.join(current_app.config['UPLOADS'], tsv_file)
     with open(f, 'r') as f:
         f = csv.DictReader(f, delimiter='\t')

@@ -97,7 +97,7 @@ class Table(object):
         except Bad_tsv_header as e:
             return err.abort_bad_tsv_header(e)
         except sqlite3.IntegrityError as e:
-           return err.abort_no_parent(e)
+           return err.abort_database(e)
 
     def add_one(s, data):
         try:
