@@ -9,13 +9,16 @@ with open(os.path.join(os.path.dirname(__file__), 'data.sql'), 'rb') as f:
     _data_sql = f.read().decode('utf8')
 
 
-@pytest.fixture
+@pytest.fixture(scope="function")
 def app():
     db_fd, db_path = tempfile.mkstemp()
+    uploads = os.path.join(
+        os.environ.get("CLUSTERDB"), 'clusterDb/tests/uploads')
 
     app = create_app({
         'TESTING': True,
         'DATABASE': db_path,
+        'UPLOADS': uploads
     })
 
     with app.app_context():

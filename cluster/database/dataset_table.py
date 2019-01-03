@@ -1,10 +1,17 @@
 
 from cluster.database.table import Table
 
+
 class Dataset_table(Table):
 
-    table = 'dataset'
-    foreign_key_names = []
+    table = 'dataset'  # table name
+    fields = [         # fields without parent table IDs
+        'name',
+        'species'
+    ]
+    child_tables = [   # tables with foreign keys to this table
+        'clustering_solution'
+    ]
 
     def _add(s, data, db):
         cursor = db.execute('''
@@ -17,19 +24,14 @@ class Dataset_table(Table):
         )
         return cursor
 
-    def _get_foreign_key(s, db, data):
-        return None, None
-
-    # TODO: use Table class function after getting all fields in.
-    def _get_vals(s, data, name=None):
-        vals = [
-            data['name'],
-            data['species'],
-        ]
-        if name != None:
-            vals.append(name)
-        return vals
+    def _delete_children(s, row, db):
+        for child in s.child_tables:
+            db.execute('DELETE FROM ' + child + \
+                ' WHERE ' + s.table + '_id = ?', \
+                (row['id'],))
+        # TODO: delete children from other tables.
 
 
+# The table instance.
 dataset = Dataset_table()
 

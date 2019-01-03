@@ -1,9 +1,10 @@
 
+/*
 INSERT INTO dataset (name, species)
 VALUES
   ('dataset1', 'species1'),
   ('dataset2', 'species2');
-
+*/
 /*
 INSERT INTO clustering_solution (name, method, dataset_id)
 VALUES

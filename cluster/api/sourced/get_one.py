@@ -14,4 +14,4 @@ class Get_one(Resource):
     @ns.marshal_with(model)
     def get(self, name):
         '''GET ONE'''
-        return table.get_one(name)
+        return table.get_one(name, request.accept_mimetypes)

@@ -12,4 +12,4 @@ class Get_by_parent(Resource):
     @ns.response(200, 'list of ' + table_name + 's in JSON or TSV format')
     def get(self, parent_name):
         '''GET BY PARENT'''
-        return table.get_by_parent(parent_name)
+        return table.get_by_parent(parent_name, request.accept_mimetypes)

@@ -5,6 +5,7 @@ from flask_restplus import fields
 from cluster.api.restplus import api
 from cluster.database.dataset_table import dataset as table
 
+table_name = 'dataset'
 ns = api.namespace('dataset')
 model = api.model('dataset', {
     'name': fields.String(required=True, description='Unique dataset name'),
@@ -22,6 +23,18 @@ model = api.model('dataset', {
     'expressionDataSourceURL': fields.String(description='URL of expression source'),
 })
 
-# Do the equivalent of a bash shell 'source' to get the base routes.
-filename = "/Users/swat/dev/cdb/clusterDb/cluster/api/base_source.py"
+# Do the equivalent of a bash shell 'source' to include the routes.
+filename = "/Users/swat/dev/cdb/clusterDb/cluster/api/sourced/add_one.py"
+exec(compile(source=open(filename).read(), filename='filename', mode='exec'))
+filename = "/Users/swat/dev/cdb/clusterDb/cluster/api/sourced/delete.py"
+exec(compile(source=open(filename).read(), filename='filename', mode='exec'))
+filename = "/Users/swat/dev/cdb/clusterDb/cluster/api/sourced/delete_with_children.py"
+exec(compile(source=open(filename).read(), filename='filename', mode='exec'))
+filename = "/Users/swat/dev/cdb/clusterDb/cluster/api/sourced/get_all.py"
+exec(compile(source=open(filename).read(), filename='filename', mode='exec'))
+filename = "/Users/swat/dev/cdb/clusterDb/cluster/api/sourced/get_one.py"
+exec(compile(source=open(filename).read(), filename='filename', mode='exec'))
+filename = "/Users/swat/dev/cdb/clusterDb/cluster/api/sourced/load_tsv.py"
+exec(compile(source=open(filename).read(), filename='filename', mode='exec'))
+filename = "/Users/swat/dev/cdb/clusterDb/cluster/api/sourced/update.py"
 exec(compile(source=open(filename).read(), filename='filename', mode='exec'))

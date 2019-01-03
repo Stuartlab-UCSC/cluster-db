@@ -1,4 +1,6 @@
 
+import os
+
 # Flask settings
 FLASK_SERVER_NAME = 'localhost:5555'
 FLASK_DEBUG = True  # Do not use debug mode in production
@@ -10,5 +12,5 @@ RESTPLUS_MASK_SWAGGER = False
 RESTPLUS_ERROR_404_HELP = False
 
 # Application settings
-DATABASE = '/Users/swat/dev/cdb/cluster.db'
-UPLOADS = '/Users/swat/dev/cdb/uploads'
+DATABASE = os.environ.get("CLUSTERDB") + '/cluster.db'
+UPLOADS = os.environ.get("CLUSTERDB") + '/cdb/uploads'
