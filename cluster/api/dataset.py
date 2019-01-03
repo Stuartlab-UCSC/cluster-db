@@ -24,6 +24,8 @@ model = api.model('dataset', {
 })
 
 # Do the equivalent of a bash shell 'source' to include the routes.
+filename = "/Users/swat/dev/cdb/clusterDb/cluster/api/sourced/add_many_tsv.py"
+exec(compile(source=open(filename).read(), filename='filename', mode='exec'))
 filename = "/Users/swat/dev/cdb/clusterDb/cluster/api/sourced/add_one.py"
 exec(compile(source=open(filename).read(), filename='filename', mode='exec'))
 filename = "/Users/swat/dev/cdb/clusterDb/cluster/api/sourced/delete.py"
@@ -33,8 +35,6 @@ exec(compile(source=open(filename).read(), filename='filename', mode='exec'))
 filename = "/Users/swat/dev/cdb/clusterDb/cluster/api/sourced/get_all.py"
 exec(compile(source=open(filename).read(), filename='filename', mode='exec'))
 filename = "/Users/swat/dev/cdb/clusterDb/cluster/api/sourced/get_one.py"
-exec(compile(source=open(filename).read(), filename='filename', mode='exec'))
-filename = "/Users/swat/dev/cdb/clusterDb/cluster/api/sourced/load_tsv.py"
 exec(compile(source=open(filename).read(), filename='filename', mode='exec'))
 filename = "/Users/swat/dev/cdb/clusterDb/cluster/api/sourced/update.py"
 exec(compile(source=open(filename).read(), filename='filename', mode='exec'))

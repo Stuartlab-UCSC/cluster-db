@@ -15,27 +15,18 @@ from cluster.database.error \
 class Table(object):
 
     # Default is no parent table.
-    parent_info = None
-    parent_tables = []
+    parent_info = None # Default to no parent tables.
+    parent_tables = []  # Default to no parent tables.
+    # TODO do we need both of the above?
 
-    def _add_with_parent_check(s, data, db):
-        parent = s.parent_info
-        if parent != None:
-
-            # Find the parent row.
-            parent_row = parent_table._get_one(parent['id'])
-            if parent_row == None:
-                raise Exception('Parent row does not exist with the name: ' +
-                                data[parent['id']])
-
-            # Add the parent ID to the data and remove the parent name.
-            data[parent['id_field']] = parent_row['id']
-            del data[parent['name_field']]
-        return s._add(data, db)
+    def _add_one(s, data, db):
+        cursor = db.execute(s.add_one_string, s._get_vals(data))
+        return cursor
 
     def _get_parent_info_by_name(s, parent_name):
         # TODO this only handles those tables with only one parent table.
-        # Override this for any tables with more than one parent.
+        # Override this for any tables with more than one parent? or some
+        # other solution.
 
         # Find the parent info.
         parent = s.parent_info
@@ -68,9 +59,22 @@ class Table(object):
     def _get_vals(s, data):
         vals = []
         for field in s.fields:
-            #if not key in s.parent_tables:
             vals.append(data[field])
         return vals
+
+    def _replace_parent_name_with_id(s, data, db):
+        # TODO only works with one parent.
+        parent = s.parent_info
+
+        # Find the parent row.
+        parent_row = parent_table._get_one(parent['id'])
+        if parent_row == None:
+            raise Exception('Parent row does not exist with the name: ' +
+                            data[parent['id']])
+
+        # Add the parent ID to the data and remove the parent name.
+        data[parent['id_field']] = parent_row['id']
+        del data[parent['name_field']]
 
     def _transform_data_type(s, oldValue, newValue):
         # Convert the value to the expected data type.
@@ -87,11 +91,21 @@ class Table(object):
 
 ############################################################
 
+    def add_many_tsv(s, tsv_file, parent_names=None):
+        try:
+            tsv.add_many(s, tsv_file, parent_names)
+        except Bad_tsv_header as e:
+            return err.abort_bad_tsv_header(e)
+        except sqlite3.IntegrityError as e:
+           return err.abort_no_parent(e)
+
     def add_one(s, data):
         try:
             # Add one row.
             db = get_db()
-            cursor = s._add_with_parent_check(data, db)
+            if s.parent_info != None:
+                s._replace_parent_name_with_id(s, data, db)
+            s._add_one(data, db)
             db.commit()
 
         except sqlite3.IntegrityError as e:
@@ -162,15 +176,6 @@ class Table(object):
 
         except Not_found as e:
             return err.abort_not_found(e)
-
-    # TODO put this into tsv.py after unit testing.
-    def load_tsv(s, tsv_file, parent_names=None):
-        try:
-            tsv.load(s, tsv_file, parent_names)
-        except Bad_tsv_header as e:
-            return err.abort_bad_tsv_header(e)
-        except sqlite3.IntegrityError as e:
-           return err.abort_no_parent(e)
 
     def update(s, name, field, value):
         try:

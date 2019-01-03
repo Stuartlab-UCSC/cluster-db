@@ -12,36 +12,31 @@ def from_rows(rows, fields):
         tsv += '\n' + '\t'.join(list(row.values()))
     return tsv
 
+def _lists_equal(l1, l2):
+    return ((l1 > l2) - (l1 < l2)) == 0
 
-def load(table, tsv_file, parent_names=None):
-
-    db = get_db()
+def add_many(table, tsv_file, parent_names=None):
     f = os.path.join(current_app.config['UPLOADS'], tsv_file)
     with open(f, 'r') as f:
         f = csv.DictReader(f, delimiter='\t')
 
         # Bail if the file header is not correct.
-        if ((f.fieldnames > table.fields) -
-            (f.fieldnames < table.fields)) != 0:
+        #if ((f.fieldnames > table.fields) -
+        #    (f.fieldnames < table.fields)) != 0:
+        if not _lists_equal(f.fieldnames, table.fields):
             raise Bad_tsv_header('expected: "' + ' '.join(table.fields) + \
                               '"\n   given: "' + ' '.join(f.fieldnames) + '"')
 
-        # Add each tsv row to the table.
-        if parent_names:
-            # TODO this only handles one parent ID in the row.
+        # If parent_names are required ....
+        if table.parent_tables:
+            # TODO
             pass
-            #for row in f:
-            #    row[parent_tables[0]] = parent_name
-                 # TODO this is expecting a dict
-            #    table.add_with_parent_check(row, db)
-        else:
-            for row in f:
-                # Zip the keys and values together then add to the table.
-                # TODO zip
-                table.add_one(data)
 
-
-    #db.commit()
+        # Add each tsv row to the table.
+        db = get_db()
+        for row in f:
+            table._add_one(row, db)
+        db.commit()
 
 
 def requested(accept):

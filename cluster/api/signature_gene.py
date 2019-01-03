@@ -13,11 +13,11 @@ model = api.model('signature_gene', {
 })
 
 # Do the equivalent of a bash shell 'source' to get the base routes.
+filename = "/Users/swat/dev/cdb/clusterDb/cluster/api/sourced/add_many_tsv.py"
+exec(compile(source=open(filename).read(), filename='filename', mode='exec'))
 filename = "/Users/swat/dev/cdb/clusterDb/cluster/api/sourced/get_all.py"
 exec(compile(source=open(filename).read(), filename='filename', mode='exec'))
 filename = "/Users/swat/dev/cdb/clusterDb/cluster/api/sourced/get_by_parent.py"
-exec(compile(source=open(filename).read(), filename='filename', mode='exec'))
-filename = "/Users/swat/dev/cdb/clusterDb/cluster/api/sourced/load_tsv.py"
 exec(compile(source=open(filename).read(), filename='filename', mode='exec'))
 
 
