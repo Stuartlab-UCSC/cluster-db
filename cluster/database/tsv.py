@@ -3,19 +3,26 @@
 import os, csv, sqlite3
 from flask import current_app
 from cluster.database.db import get_db
-from cluster.database.error import Bad_tsv_header
+from cluster.database.error import Bad_tsv_header, Parent_not_supplied
 
 def from_rows(rows, fields):
     # Convert sqlite rows to TSV lines.
     tsv = '\t'.join(fields)  # the header
     for row in rows:
-        tsv += '\n' + '\t'.join(list(row.values()))
+        lis = list(row.values())
+        lStr = []
+        for l in lis:
+            lStr.append(str(l))
+        tsv += '\n' + '\t'.join(lStr)
     return tsv
 
 def _lists_equal(l1, l2):
     return ((l1 > l2) - (l1 < l2)) == 0
 
-def add_many(table, tsv_file, parent_names=None):
+def _merge_dicts(dict1, dict2):
+    return {**dict1, **dict2}
+
+def add_many(table, tsv_file, parent_name=None):
     # Note: Rows that are too short don't error out,
     #       but will simply add null values at the end.
     #       Rows that are too long are interpreted as a new row and may error
@@ -25,21 +32,27 @@ def add_many(table, tsv_file, parent_names=None):
         f = csv.DictReader(f, delimiter='\t')
 
         # Bail if the file header is not correct.
-        #if ((f.fieldnames > table.fields) -
-        #    (f.fieldnames < table.fields)) != 0:
-        if not _lists_equal(f.fieldnames, table.fields):
-            raise Bad_tsv_header('expected: "' + ' '.join(table.fields) + \
-                              '"\n   given: "' + ' '.join(f.fieldnames) + '"')
-
-        # If parent_names are required ....
-        if table.parent_tables:
-            # TODO
-            pass
-
-        # Add each tsv row to the table.
+        if not _lists_equal(f.fieldnames, table.tsv_header):
+            raise Bad_tsv_header( \
+                'expected: "' + ' '.join(table.tsv_header) + \
+             '"\n   given: "' + ' '.join(f.fieldnames) + '"')
+        header_len = len(table.tsv_header)
+        # If parent names are required ....
         db = get_db()
-        for row in f:
-            table._add_one(row, db)
+        if table.parent:
+            if parent_name == None:
+                raise Parent_not_supplied(table.parent['field'])
+            # Convert the parent name into a parent ID to store in the database.
+            parent_id = table._get_parent_id(table.parent, parent_name)
+            # Add each row, including the parent ID.
+            for row in f:
+                row[table.parent['field'] + '_id'] = parent_id
+                table._add_one(row, db)
+        else:
+            # No parents, so simply add the data to the database.
+            for row in f:
+                table._add_one(row, db)
+
         db.commit()
 
 

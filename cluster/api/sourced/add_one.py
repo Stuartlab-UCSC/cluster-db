@@ -10,7 +10,7 @@ from cluster.api.restplus import api
 @ns.route('/add')
 class Add(Resource):
     @ns.expect(model)
-    @ns.response(200, 'Success with ID of added')
+    @ns.response(200, 'Success')
     def post(self):
         '''ADD ONE'''
         return table.add_one(api.payload)

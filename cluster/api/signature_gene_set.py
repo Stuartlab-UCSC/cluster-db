@@ -1,7 +1,7 @@
 
 # api/signature_gene_set.py
 
-from flask_restplus import fields
+from flask_restplus import fields,  Resource
 from cluster.api.restplus import api
 from cluster.database.signature_gene_set_table import signature_gene_set as table
 
@@ -13,16 +13,23 @@ model = api.model('signature_gene_set', {
     'clustering_solution': fields.String(required=True, description='Name of the clustering solution'),
 })
 
+
+# Get rows by parent (foreign key) name.
+@ns.route('/get_by_clustering_solution/<string:clustering_solution_name>')
+@ns.param('clustering_solution_name', 'name of parent clustering_solution')
+class Get_by_parent(Resource):
+    @ns.response(200, 'list of ' + table_name + 's in JSON or TSV format')
+    def get(self, clustering_solution):
+        '''GET BY CLUSTERING SOLUTION'''
+        return table.get_by_parent(clustering_solution, request.accept_mimetypes)
+
+
 # Do the equivalent of a bash shell 'source' to get the base routes.
-filename = "/Users/swat/dev/cdb/clusterDb/cluster/api/sourced/get_all.py"
-exec(compile(source=open(filename).read(), filename='filename', mode='exec'))
-filename = "/Users/swat/dev/cdb/clusterDb/cluster/api/sourced/get_by_parent.py"
-exec(compile(source=open(filename).read(), filename='filename', mode='exec'))
 filename = "/Users/swat/dev/cdb/clusterDb/cluster/api/sourced/add_one.py"
 exec(compile(source=open(filename).read(), filename='filename', mode='exec'))
+filename = "/Users/swat/dev/cdb/clusterDb/cluster/api/sourced/delete_including_children.py"
+exec(compile(source=open(filename).read(), filename='filename', mode='exec'))
+filename = "/Users/swat/dev/cdb/clusterDb/cluster/api/sourced/get_one.py"
+exec(compile(source=open(filename).read(), filename='filename', mode='exec'))
 filename = "/Users/swat/dev/cdb/clusterDb/cluster/api/sourced/update.py"
-exec(compile(source=open(filename).read(), filename='filename', mode='exec'))
-filename = "/Users/swat/dev/cdb/clusterDb/cluster/api/sourced/delete.py"
-exec(compile(source=open(filename).read(), filename='filename', mode='exec'))
-filename = "/Users/swat/dev/cdb/clusterDb/cluster/api/sourced/delete_with_children.py"
 exec(compile(source=open(filename).read(), filename='filename', mode='exec'))

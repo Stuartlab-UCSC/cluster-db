@@ -4,7 +4,6 @@
 --DROP TABLE IF EXISTS signature_gene_set;
 --DROP TABLE IF EXISTS signature_gene;
 
-
 /*
 CREATE TABLE IF NOT EXISTS attribute (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -41,21 +40,22 @@ CREATE TABLE IF NOT EXISTS clustering_solution (
 CREATE TABLE IF NOT EXISTS dataset (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name text UNIQUE NOT NULL,
-    species text NOT NULL,
-    organ text,
-    sampleCount INTEGER,
-    abnormality text,
-    primaryData text,
-    scanpyObjectOfPrimaryData text,
-    sampleMetadata text,
-    primaryDataNormalizationStatus text,
-    clusteringScript text,
-    reasonableForTrajectoryAnalysis INTEGER,
-    trajectoryAnalysisScript text,
-    platform text,
-    expressionDataSource text,
-    expressionDataSourceURL text
+    species text NOT NULL
 );
+--organ text,
+--sampleCount INTEGER,
+--abnormality text,
+--primaryData text,
+--scanpyObjectOfPrimaryData text,
+--sampleMetadata text,
+--primaryDataNormalizationStatus text,
+--clusteringScript text,
+--reasonableForTrajectoryAnalysis INTEGER,
+--trajectoryAnalysisScript text,
+--platform text,
+--expressionDataSource text,
+--expressionDataSourceURL text
+
 CREATE TABLE IF NOT EXISTS signature_gene (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name text UNIQUE NOT NULL,

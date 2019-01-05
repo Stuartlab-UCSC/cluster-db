@@ -8,9 +8,9 @@ class Bad_tsv_header(Exception):
     pass
 class Not_found(Exception):
     pass
-class No_parent_row(Exception):
+class Parent_not_found(Exception):
     pass
-class No_parent_table(Exception):
+class Parent_not_supplied(Exception):
     pass
 
 
@@ -25,7 +25,10 @@ def abort_bad_tsv_header(e):
 
 
 def abort_database(e):
-    return abort(400, 'Database ' + str(e))
+    message = str(e)
+    if 'Incorrect number of bindings supplied' in message:
+        message = 'Wrong number of columns supplied for add: ' + message
+    return abort(400, 'Database: ' + message)
 
 
 def abort_has_children():
@@ -33,15 +36,15 @@ def abort_has_children():
 
 
 def abort_keyError(e):
-    return abort(400, 'Database invalid field: ' + str(e))
+    return abort(400, 'Database: invalid field: ' + str(e))
 
 
-def abort_no_parent_row(e):
+def abort_parent_not_found(e):
     return abort(404, 'Parent not found: ' + str(e))
 
 
-def abort_no_parent_table(e):
-    return abort(404, 'There is no parent table for ' + str(e) + 's')
+def abort_parent_not_supplied(e):
+    return abort(400, 'Parent was not supplied: ' + str(e))
 
 
 def abort_not_found(e):

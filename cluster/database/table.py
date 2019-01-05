@@ -8,44 +8,47 @@ from flask import request
 from cluster.database.db import get_db
 import cluster.database.tsv as tsv
 import cluster.database.error as err
-from cluster.database.error \
-    import Bad_tsv_header, Not_found, No_parent_table, No_parent_row
+from cluster.database.error import Bad_tsv_header, Not_found, \
+    Parent_not_found, Parent_not_supplied
+
+def _merge_dicts(d1, d2):
+    return {**d1, **d2}
 
 
 class Table(object):
 
-    # Default is no parent table.
-    parent_info = None # Default to no parent tables.
-    parent_tables = []  # Default to no parent tables.
-    # TODO do we need both of the above?
+    parent = None  # Default to no parent tables.
+    child_tables = []  # Default to no child tables
 
     def _add_one(s, data, db):
-        cursor = db.execute(s.add_one_string, s._get_vals(data))
+        cursor = db.execute(s.add_one_string, list(data.values()))
         return cursor
 
-    def _get_parent_info_by_name(s, parent_name):
-        # TODO this only handles those tables with only one parent table.
-        # Override this for any tables with more than one parent? or some
-        # other solution.
+    def _delete_children(s, row, db):
+        for child in s.child_tables:
+            db.execute('DELETE FROM ' + child + \
+                ' WHERE ' + s.table + '_id = ?', \
+                (row['id'],))
 
-        # Find the parent info.
-        parent = s.parent_info
-        if parent == None:
-            raise No_parent_table(s.table)
+    def _get_parent_by_name(s, parent, name):
+        table_name = parent['field']
+        cursor = get_db().execute( 'SELECT * FROM ' + table_name + \
+            ' WHERE name = ?', (name,))
+        row = cursor.fetchone()
+        if row == None:
+            raise Parent_not_found(table_name + ': ' + name)
+        return row
 
-        # Find the parent row.
-        parent_row = parent_table._get_one(parent['id'])
-        if parent_row == None:
-            raise No_parent_row(parent['table'] + ': ' + parent_name)
+    def _get_parent_id(s, parent, name):
+        # Find the parent ID from the given parent name.
+        row = s._get_parent_by_name(parent, name)
+        return row['id']
 
-        # Return the parent nfo.
-        return parent
-
-    def _get_one(s, name, with_id=False):
-        if with_id:
-            fields = '*'
+    def _get_one(s, name, with_row_id=False):
+        if with_row_id:
+            fields = '*' # get all fields
         else:
-            fields = ','.join(s.fields)
+            fields = ','.join(s.fields)  # get all fields sans the row id
         row = get_db().execute( \
             'SELECT ' + fields + ' FROM ' + s.table + ' WHERE name = ?', \
                 (name,)).fetchone()
@@ -56,28 +59,19 @@ class Table(object):
     def _get_one_with_id(s, name):
         return s._get_one(name, True)
 
-    def _get_vals(s, data):
-        vals = []
-        for field in s.fields:
-            vals.append(data[field])
-        return vals
-
-    def _replace_parent_name_with_id(s, data, db):
-        # TODO only works with one parent.
-        parent = s.parent_info
-
+    def _replace_parent_name_with_id(s, parent, data, db):
         # Find the parent row.
-        parent_row = parent_table._get_one(parent['id'])
-        if parent_row == None:
-            raise Exception('Parent row does not exist with the name: ' +
-                            data[parent['id']])
+        field = parent['field']
+        parent_id = s._get_parent_id(parent, data[field])
 
         # Add the parent ID to the data and remove the parent name.
-        data[parent['id_field']] = parent_row['id']
-        del data[parent['name_field']]
+        new_data = _merge_dicts(data, {})
+        new_data[field + '_id'] = parent_id
+        del new_data[field]
+        return new_data
 
     def _transform_data_type(s, oldValue, newValue):
-        # Convert the value to the expected data type.
+        # Convert the new value to the expected data type.
         # We only handle int, float, str.
         dtype = type(oldValue).__name__
         val = None
@@ -91,37 +85,49 @@ class Table(object):
 
 ############################################################
 
-    def add_many_tsv(s, tsv_file, parent_names=None):
+    def add_many_tsv(s, tsv_file, parent_name=None):
         try:
-            tsv.add_many(s, tsv_file, parent_names)
+            tsv.add_many(s, tsv_file, parent_name)
         except Bad_tsv_header as e:
             return err.abort_bad_tsv_header(e)
+        except Parent_not_found as e:
+            return err.abort_parent_not_found(e)
+        except Parent_not_supplied as e:
+            return err.abort_parent_not_supplied(e)
         except sqlite3.IntegrityError as e:
            return err.abort_database(e)
+        except sqlite3.ProgrammingError as e:
+            return err.abort_database(e)
 
     def add_one(s, data):
         try:
             # Add one row.
             db = get_db()
-            if s.parent_info != None:
-                s._replace_parent_name_with_id(s, data, db)
-            s._add_one(data, db)
+            if s.parent:
+                new_data = s._replace_parent_name_with_id(s.parent, data, db)
+                s._add_one(new_data, db)
+            else:
+                s._add_one(data, db)
             db.commit()
 
+        except Parent_not_found as e:
+            return err.abort_parent_not_found(e)
         except sqlite3.IntegrityError as e:
+            return err.abort_database(e)
+        except sqlite3.ProgrammingError as e:
             return err.abort_database(e)
 
     def delete(s, name):
         try:
             db = get_db()
-            row = s._get_one(name)
+            row = s._get_one(name) # just to throw an error if it doesn't exist
             db.execute('DELETE FROM ' + s.table + ' WHERE name = ?', (name,))
             db.commit()
 
         except Not_found as e:
             return err.abort_not_found(e)
 
-    def delete_with_children(s, name):
+    def delete_including_children(s, name):
         try:
             row = s._get_one_with_id(name)
             db = get_db()
@@ -137,35 +143,34 @@ class Table(object):
 
     def get_all(s, accept):
         # Return all rows.
-        db = get_db()
         fields = ','.join(s.fields)
-        print('fields:', fields)
-        cursor = db.execute('SELECT ' + ','.join(s.fields) + ' FROM ' + s.table)
+        cursor = get_db().execute('SELECT ' + ','.join(s.fields) + ' FROM ' + s.table)
         rows = cursor.fetchall()
-        print('rows:', rows)
         if tsv.requested(accept):
             return tsv.from_rows(rows, s.fields)
         return rows
 
     def get_by_parent(s, parent_name, accept):
-
-        # Return rows with the given parent, removing the parent and ID fields.
+        # Return rows with the given parent.
         try:
-            parent = s._get_parent_info_by_name(parent_name)
-            db = get_db()
-            cursor = db.execute('SELECT ' + ' '.join(s.fields) +
-                                ' FROM ' + s.table +
-                                ' WHERE ' + parent['id_field'] +
-                                ' = ' + str(parent['_id']))
+            parent_id = s._get_parent_id(s.parent, parent_name)
+            id_field = s.parent['field'] + '_id'
+            cursor = get_db().execute('SELECT ' + ','.join(s.base_fields) + \
+                                ' FROM ' + s.table + \
+                                ' WHERE ' + id_field + \
+                                ' = ' + str(parent_id))
             rows = cursor.fetchall()
+            if len(rows) < 1:
+                raise Not_found(
+                    'with ' + s.parent['field'] + ': ' + parent_name)
             if tsv.requested(accept):
-                return tsv.from_rows(rows)
+                return tsv.from_rows(rows, s.fields)
             return rows
 
-        except No_parent_row as e:
-            return err.abort_no_parent_row(e)
-        except No_parent_table as e:
-            return err.abort_no_parent_table(e)
+        except Not_found as e:
+            return err.abort_not_found(e)
+        except Parent_not_found as e:
+            return err.abort_parent_not_found(e)
 
     def get_one(s, name, accept):
         try:
@@ -179,8 +184,7 @@ class Table(object):
 
     def update(s, name, field, value):
         try:
-            row = s._get_one(name)
-
+            row = s._get_one(name) # so we can find the value type
             row[field] = s._transform_data_type(row[field], value)
             db = get_db()
             db.execute(
@@ -196,4 +200,3 @@ class Table(object):
             return err.abort_keyError(field)
         except sqlite3.IntegrityError as e:
             return err.abort_database(e)
-

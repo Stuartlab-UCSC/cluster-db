@@ -5,24 +5,13 @@ accept_tsv = 'text/tsv'
 accept_json = 'json/application'
 add_one_data = {
     "name": "dataset1",
-    "species": "dog",
-    "organ": None,
-    "sampleCount": None,
-    "abnormality": None,
-    "primaryData": None,
-    "scanpyObjectOfPrimaryData": None,
-    "sampleMetadata": None,
-    "primaryDataNormalizationStatus": None,
-    "clusteringScript": None,
-    "reasonableForTrajectoryAnalysis": None,
-    "trajectoryAnalysisScript": None,
-    "platform": None,
-    "expressionDataSource": None,
-    "expressionDataSourceURL": None
+    "species": "dog"
 }
 add_second_data = {
     "name": "dataset2",
-    "species": "cat",
+    "species": "cat"
+}
+'''
     "organ": None,
     "sampleCount": None,
     "abnormality": None,
@@ -36,7 +25,7 @@ add_second_data = {
     "platform": None,
     "expressionDataSource": None,
     "expressionDataSourceURL": None
-}
+'''
 
 def lists_equal(l1, l2):
     return ((l1 > l2) - (l1 < l2)) == 0
@@ -75,10 +64,10 @@ def test_add_many_tsv_bad_header(app):
 def test_add_many_tsv_too_many_columns(app):
     with app.app_context():
         result = dataset.add_many_tsv('dataset_too_many_columns.tsv')
-        assert result == None
-        result = dataset.get_all(accept_json)
-        assert dicts_equal(result[0], add_one_data)
-        assert dicts_equal(result[1], add_second_data)
+        assert result['status_code'] == 400
+        assert result['message'] == 'Database: Wrong number of columns ' + \
+            'supplied for add: Incorrect number of bindings supplied. The ' + \
+            'current statement uses 2, and there are 3 supplied.'
 
 
 def test_add_many_tsv_not_enough_columns(app):
@@ -86,7 +75,7 @@ def test_add_many_tsv_not_enough_columns(app):
         result = dataset.add_many_tsv('dataset_not_enough_columns.tsv')
         assert result['status_code'] == 400
         assert result['message'] == \
-            'Database NOT NULL constraint failed: dataset.species'
+            'Database: NOT NULL constraint failed: dataset.species'
 
 
 def test_add_one(app):
@@ -103,30 +92,13 @@ def test_add_duplicate(app):
         result = dataset.add_one(add_one_data)
         assert result['status_code'] == 400
         assert result['message'] == \
-            'Database UNIQUE constraint failed: dataset.name'
+            'Database: UNIQUE constraint failed: dataset.name'
 
 
-def test_delete(app):
+def test_delete_including_children(app):
     with app.app_context():
         dataset.add_one(add_one_data)
-        result = dataset.delete('dataset1')
-        assert result == None
-        result = dataset.get_one('dataset1', accept_json)
-        assert result['status_code'] == 404
-        assert result['message'] == 'Not found: dataset: dataset1'
-
-
-def test_delete_not_found(app):
-    with app.app_context():
-        result = dataset.delete('dataset1')
-        assert result['status_code'] == 404
-        assert result['message'] == 'Not found: dataset: dataset1'
-
-
-def test_delete_with_children(app):
-    with app.app_context():
-        dataset.add_one(add_one_data)
-        result = dataset.delete_with_children('dataset1')
+        result = dataset.delete_including_children('dataset1')
         assert result == None
         result = dataset.get_one('dataset1', accept_json)
         assert result['status_code'] == 404
@@ -134,10 +106,10 @@ def test_delete_with_children(app):
 
 # TODO test delete of all children
 
-def test_delete_with_children_this_not_found(app):
+def test_delete_including_children_this_not_found(app):
     with app.app_context():
         dataset.add_one(add_one_data)
-        result = dataset.delete_with_children('dataset666')
+        result = dataset.delete_including_children('dataset666')
         assert result['status_code'] == 404
         assert result['message'] == 'Not found: dataset: dataset666'
 
@@ -186,11 +158,8 @@ def test_get_all_with_none(app):
 
 
 def test_get_by_parent(app):
-    with app.app_context():
-        dataset.add_one(add_one_data)
-        result = dataset.get_by_parent('noParentTable', accept_json)
-        assert result['status_code'] == 404
-        assert result['message'] == 'There is no parent table for datasets'
+    # Datasets have no parent.
+    pass
 
 
 def test_get_by_parent_child_not_found(app):
@@ -248,7 +217,7 @@ def test_update_id(app):
         dataset.add_one(add_one_data)
         result = dataset.update('dataset1', '_id', 666)
         assert result['status_code'] == 400
-        assert result['message'] == "Database invalid field: _id"
+        assert result['message'] == "Database: invalid field: _id"
 
 
 def test_update_bad_field(app):
@@ -256,5 +225,5 @@ def test_update_bad_field(app):
         dataset.add_one(add_one_data)
         result = dataset.update('dataset1', 'junkField', 666)
         assert result['status_code'] == 400
-        assert result['message'] == "Database invalid field: junkField"
+        assert result['message'] == "Database: invalid field: junkField"
 
