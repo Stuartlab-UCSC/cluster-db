@@ -5,14 +5,11 @@
 # All other access methods return nothing.
 import os, sqlite3
 from flask import request
-from cluster.database.db import get_db
+from cluster.database.db import get_db, merge_dicts
 import cluster.database.tsv as tsv
 import cluster.database.error as err
 from cluster.database.error import Bad_tsv_header, Not_found, \
     Parent_not_found, Parent_not_supplied
-
-def _merge_dicts(d1, d2):
-    return {**d1, **d2}
 
 
 class Table(object):
@@ -25,6 +22,9 @@ class Table(object):
         return cursor
 
     def _delete_children(s, row, db):
+        # Delete immediate children of a row. If there are any grandchildren,
+        # those will need to be deleted first.
+        print('children:', s.child_tables)
         for child in s.child_tables:
             db.execute('DELETE FROM ' + child + \
                 ' WHERE ' + s.table + '_id = ?', \
@@ -65,7 +65,7 @@ class Table(object):
         parent_id = s._get_parent_id(parent, data[field])
 
         # Add the parent ID to the data and remove the parent name.
-        new_data = _merge_dicts(data, {})
+        new_data = merge_dicts(data, {})
         new_data[field + '_id'] = parent_id
         del new_data[field]
         return new_data
@@ -126,6 +126,8 @@ class Table(object):
 
         except Not_found as e:
             return err.abort_not_found(e)
+        except sqlite3.IntegrityError as e:
+            return err.abort_has_children()
 
     def delete_including_children(s, name):
         try:
@@ -137,7 +139,6 @@ class Table(object):
 
         except Not_found as e:
             return err.abort_not_found(e)
-
         except sqlite3.IntegrityError as e:
            return err.abort_has_children()
 
@@ -155,7 +156,7 @@ class Table(object):
         try:
             parent_id = s._get_parent_id(s.parent, parent_name)
             id_field = s.parent['field'] + '_id'
-            cursor = get_db().execute('SELECT ' + ','.join(s.base_fields) + \
+            cursor = get_db().execute('SELECT ' + ','.join(s.parentless_fields) + \
                                 ' FROM ' + s.table + \
                                 ' WHERE ' + id_field + \
                                 ' = ' + str(parent_id))

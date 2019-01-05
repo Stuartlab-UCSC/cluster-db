@@ -38,6 +38,22 @@ def init_db():
         db.executescript(f.read().decode('utf8'))
 
 
+def lists_equal(l1, l2):
+    return ((l1 > l2) - (l1 < l2)) == 0
+
+
+def dicts_equal(d1, d2):
+    # TODO is there a better way to compare two dicts?
+    print('d1:', d1)
+    print('d2:', d2)
+    return lists_equal(list(d1.keys()), list(d2.keys())) and \
+        lists_equal(list(d1.values()), list(d2.values()))
+
+
+def merge_dicts(d1, d2):
+    return {**d1, **d2}
+
+
 @click.command('init-db')
 @with_appcontext
 def init_db_command():

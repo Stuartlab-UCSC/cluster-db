@@ -37,13 +37,13 @@ class Add_many_tsv_file(Resource):
 
 
 # Do the equivalent of a bash shell 'source' to include the routes.
-filename = "/Users/swat/dev/cdb/clusterDb/cluster/api/sourced/add_one.py"
+filename = "/Users/swat/dev/cdb/clusterDb/cluster/api/common/add_one.py"
 exec(compile(source=open(filename).read(), filename='filename', mode='exec'))
-filename = "/Users/swat/dev/cdb/clusterDb/cluster/api/sourced/delete_including_children.py"
+filename = "/Users/swat/dev/cdb/clusterDb/cluster/api/common/delete.py"
 exec(compile(source=open(filename).read(), filename='filename', mode='exec'))
-filename = "/Users/swat/dev/cdb/clusterDb/cluster/api/sourced/get_all.py"
+filename = "/Users/swat/dev/cdb/clusterDb/cluster/api/common/get_all.py"
 exec(compile(source=open(filename).read(), filename='filename', mode='exec'))
-filename = "/Users/swat/dev/cdb/clusterDb/cluster/api/sourced/get_one.py"
+filename = "/Users/swat/dev/cdb/clusterDb/cluster/api/common/get_one.py"
 exec(compile(source=open(filename).read(), filename='filename', mode='exec'))
-filename = "/Users/swat/dev/cdb/clusterDb/cluster/api/sourced/update.py"
+filename = "/Users/swat/dev/cdb/clusterDb/cluster/api/common/update.py"
 exec(compile(source=open(filename).read(), filename='filename', mode='exec'))

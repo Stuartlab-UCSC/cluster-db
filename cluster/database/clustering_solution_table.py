@@ -7,7 +7,7 @@ class Clustering_solution_table(Table):
 
     # Define some variables for this specialized table class.
     table = 'clustering_solution'  # table name
-    tsv_header = [                # table fields minus row ID
+    parentless_fields = [          # table fields minus row ID
         'name',
         'method',
         'method_implementation',
@@ -16,8 +16,7 @@ class Clustering_solution_table(Table):
         'analyst',
         'secondary'
     ]
-    base_fields = tsv_header
-    fields = tsv_header + ['dataset_id']
+    fields = parentless_fields + ['dataset_id']
     parent = {  # foreign keys in this table
         'field': 'dataset',
         'table': dataset

@@ -5,14 +5,14 @@ from cluster.database.table import Table
 class Dataset_table(Table):
 
     # Define some variables for this specialized table class.
-    table = 'dataset'  # table name
-    tsv_header = [    # table fields minus parent IDs
+    table = 'dataset'      # table name
+    parentless_fields = [  # table fields minus parent IDs
         'name',
         'species',
     ]
-    fields = tsv_header
+    fields = parentless_fields
     child_tables = [   # tables with foreign keys pointing to this table
-        'clustering_solution',
+        'clustering_solution'
     ]
     # The 'insert into database' string.
     # This is duplicated in each specialized table class

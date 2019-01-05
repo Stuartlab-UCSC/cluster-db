@@ -2,8 +2,9 @@
 # TSV database utilites.
 import os, csv, sqlite3
 from flask import current_app
-from cluster.database.db import get_db
+from cluster.database.db import get_db, lists_equal, merge_dicts
 from cluster.database.error import Bad_tsv_header, Parent_not_supplied
+
 
 def from_rows(rows, fields):
     # Convert sqlite rows to TSV lines.
@@ -16,11 +17,6 @@ def from_rows(rows, fields):
         tsv += '\n' + '\t'.join(lStr)
     return tsv
 
-def _lists_equal(l1, l2):
-    return ((l1 > l2) - (l1 < l2)) == 0
-
-def _merge_dicts(dict1, dict2):
-    return {**dict1, **dict2}
 
 def add_many(table, tsv_file, parent_name=None):
     # Note: Rows that are too short don't error out,
@@ -32,11 +28,11 @@ def add_many(table, tsv_file, parent_name=None):
         f = csv.DictReader(f, delimiter='\t')
 
         # Bail if the file header is not correct.
-        if not _lists_equal(f.fieldnames, table.tsv_header):
+        if not lists_equal(f.fieldnames, table.parentless_fields):
             raise Bad_tsv_header( \
-                'expected: "' + ' '.join(table.tsv_header) + \
+                'expected: "' + ' '.join(table.parentless_fields) + \
              '"\n   given: "' + ' '.join(f.fieldnames) + '"')
-        header_len = len(table.tsv_header)
+        header_len = len(table.parentless_fields)
         # If parent names are required ....
         db = get_db()
         if table.parent:
