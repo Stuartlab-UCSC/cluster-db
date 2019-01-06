@@ -3,6 +3,5 @@
 echo
 echo
 echo
-export CLUSTERDB=/Users/swat/dev/cdb
 source $CLUSTERDB/clusterDb/venv/bin/activate
-pytest
+pytest  -p no:warnings $1

@@ -10,7 +10,6 @@ class Signature_gene_set_table(Table):
         'name',
         'method',
     ]
-    parentless_fields = parentless_fields
     fields = parentless_fields + ['clustering_solution_id']
     parent = {  # foreign keys in this table
         'field': 'clustering_solution',

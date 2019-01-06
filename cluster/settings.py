@@ -12,5 +12,5 @@ RESTPLUS_MASK_SWAGGER = False
 RESTPLUS_ERROR_404_HELP = False
 
 # Application settings
-DATABASE = os.environ.get("CLUSTERDB") + '/cluster.db'
-UPLOADS = os.environ.get("CLUSTERDB") + '/cdb/uploads'
+DATABASE = os.path.join(os.environ.get("CLUSTERDB"), 'cluster.db')
+UPLOADS = os.path.join(os.environ.get("CLUSTERDB"), 'uploads')

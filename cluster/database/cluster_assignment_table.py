@@ -1,18 +1,18 @@
 
 from cluster.database.table import Table
-from cluster.database.signature_gene_set_table import signature_gene_set
+from cluster.database.cluster_table import cluster
 from cluster.database.db import get_db
 
 
-class Signature_gene_table(Table):
-    table = 'signature_gene'  # table name
+class Cluster_assignment_table(Table):
+    table = 'cluster_assignment'  # table name
     parentless_fields = [         # table fields minus row ID
         'name',
     ]
-    fields = parentless_fields + ['signature_gene_set_id']
+    fields = parentless_fields + ['cluster_id']
     parent = {  # foreign keys in this table
-        'field': 'signature_gene_set',
-        'table': signature_gene_set
+        'field': 'cluster',
+        'table': cluster
     }
     # The 'insert into database' string.
     # This is duplicated in each specialized table class
@@ -24,5 +24,5 @@ class Signature_gene_table(Table):
         'VALUES (' + ('?,' * len(fields))[:-1] + ')'
 
 
-signature_gene = Signature_gene_table()
+cluster_assignment = Cluster_assignment_table()
 

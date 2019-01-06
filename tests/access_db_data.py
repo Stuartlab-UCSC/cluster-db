@@ -1,7 +1,15 @@
 
 
 accept_tsv = 'text/tsv'
-accept_json = 'json/application'
+accept_json = 'application/json'
+json_headers = {
+    'Content-Type': accept_json,
+    'Accept': accept_json
+}
+tsv_headers = {
+    #'Content-Type': accept_tsv,
+    'Accept': accept_tsv
+}
 
 add_one_dataset = {
     "name": "dataset1",
@@ -10,6 +18,10 @@ add_one_dataset = {
 add_second_dataset = {
     "name": "dataset2",
     "species": "cat"
+}
+add_third_dataset = {
+    "name": "dataset3",
+    "species": "dog"
 }
 '''
     "organ": None,
@@ -58,9 +70,31 @@ add_second_signature_gene_set = {
 }
 add_one_signature_gene = {
     "name": "signature_gene1",
-    "clustering_solution": "signature_gene_set1"
+    "signature_gene_set": "signature_gene_set1"
 }
 add_second_signature_gene = {
     "name": "signature_gene2",
-    "clustering_solution": "csignature_gene_set1"
+    "signature_gene_set": "signature_gene_set1"
+}
+add_one_cluster = {
+    "name": "cluster1",
+    "clustering_solution": "clustering_solution1"
+}
+add_one_attribute = {
+    "name": "attribute1",
+    "value": "value1",
+    "cluster": "cluster1"
+}
+add_second_attribute = {
+    "name": "attribute2",
+    "value": "value2",
+    "cluster": "cluster1"
+}
+add_one_cluster_assignment = {
+    "name": "sample1",
+    "cluster": "cluster1"
+}
+add_second_cluster_assignment = {
+    "name": "sample2",
+    "cluster": "cluster1"
 }

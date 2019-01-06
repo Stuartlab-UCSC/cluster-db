@@ -16,7 +16,10 @@ class Parent_not_supplied(Exception):
 
 def abort_query(code, message):
     if current_app.config['TESTING']:
-        return ({ 'status_code': code, 'message': message })
+        # NOTE: response.status_code is always 200 when testing because using
+        # flask's abort() causes an exception within an exception. Tests
+        # need to check the json or data of the response.
+        return(str(code) + ' ' + message)
     else:
         abort(code, message)
 

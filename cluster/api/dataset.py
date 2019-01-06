@@ -1,6 +1,7 @@
 
 # api/dataset.py
 
+from flask import current_app
 from flask_restplus import fields, Resource
 from cluster.api.restplus import api
 from cluster.database.dataset_table import dataset as table
@@ -29,11 +30,11 @@ model = api.model('dataset', {
 # Add many from TSV file.
 @ns.route('/add_many/tsv_file/<string:tsv_file>')
 @ns.param('tsv_file', 'TSV file path')
-class Add_many_tsv_file(Resource):
+class Add_many_tsv(Resource):
     @ns.response(200, 'Success')
     def get(self, tsv_file):
         '''ADD MANY FROM TSV FILE'''
-        return table.add_many_tsv_file(tsv_file)
+        return table.add_many_tsv(tsv_file)
 
 
 # Do the equivalent of a bash shell 'source' to include the routes.

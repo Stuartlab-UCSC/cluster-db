@@ -64,6 +64,7 @@ def initialize_app(flask_app, test_config):
 
 def create_app(test_config=None):
     app = Flask(__name__)
+    app.url_map.strict_slashes = False
     #app = Flask(__name__, instance_relative_config=True)
     initialize_app(app, test_config)
     #log.info('>>>>> Starting development server at http://{}/api/ <<<<<'.format(app.config['SERVER_NAME']))

@@ -44,8 +44,6 @@ def lists_equal(l1, l2):
 
 def dicts_equal(d1, d2):
     # TODO is there a better way to compare two dicts?
-    print('d1:', d1)
-    print('d2:', d2)
     return lists_equal(list(d1.keys()), list(d2.keys())) and \
         lists_equal(list(d1.values()), list(d2.values()))
 

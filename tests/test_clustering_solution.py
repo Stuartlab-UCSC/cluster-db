@@ -33,8 +33,7 @@ def test_add_many_tsv(app):
 def test_add_many_tsv_no_parent_supplied(app):
     with app.app_context():
         result = clustering_solution.add_many_tsv('clustering_solution.tsv')
-        assert result['status_code'] == 400
-        assert result['message'] == 'Parent was not supplied: dataset'
+        assert result == '400 Parent was not supplied: dataset'
 
 
 def test_add_many_tsv_parent_not_found(app):
@@ -42,8 +41,7 @@ def test_add_many_tsv_parent_not_found(app):
         dataset.add_one(ad.add_one_dataset)
         result = clustering_solution.add_many_tsv(
             'clustering_solution.tsv', 'datasetX')
-        assert result['status_code'] == 404
-        assert result['message'] == 'Parent not found: dataset: datasetX'
+        assert result== '404 Parent not found: dataset: datasetX'
 
 
 def test_add_one(app):
@@ -59,8 +57,7 @@ def test_add_one(app):
 def test_add_one_parent_not_found(app):
     with app.app_context():
         result = clustering_solution.add_one(ad.add_one_clustering_solution)
-        assert result['status_code'] == 404
-        assert result['message'] == 'Parent not found: dataset: dataset1'
+        assert result == '404 Parent not found: dataset: dataset1'
 
 
 def test_delete(app):
@@ -71,9 +68,16 @@ def test_delete(app):
         assert result == None
         result = clustering_solution.get_one(
             'clustering_solution1', ad.accept_json)
-        assert result['status_code'] == 404
-        assert result['message'] == \
-            'Not found: clustering_solution: clustering_solution1'
+        assert result == \
+            '404 Not found: clustering_solution: clustering_solution1'
+
+
+def test_delete_not_found(app):
+    with app.app_context():
+        dataset.add_one(ad.add_one_dataset)
+        result = clustering_solution.delete('clustering_solution1')
+        assert result == \
+            '404 Not found: clustering_solution: clustering_solution1'
 
 
 def test_delete_has_children(app):
@@ -82,29 +86,8 @@ def test_delete_has_children(app):
         clustering_solution.add_one(ad.add_one_clustering_solution)
         signature_gene_set.add_one(ad.add_one_signature_gene_set)
         result = clustering_solution.delete('clustering_solution1')
-        assert result['status_code'] == 400
-        assert result['message'] == \
-            'There are children that would be orphaned, delete them first'
-
-
-def test_delete_including_children_with_no_children(app):
-    with app.app_context():
-        dataset.add_one(ad.add_one_dataset)
-        clustering_solution.add_one(ad.add_one_clustering_solution)
-        result = clustering_solution.delete_including_children('clustering_solution1')
-        assert result == None
-        result = clustering_solution.get_one('clustering_solution1', ad.accept_json)
-        assert result['status_code'] == 404
-        assert result['message'] == \
-            'Not found: clustering_solution: clustering_solution1'
-
-
-def test_delete_including_children_this_not_found(app):
-    with app.app_context():
-        dataset.add_one(ad.add_one_dataset)
-        result = clustering_solution.delete_including_children('clustering_solution1')
-        assert result['status_code'] == 404
-        assert result['message'] == 'Not found: clustering_solution: clustering_solution1'
+        assert result == \
+            '400 There are children that would be orphaned, delete them first'
 
 
 def test_get_by_parent_one(app):
@@ -140,8 +123,7 @@ def test_get_by_parent_child_not_found(app):
     with app.app_context():
         dataset.add_one(ad.add_one_dataset)
         result = clustering_solution.get_by_parent('dataset1', ad.accept_json)
-        assert result['status_code'] == 404
-        assert result['message'] == 'Not found: with dataset: dataset1'
+        assert result == '404 Not found: with dataset: dataset1'
 
 
 def test_get_by_parent_parent_not_found(app):
@@ -149,8 +131,7 @@ def test_get_by_parent_parent_not_found(app):
         dataset.add_one(ad.add_one_dataset)
         clustering_solution.add_one(ad.add_one_clustering_solution)
         result = clustering_solution.get_by_parent('datasetX', ad.accept_json)
-        assert result['status_code'] == 404
-        assert result['message'] == 'Parent not found: dataset: datasetX'
+        assert result == '404 Parent not found: dataset: datasetX'
 
 
 def test_get_one(app):

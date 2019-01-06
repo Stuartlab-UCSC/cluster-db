@@ -6,6 +6,10 @@ from cluster.database.db import get_db, lists_equal, merge_dicts
 from cluster.database.error import Bad_tsv_header, Parent_not_supplied
 
 
+def requested(accept):
+    return (str(accept) == 'text/tsv')
+
+
 def from_rows(rows, fields):
     # Convert sqlite rows to TSV lines.
     tsv = '\t'.join(fields)  # the header
@@ -51,7 +55,4 @@ def add_many(table, tsv_file, parent_name=None):
 
         db.commit()
 
-
-def requested(accept):
-    return accept == 'text/tsv'
 

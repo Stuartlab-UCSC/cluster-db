@@ -6,7 +6,7 @@ from flask_restplus import Resource
 
 
 # Delete
-@ns.route('/delete/name/<string:name>')
+@ns.route('/delete/<string:name>')
 @ns.param('name', 'Name of ' + table_name + ' to delete')
 class Delete(Resource):
     @ns.response(200, 'Success')

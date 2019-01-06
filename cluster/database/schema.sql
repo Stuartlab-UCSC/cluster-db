@@ -4,7 +4,6 @@
 --DROP TABLE IF EXISTS signature_gene_set;
 --DROP TABLE IF EXISTS signature_gene;
 
-/*
 CREATE TABLE IF NOT EXISTS attribute (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name text UNIQUE NOT NULL,
@@ -20,11 +19,10 @@ CREATE TABLE IF NOT EXISTS cluster (
 );
 CREATE TABLE IF NOT EXISTS cluster_assignment (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    sample text UNIQUE NOT NULL,
+    name text UNIQUE NOT NULL,
     cluster_id INTEGER NOT NULL,
     FOREIGN KEY(cluster_id) REFERENCES cluster(id)
 );
-*/
 CREATE TABLE IF NOT EXISTS clustering_solution (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name text UNIQUE NOT NULL,

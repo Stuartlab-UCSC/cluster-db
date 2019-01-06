@@ -20,7 +20,7 @@ def default_error_handler(e):
 @api.representation('text/tsv')
 def tsv_response(data, code, headers=None):
     resp = app.make_response(data)
-    resp.headers['Content-Type'] = 'text/tsv'
+    resp.headers['Content-Type'] = 'application/json'
     return resp
 
 
