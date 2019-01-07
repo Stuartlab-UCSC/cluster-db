@@ -10,6 +10,7 @@ class Cluster_table(Table):
         'name',
     ]
     fields = parentless_fields + ['clustering_solution_id']
+    tsv_header = parentless_fields + ['clustering_solution']
     parent = {  # foreign keys in this table
         'field': 'clustering_solution',
         'table': clustering_solution

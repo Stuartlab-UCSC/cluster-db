@@ -11,6 +11,7 @@ class Dataset_table(Table):
         'species',
     ]
     fields = parentless_fields
+    tsv_header = fields
     child_tables = [   # tables with foreign keys pointing to this table
         'clustering_solution'
     ]

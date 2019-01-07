@@ -17,12 +17,14 @@ class Clustering_solution_table(Table):
         'secondary'
     ]
     fields = parentless_fields + ['dataset_id']
+    tsv_header = parentless_fields + ['dataset']
     parent = {  # foreign keys in this table
         'field': 'dataset',
         'table': dataset
     }
     child_tables = [  # tables with foreign keys pointing to this table
         'signature_gene_set',
+        'cluster'
     ]
     # The 'insert into database' string.
     # This is duplicated in each specialized table class

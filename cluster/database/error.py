@@ -37,7 +37,7 @@ def abort_database(e):
 
 def abort_has_children():
     return abort_query(
-        400, 'There are children that would be orphaned, delete them first')
+        400, 'There are children that would be orphaned, delete those first')
 
 
 def abort_keyError(e):

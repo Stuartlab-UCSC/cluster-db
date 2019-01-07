@@ -10,6 +10,7 @@ class Cluster_assignment_table(Table):
         'name',
     ]
     fields = parentless_fields + ['cluster_id']
+    tsv_header = parentless_fields + ['cluster']
     parent = {  # foreign keys in this table
         'field': 'cluster',
         'table': cluster

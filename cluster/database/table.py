@@ -30,20 +30,6 @@ class Table(object):
                 ' WHERE ' + s.table + '_id = ?', \
                 (row['id'],))
 
-    def _get_parent_by_name(s, parent, name):
-        table_name = parent['field']
-        cursor = get_db().execute( 'SELECT * FROM ' + table_name + \
-            ' WHERE name = ?', (name,))
-        row = cursor.fetchone()
-        if row == None:
-            raise Parent_not_found(table_name + ': ' + name)
-        return row
-
-    def _get_parent_id(s, parent, name):
-        # Find the parent ID from the given parent name.
-        row = s._get_parent_by_name(parent, name)
-        return row['id']
-
     def _get_one(s, name, with_row_id=False):
         if with_row_id:
             fields = '*' # get all fields
@@ -58,6 +44,53 @@ class Table(object):
 
     def _get_one_with_id(s, name):
         return s._get_one(name, True)
+
+    def _get_parent_by_id(s, parent, id):
+        table_name = parent['field']
+        cursor = get_db().execute( 'SELECT * FROM ' + table_name + \
+            ' WHERE id = ?', (id,))
+        row = cursor.fetchone()
+        if row == None:
+            raise Parent_not_found(table_name + ': ID: ' + id)
+        return row
+
+    def _get_parent_by_name(s, parent, name):
+        table_name = parent['field']
+        cursor = get_db().execute( 'SELECT * FROM ' + table_name + \
+            ' WHERE name = ?', (name,))
+        row = cursor.fetchone()
+        if row == None:
+            raise Parent_not_found(table_name + ': ' + name)
+        return row
+
+    def _get_parent_id(s, parent, name):
+        # Find the parent ID from the given parent name.
+        row = s._get_parent_by_name(parent, name)
+        return row['id']
+
+    def _get_parent_name(s, parent, id):
+        # Find the parent name from the given parent ID.
+        row = s._get_parent_by_id(parent, id)
+        return row['name']
+
+    def _replace_parent_id_with_name_one_row(s, parent, data, db):
+        # Find the parent row.
+        field = parent['field']
+        parent_name = s._get_parent_name(parent, data[field + '_id'])
+
+        # Add the parent name to the data and remove the parent ID.
+        new_data = merge_dicts(data, {})
+        new_data[field] = parent_name
+        del new_data[field + '_id']
+        return new_data
+
+    def _replace_parent_id_with_name_in_rows(s, parent, rows, db):
+        new_rows = []
+        for row in rows:
+             new_rows.append(
+                s._replace_parent_id_with_name_one_row(s.parent, row, db))
+        return new_rows
+
 
     def _replace_parent_name_with_id(s, parent, data, db):
         # Find the parent row.
@@ -145,14 +178,17 @@ class Table(object):
     def get_all(s, accept):
         # Return all rows.
         fields = ','.join(s.fields)
-        cursor = get_db().execute('SELECT ' + ','.join(s.fields) + ' FROM ' + s.table)
+        db = get_db()
+        cursor = db.execute('SELECT ' + ','.join(s.fields) + ' FROM ' + s.table)
         rows = cursor.fetchall()
+        if s.parent:
+             rows = s._replace_parent_id_with_name_in_rows(s.parent, rows, db)
         if tsv.requested(accept):
-            return tsv.from_rows(rows, s.fields)
+            return tsv.from_rows(s.tsv_header, rows)
         return rows
 
     def get_by_parent(s, parent_name, accept):
-        # Return rows with the given parent.
+        # Return rows with the given parent, without the parent column.
         try:
             parent_id = s._get_parent_id(s.parent, parent_name)
             id_field = s.parent['field'] + '_id'
@@ -165,7 +201,7 @@ class Table(object):
                 raise Not_found(
                     'with ' + s.parent['field'] + ': ' + parent_name)
             if tsv.requested(accept):
-                return tsv.from_rows(rows, s.fields)
+                return tsv.from_rows(s.parentless_fields, rows)
             return rows
 
         except Not_found as e:
@@ -176,8 +212,11 @@ class Table(object):
     def get_one(s, name, accept):
         try:
             row = s._get_one(name)
+            if s.parent:
+                row = s._replace_parent_id_with_name_one_row(
+                    s.parent, row, get_db())
             if tsv.requested(accept):
-                return tsv.from_rows([row], s.fields)
+                return tsv.from_rows(s.tsv_header, [row])
             return row
 
         except Not_found as e:

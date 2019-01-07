@@ -10,6 +10,7 @@ class Signature_gene_table(Table):
         'name',
     ]
     fields = parentless_fields + ['signature_gene_set_id']
+    tsv_header = parentless_fields + ['signature_gene_set']
     parent = {  # foreign keys in this table
         'field': 'signature_gene_set',
         'table': signature_gene_set

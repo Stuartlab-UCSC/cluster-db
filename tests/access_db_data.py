@@ -45,7 +45,7 @@ add_one_clustering_solution = {
     "method_url": "method_url1",
     "method_parameters": "method_parameters1",
     "analyst": "analyst1",
-    "secondary": "secondary1",
+    "secondary": 0,
     "dataset": "dataset1",
 }
 add_second_clustering_solution = {
@@ -55,7 +55,7 @@ add_second_clustering_solution = {
     "method_url": "method_url2",
     "method_parameters": "method_parameters2",
     "analyst": "analyst2",
-    "secondary": "secondary2",
+    "secondary": 1,
     "dataset": "dataset1",
 }
 add_one_signature_gene_set = {

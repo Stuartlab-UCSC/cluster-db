@@ -47,7 +47,7 @@ def test_add_one(app, client):
         assert dicts_equal(result, ad.add_one_dataset)
 
 
-def test_add_one_get_all_get_one_json_api(client):
+def test_json_api(client):
     # add one
     response = client.post('/api/dataset/add',
         data=json.dumps(ad.add_one_dataset), headers=ad.json_headers)
@@ -224,13 +224,71 @@ def test_update_bad_field(app):
         assert result == "400 Database: invalid field: junkField"
 
 
+def test_json_api(client):
+    # add one
+    response = client.post('/api/dataset/add',
+        data=json.dumps(ad.add_one_dataset), headers=ad.json_headers)
+    assert response.content_type == ad.accept_json
+    assert response.data == b'null\n'
+    # get all
+    response = client.get('/api/dataset', headers=ad.json_headers)
+    assert response.content_type == ad.accept_json
+    assert dicts_equal(response.json[0], ad.add_one_dataset)
+    # get one
+    response = client.get('/api/dataset/dataset1', headers=ad.json_headers)
+    assert response.content_type == ad.accept_json
+    assert dicts_equal(response.json, ad.add_one_dataset)
+    # update
+    response = client.get(
+        '/api/dataset/update/name/dataset1/field/name/value/dataset3')
+    assert response.data == b'null\n'
+    # check that it was updated
+    response = client.get('/api/dataset', headers=ad.json_headers)
+    assert response.content_type == ad.accept_json
+    assert dicts_equal(response.json[0], ad.add_third_dataset)
+    # delete
+    response = client.get('/api/dataset/delete/dataset3')
+    assert response.data == b'null\n'
+    # check that it was really deleted
+    response = client.get('/api/dataset/dataset3')
+    assert response.json == '404 Not found: dataset: dataset3'
+
+
+def test_tsv_api(client):
+    # add one
+    response = client.get('/api/dataset/add_many/tsv_file/dataset.tsv')
+    assert response.content_type == ad.accept_json
+    # get all
+    response = client.get('/api/dataset', headers=ad.tsv_headers)
+    assert response.content_type == ad.accept_tsv
+    assert response.data == b'name\tspecies\ndataset1\tdog\ndataset2\tcat'
+    # get one
+    response = client.get('/api/dataset/dataset1', headers=ad.tsv_headers)
+    assert response.content_type == ad.accept_tsv
+    assert response.data == b'name\tspecies\ndataset1\tdog'
+    # update
+    response = client.get(
+        '/api/dataset/update/name/dataset1/field/name/value/dataset3')
+    assert response.data == b'null\n'
+    # check that it was updated
+    response = client.get('/api/dataset', headers=ad.tsv_headers)
+    assert response.content_type == ad.accept_tsv
+    assert response.data == b'name\tspecies\ndataset3\tdog\ndataset2\tcat'
+    # delete
+    response = client.get('/api/dataset/delete/dataset3')
+    assert response.data == b'null\n'
+    # check that it was really deleted
+    response = client.get('/api/dataset/dataset3', headers=ad.tsv_headers)
+    assert response.data == b'404 Not found: dataset: dataset3'
+
+
 
 
 
 
 
 """
-# danger
+# dangerous to delete all decendents
 def test_delete_including_children_no_children(app):
     with app.app_context():
         dataset.add_one(ad.add_one_dataset)

@@ -2,7 +2,7 @@
 # We don't duplicate tests aready done for common code
 # in test_dataset.py and test_clustering_solution.py
 
-import pytest
+import pytest, json
 import tests.access_db_data as ad
 from cluster.database.dataset_table import dataset
 from cluster.database.clustering_solution_table import clustering_solution
@@ -11,15 +11,22 @@ from cluster.database.attribute_table import attribute
 from cluster.database.cluster_assignment_table import cluster_assignment
 from cluster.database.db import dicts_equal, merge_dicts
 
-one_data_got = merge_dicts(ad.add_one_cluster, {})
-del(one_data_got['clustering_solution'])
-one_data_added = merge_dicts(ad.add_one_cluster, {'clustering_solution_id': 1})
-del(one_data_added['clustering_solution'])
-
+one_data_got_by_parent = merge_dicts(ad.add_one_cluster, {})
+del(one_data_got_by_parent['clustering_solution'])
+one_data_updated = merge_dicts(ad.add_one_cluster, {})
+one_data_updated['name'] = 'cluster3'
 
 def add_parents():
     dataset.add_one(ad.add_one_dataset)
     clustering_solution.add_one(ad.add_one_clustering_solution)
+
+
+def add_parents_tsv(client):
+    client.post('/api/dataset/add',
+        data=json.dumps(ad.add_one_dataset), headers=ad.json_headers)
+    client.post('/api/clustering_solution/add',
+        data=json.dumps(ad.add_one_clustering_solution),
+        headers=ad.json_headers)
 
 
 def test_add_one(app):
@@ -28,7 +35,7 @@ def test_add_one(app):
         result = cluster.add_one(ad.add_one_cluster)
         assert result == None
         result = cluster.get_one('cluster1', ad.accept_json)
-        assert dicts_equal(result, one_data_added)
+        assert dicts_equal(result, ad.add_one_cluster)
 
 
 def test_add_one_parent_not_found(app):
@@ -45,7 +52,7 @@ def test_delete_has_children_attribute(app):
         attribute.add_one(ad.add_one_attribute)
         result = cluster.delete('cluster1')
         assert result == \
-            '400 There are children that would be orphaned, delete them first'
+            '400 There are children that would be orphaned, delete those first'
 
 
 def test_delete_has_children_cluster_assignment(app):
@@ -55,7 +62,7 @@ def test_delete_has_children_cluster_assignment(app):
         cluster_assignment.add_one(ad.add_one_cluster_assignment)
         result = cluster.delete('cluster1')
         assert result == \
-            '400 There are children that would be orphaned, delete them first'
+            '400 There are children that would be orphaned, delete those first'
 
 
 def test_get_by_parent_one(app):
@@ -63,7 +70,7 @@ def test_get_by_parent_one(app):
         add_parents()
         cluster.add_one(ad.add_one_cluster)
         result = cluster.get_by_parent('clustering_solution1', ad.accept_json)
-        assert dicts_equal(result[0], one_data_got)
+        assert dicts_equal(result[0], one_data_got_by_parent)
 
 
 def test_get_by_parent_parent_not_found(app):
@@ -79,4 +86,97 @@ def test_get_one(app):
         add_parents()
         cluster.add_one(ad.add_one_cluster)
         result = cluster.get_one('cluster1', ad.accept_json)
-        assert dicts_equal(result, one_data_added)
+        assert dicts_equal(result, ad.add_one_cluster)
+
+
+def test_json_api(client):
+    # add one
+    add_parents_tsv(client)
+    response = client.post('/api/cluster/add',
+        data=json.dumps(ad.add_one_cluster),
+        headers=ad.json_headers)
+    assert response.content_type == ad.accept_json
+    assert response.data == b'null\n'
+
+    # get one
+    response = client.get('/api/cluster/cluster1',
+        headers=ad.json_headers)
+    assert response.content_type == ad.accept_json
+    assert dicts_equal(response.json, ad.add_one_cluster)
+
+    # get by parent
+    response = client.get(
+        '/api/cluster/get_by_clustering_solution/clustering_solution1',
+        headers=ad.json_headers)
+    assert response.content_type == ad.accept_json
+    assert dicts_equal(response.json[0], one_data_got_by_parent)
+
+    # update
+    response = client.get(
+        '/api/cluster/update/name/cluster1/field/name/value/cluster3')
+    assert response.data == b'null\n'
+    # check that it was updated
+    response = client.get('/api/cluster/cluster3', headers=ad.json_headers)
+    assert response.content_type == ad.accept_json
+    assert dicts_equal(response.json, one_data_updated)
+
+    # delete
+    response = client.get('/api/cluster/delete/cluster3')
+    assert response.data == b'null\n'
+    # check that it was really deleted
+    response = client.get('/api/cluster/cluster3')
+    assert response.json == \
+        '404 Not found: cluster: cluster3'
+
+
+def test_tsv_api(client):
+    # add many tsv
+    add_parents_tsv(client)
+    response = client.get('/api/cluster/add_many/tsv_file/' + \
+        'cluster.tsv/clustering_solution/clustering_solution1')
+    print('response.json:', response.json)
+    print('response.data:', response.data)
+    print('     expected:',one_data_got_by_parent)
+
+    assert response.content_type == ad.accept_json
+    assert response.data.decode("utf-8") == 'null\n'
+
+    # get one
+    response = client.get('/api/cluster/cluster1',
+        headers=ad.tsv_headers)
+    assert response.content_type == ad.accept_tsv
+    assert response.data.decode("utf-8") == \
+        'name\tclustering_solution\ncluster1\tclustering_solution1'
+
+    # get by parent
+    response = client.get(
+        '/api/cluster/get_by_clustering_solution/clustering_solution1',
+        headers=ad.tsv_headers)
+    assert response.content_type == ad.accept_tsv
+    assert response.data.decode("utf-8") == \
+'''name
+cluster1
+cluster2'''
+
+    # update
+    response = client.get('/api/cluster/update/name' + \
+        '/cluster1/field/name/value/cluster3')
+    assert response.data == b'null\n'
+    # check that it was updated
+    response = client.get('/api/cluster/cluster3', headers=ad.tsv_headers)
+    assert response.content_type == ad.accept_tsv
+    assert response.data.decode("utf-8") == \
+'''name	clustering_solution
+cluster3	clustering_solution1'''
+
+    # delete
+    response = client.get(
+        '/api/cluster/delete/cluster3')
+    assert response.data == b'null\n'
+    # check that it was really deleted
+    response = client.get('/api/cluster/cluster3',
+        headers=ad.tsv_headers)
+    assert response.data.decode("utf-8") == \
+        '404 Not found: cluster: cluster3'
+
+

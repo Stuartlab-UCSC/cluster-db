@@ -10,7 +10,7 @@ def requested(accept):
     return (str(accept) == 'text/tsv')
 
 
-def from_rows(rows, fields):
+def from_rows(fields, rows):
     # Convert sqlite rows to TSV lines.
     tsv = '\t'.join(fields)  # the header
     for row in rows:
@@ -36,7 +36,7 @@ def add_many(table, tsv_file, parent_name=None):
             raise Bad_tsv_header( \
                 'expected: "' + ' '.join(table.parentless_fields) + \
              '"\n   given: "' + ' '.join(f.fieldnames) + '"')
-        header_len = len(table.parentless_fields)
+        header_len = len(table.tsv_header)
         # If parent names are required ....
         db = get_db()
         if table.parent:
