@@ -1,7 +1,4 @@
 
-# This file contains the "get all" route per table.
-# It should be included in the table route file with exec().
-
 from flask import request
 from flask_restplus import Resource
 

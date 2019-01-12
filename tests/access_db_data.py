@@ -80,9 +80,18 @@ add_one_cluster = {
     "name": "cluster1",
     "clustering_solution": "clustering_solution1"
 }
+add_second_cluster = {
+    "name": "cluster2",
+    "clustering_solution": "clustering_solution1"
+}
 add_one_attribute = {
     "name": "attribute1",
     "value": "value1",
+    "cluster": "cluster1"
+}
+add_second_attribute = {
+    "name": "attribute2",
+    "value": "value2",
     "cluster": "cluster1"
 }
 add_second_attribute = {

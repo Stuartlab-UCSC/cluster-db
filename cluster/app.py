@@ -5,6 +5,7 @@ import logging.config
 import os
 from cluster import settings  # TODO why settings.py and config.py?
 from flask import Flask, Blueprint, redirect
+from cluster.api.attribute import ns as attribute_namespace
 from cluster.api.cluster import ns as cluster_namespace
 from cluster.api.cluster_assignment import ns as cluster_assignment_namespace
 from cluster.api.clustering_solution import ns as clustering_solution_namespace
@@ -49,6 +50,7 @@ def configure_app(flask_app, test_config):
 def initialize_blueprint(flask_app):
     blueprint = Blueprint('api', __name__, url_prefix='/api')
     api.init_app(blueprint)
+    api.add_namespace(attribute_namespace)
     api.add_namespace(cluster_assignment_namespace)
     api.add_namespace(cluster_namespace)
     api.add_namespace(clustering_solution_namespace)

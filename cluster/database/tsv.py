@@ -3,7 +3,7 @@
 import os, csv, sqlite3
 from flask import current_app
 from cluster.database.db import get_db, lists_equal, merge_dicts
-from cluster.database.error import Bad_tsv_header, Parent_not_supplied
+from cluster.database.error import Bad_tsv_header
 
 
 def requested(accept):
@@ -22,7 +22,7 @@ def from_rows(fields, rows):
     return tsv
 
 
-def add_many(table, tsv_file, parent_name=None):
+def add(table, tsv_file, parent_name=None):
     # Note: Rows that are too short don't error out,
     #       but will simply add null values at the end.
     #       Rows that are too long are interpreted as a new row and may error
@@ -36,18 +36,15 @@ def add_many(table, tsv_file, parent_name=None):
             raise Bad_tsv_header( \
                 'expected: "' + ' '.join(table.parentless_fields) + \
              '"\n   given: "' + ' '.join(f.fieldnames) + '"')
-        header_len = len(table.tsv_header)
         # If parent names are required ....
         db = get_db()
-        if table.parent:
-            if parent_name == None:
-                raise Parent_not_supplied(table.parent['field'])
-            # Convert the parent name into a parent ID to store in the database.
-            parent_id = table._get_parent_id(table.parent, parent_name)
-            # Add each row, including the parent ID.
-            for row in f:
-                row[table.parent['field'] + '_id'] = parent_id
-                table._add_one(row, db)
+        if table.parent_table:
+             parent_id = table._get_closest_parent_id(parent_name)
+             # Add the parent ID to the end of each row before adding to the DB.
+             for row in f:
+                 row = dict(row)
+                 row[table.parent_table[0] + '_id'] = parent_id
+                 table._add_one(row, db)
         else:
             # No parents, so simply add the data to the database.
             for row in f:

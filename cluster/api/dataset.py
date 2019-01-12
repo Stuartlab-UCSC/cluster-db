@@ -26,25 +26,28 @@ model = api.model('dataset', {
     'expressionDataSourceURL': fields.String(description='URL of expression source'),
 """
 
-
-# Add many from TSV file.
-@ns.route('/add_many/tsv_file/<string:tsv_file>')
-@ns.param('tsv_file', 'TSV file path')
-class Add_many_tsv(Resource):
+# Add from TSV file.
+@ns.route('/add/tsv_file/<string:tsv_file>')
+@ns.param('tsv_file', 'TSV file name')
+class Add__tsv(Resource):
     @ns.response(200, 'Success')
     def get(self, tsv_file):
         '''ADD MANY FROM TSV FILE'''
-        return table.add_many_tsv(tsv_file)
+        return table.add_tsv(tsv_file)
 
 
 # Do the equivalent of a bash shell 'source' to include the routes.
 filename = "/Users/swat/dev/cdb/clusterDb/cluster/api/common/add_one.py"
 exec(compile(source=open(filename).read(), filename='filename', mode='exec'))
-filename = "/Users/swat/dev/cdb/clusterDb/cluster/api/common/delete.py"
-exec(compile(source=open(filename).read(), filename='filename', mode='exec'))
+
+#filename = "/Users/swat/dev/cdb/clusterDb/cluster/api/common/delete.py"
+#exec(compile(source=open(filename).read(), filename='filename', mode='exec'))
+
 filename = "/Users/swat/dev/cdb/clusterDb/cluster/api/common/get_all.py"
 exec(compile(source=open(filename).read(), filename='filename', mode='exec'))
+
 filename = "/Users/swat/dev/cdb/clusterDb/cluster/api/common/get_one.py"
 exec(compile(source=open(filename).read(), filename='filename', mode='exec'))
-filename = "/Users/swat/dev/cdb/clusterDb/cluster/api/common/update.py"
-exec(compile(source=open(filename).read(), filename='filename', mode='exec'))
+
+#filename = "/Users/swat/dev/cdb/clusterDb/cluster/api/common/update.py"
+#exec(compile(source=open(filename).read(), filename='filename', mode='exec'))

@@ -5,35 +5,20 @@ from cluster.database.dataset_table import dataset
 
 class Clustering_solution_table(Table):
 
-    # Define some variables for this specialized table class.
-    table = 'clustering_solution'  # table name
-    parentless_fields = [          # table fields minus row ID
-        'name',
-        'method',
-        'method_implementation',
-        'method_url',
-        'method_parameters',
-        'analyst',
-        'secondary'
-    ]
-    fields = parentless_fields + ['dataset_id']
-    tsv_header = parentless_fields + ['dataset']
-    parent = {  # foreign keys in this table
-        'field': 'dataset',
-        'table': dataset
-    }
-    child_tables = [  # tables with foreign keys pointing to this table
-        'signature_gene_set',
-        'cluster'
-    ]
-    # The 'insert into database' string.
-    # This is duplicated in each specialized table class
-    # because it is built at class instance creation.
-    add_one_string = \
-        'INSERT INTO ' + table + ' (' + \
-        ','.join(fields) + \
-        ')' + \
-        'VALUES (' + ('?,' * len(fields))[:-1] + ')'
+    def __init__(s):
+        s.table = 'clustering_solution'  # table name
+        s.parentless_fields = [          # table fields minus row ID
+            'name',
+            'method',
+            'method_implementation',
+            'method_url',
+            'method_parameters',
+            'analyst',
+            'secondary'
+        ]
+        s.fields = s.parentless_fields + ['dataset_id']
+        s.parent_table = ['dataset'] # ancestor tables of this table
+        s.child_table = ['signature_gene_set', 'cluster']
 
 
 clustering_solution = Clustering_solution_table()

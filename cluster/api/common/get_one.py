@@ -1,6 +1,4 @@
 
-# This file contains the basic routes for each table.
-# It should be included in the table route file with exec().
 from flask import request
 from flask_restplus import Resource
 

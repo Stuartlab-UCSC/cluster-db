@@ -5,28 +5,18 @@ from cluster.database.db import get_db
 
 
 class Signature_gene_set_table(Table):
-    table = 'signature_gene_set'  # table name
-    parentless_fields = [         # table fields minus row ID
-        'name',
-        'method',
-    ]
-    fields = parentless_fields + ['clustering_solution_id']
-    tsv_header = parentless_fields + ['clustering_solution']
-    parent = {  # foreign keys in this table
-        'field': 'clustering_solution',
-        'table': clustering_solution
-    }
-    child_tables = [  # tables with foreign keys pointing to this table
-        'signature_gene',
-    ]
-    # The 'insert into database' string.
-    # This is duplicated in each specialized table class
-    # because it is built at class instance creation.
-    add_one_string = \
-        'INSERT INTO ' + table + ' (' + \
-        ','.join(fields) + \
-        ')' + \
-        'VALUES (' + ('?,' * len(fields))[:-1] + ')'
+    def __init__(s):
+        s.table = 'signature_gene_set'  # table name
+        s.parentless_fields = [         # table fields minus row ID
+            'name',
+            'method',
+        ]
+        s.fields = s.parentless_fields + ['clustering_solution_id']
+        s.parent_table = [ # ancestor tables of this table
+            'clustering_solution',
+            'dataset'
+        ]
+        s.child_table = ['signature_gene']
 
 
 signature_gene_set = Signature_gene_set_table()

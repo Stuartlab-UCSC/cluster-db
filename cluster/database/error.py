@@ -10,8 +10,6 @@ class Not_found(Exception):
     pass
 class Parent_not_found(Exception):
     pass
-class Parent_not_supplied(Exception):
-    pass
 
 
 def abort_query(code, message):
@@ -50,8 +48,3 @@ def abort_not_found(e):
 
 def abort_parent_not_found(e):
     return abort_query(404, 'Parent not found: ' + str(e))
-
-
-def abort_parent_not_supplied(e):
-    return abort_query(400, 'Parent was not supplied: ' + str(e))
-

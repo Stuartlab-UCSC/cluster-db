@@ -16,44 +16,49 @@ model = api.model('clustering_solution', {
     'method_parameters': fields.String(required=True, description='Clustering method parameters'),
     'analyst': fields.String(required=True, description='Person who ran the analysis'),
     'secondary': fields.Integer(required=True, \
-        description='One means this is a secondary clustering solution and another clustering solution is the default'),
+        description='One means this is a secondary clustering solution and some other clustering solution is the default'),
     'dataset': fields.String(required=True, description='Name of dataset that was analyzed'),
 })
+
+# Add from TSV file.
+@ns.route('/add' + \
+    '/tsv_file/<string:tsv_file>' + \
+    '/dataset/<string:dataset>')
+@ns.param('dataset', 'name of dataset')
+@ns.param('tsv_file', 'TSV file name')
+class Add_tsv(Resource):
+    @ns.response(200, 'Success')
+    def get(self, tsv_file, dataset):
+        '''ADD FROM TSV FILE BY CLUSTERING_SOLUTION'''
+        return table.add_tsv(tsv_file, ['dataset1'])
+
+"""
+# Delete.
+@ns.route('/delete_by/dataset/<string:dataset>')
+@ns.param('dataset', 'name of dataset')
+class Delete_by_dataset(Resource):
+    @ns.response(200, 'Success')
+    @ns.response(404, 'Not found')
+    def get(self, dataset):
+        '''DELETE'''
+        return table.delete(dataset)
+"""
+
+# Get rows by dataset.
+@ns.route('/get_by/dataset/<string:dataset>')
+@ns.param('dataset', 'name of parent dataset')
+class Get_by_parent(Resource):
+    @ns.response(200, 'list of ' + table_name + 's in JSON or TSV format')
+    def get(self, dataset):
+        '''GET BY DATASET'''
+        return table.get_by_parent([dataset], request.accept_mimetypes)
 
 
 # Just debugging:
 #filename = "/Users/swat/dev/cdb/clusterDb/cluster/api/common/get_all.py"
 #exec(compile(source=open(filename).read(), filename='filename', mode='exec'))
 
-
-# Add many from TSV file.
-@ns.route('/add_many/tsv_file/<string:tsv_file>/dataset/<string:dataset_name>')
-@ns.param('tsv_file', 'TSV file path')
-@ns.param('dataset_name', 'Dataset these belong to')
-class Add_many_tsv_file(Resource):
-    @ns.response(200, 'Success with row count of added')
-    def get(self, tsv_file, dataset_name):
-        '''ADD MANY FROM TSV FILE'''
-        return table.add_many_tsv(tsv_file, dataset_name)
-
-
-# Get rows by parent (foreign key) name.
-@ns.route('/get_by_dataset/<string:dataset_name>')
-@ns.param('dataset', 'name of parent dataset')
-class Get_by_parent(Resource):
-    @ns.response(200, 'list of ' + table_name + 's in JSON or TSV format')
-    def get(self, dataset_name):
-        '''GET BY DATASET'''
-        return table.get_by_parent(dataset_name, request.accept_mimetypes)
-
-
 # Do the equivalent of a bash shell 'source' to get the base routes.
-filename = "/Users/swat/dev/cdb/clusterDb/cluster/api/common/add_one.py"
-exec(compile(source=open(filename).read(), filename='filename', mode='exec'))
-filename = "/Users/swat/dev/cdb/clusterDb/cluster/api/common/delete.py"
-exec(compile(source=open(filename).read(), filename='filename', mode='exec'))
-filename = "/Users/swat/dev/cdb/clusterDb/cluster/api/common/get_one.py"
-exec(compile(source=open(filename).read(), filename='filename', mode='exec'))
-filename = "/Users/swat/dev/cdb/clusterDb/cluster/api/common/update.py"
-exec(compile(source=open(filename).read(), filename='filename', mode='exec'))
+#filename = "/Users/swat/dev/cdb/clusterDb/cluster/api/common/update.py"
+#exec(compile(source=open(filename).read(), filename='filename', mode='exec'))
 

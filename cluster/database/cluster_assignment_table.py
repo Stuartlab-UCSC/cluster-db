@@ -1,28 +1,26 @@
 
 from cluster.database.table import Table
 from cluster.database.cluster_table import cluster
+from cluster.database.clustering_solution_table import clustering_solution
+from cluster.database.dataset_table import dataset
 from cluster.database.db import get_db
+import cluster.database.error as err
+from cluster.database.error import Not_found, Parent_not_found
+import cluster.database.tsv as tsv
 
 
 class Cluster_assignment_table(Table):
-    table = 'cluster_assignment'  # table name
-    parentless_fields = [         # table fields minus row ID
-        'name',
-    ]
-    fields = parentless_fields + ['cluster_id']
-    tsv_header = parentless_fields + ['cluster']
-    parent = {  # foreign keys in this table
-        'field': 'cluster',
-        'table': cluster
-    }
-    # The 'insert into database' string.
-    # This is duplicated in each specialized table class
-    # because it is built at class instance creation.
-    add_one_string = \
-        'INSERT INTO ' + table + ' (' + \
-        ','.join(fields) + \
-        ')' + \
-        'VALUES (' + ('?,' * len(fields))[:-1] + ')'
+    def __init__(s):
+        s.table = 'cluster_assignment'  # table name
+        s.parentless_fields = [         # table fields minus row ID
+            'name',
+        ]
+        s.fields = s.parentless_fields + ['cluster_id']
+        s.parent_table = [ # ancestor tables of this table
+            'cluster',
+            'clustering_solution',
+            'dataset'
+        ]
 
 
 cluster_assignment = Cluster_assignment_table()
