@@ -7,8 +7,8 @@ from flask_restplus import Resource
 @ns.route('/get_by' + \
     'clustering_solution/<string:clustering_solution>' + \
     '/dataset/<string:dataset>')
-@ns.param('dataset', 'name of parent dataset')
-@ns.param('clustering_solution', 'name of parent clustering_solution')
+@ns.param('dataset', 'dataset name')
+@ns.param('clustering_solution', 'clustering_solution name')
 class Get_by_parent(Resource):
     @ns.response(200, 'list of ' + table_name + 's in JSON or TSV format')
     def get(self, clustering_solution, dataset):

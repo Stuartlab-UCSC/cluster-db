@@ -6,8 +6,8 @@ from flask_restplus import Resource
 @ns.route('/delete_by' + \
     '/dataset/<string:dataset>' + \
     '/clustering_solution/<string:clustering_solution>')
-@ns.param('dataset', 'name of dataset')
-@ns.param('clustering_solution', 'name of clustering_solution')
+@ns.param('dataset', 'dataset name')
+@ns.param('clustering_solution', 'clustering_solution name')
 class Delete_by_clustering_solution(Resource):
     @ns.response(200, 'Success')
     @ns.response(404, 'Not found')

@@ -37,8 +37,8 @@ class Add_many_tsv_file(Resource):
     '/signature_gene_set/<string:signature_gene_set>' + \
     'clustering_solution/<string:clustering_solution>' + \
     '/dataset/<string:dataset>')
-@ns.param('dataset', 'name of parent dataset')
-@ns.param('clustering_solution', 'name of parent clustering_solution')
+@ns.param('dataset', 'dataset name')
+@ns.param('clustering_solution', 'clustering_solution name')
 @ns.param('signature_gene_set', 'signature_gene_set name')
 class Get_by_parent(Resource):
     @ns.response(200, 'list of ' + table_name + 's in JSON or TSV format')
@@ -54,9 +54,9 @@ class Get_by_parent(Resource):
     '/signature_gene_set/<string:signature_gene_set>' + \
     '/clustering_solution/<string:clustering_solution>' + \
     '/dataset/<string:dataset>')
-@ns.param('dataset', 'name of dataset')
-@ns.param('clustering_solution', 'name of clustering_solution')
-@ns.param('signature_gene_set', 'name of signature_gene_set')
+@ns.param('dataset', 'dataset name')
+@ns.param('clustering_solution', 'clustering_solution name')
+@ns.param('signature_gene_set', 'signature_gene_set name')
 class Delete_by_clustering_solution(Resource):
     @ns.response(200, 'Success')
     @ns.response(404, 'Not found')

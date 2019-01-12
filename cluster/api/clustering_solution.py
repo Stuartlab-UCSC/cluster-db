@@ -24,7 +24,7 @@ model = api.model('clustering_solution', {
 @ns.route('/add' + \
     '/tsv_file/<string:tsv_file>' + \
     '/dataset/<string:dataset>')
-@ns.param('dataset', 'name of dataset')
+@ns.param('dataset', 'dataset name')
 @ns.param('tsv_file', 'TSV file name')
 class Add_tsv(Resource):
     @ns.response(200, 'Success')
@@ -35,7 +35,7 @@ class Add_tsv(Resource):
 """
 # Delete.
 @ns.route('/delete_by/dataset/<string:dataset>')
-@ns.param('dataset', 'name of dataset')
+@ns.param('dataset', 'dataset name')
 class Delete_by_dataset(Resource):
     @ns.response(200, 'Success')
     @ns.response(404, 'Not found')
@@ -46,7 +46,7 @@ class Delete_by_dataset(Resource):
 
 # Get rows by dataset.
 @ns.route('/get_by/dataset/<string:dataset>')
-@ns.param('dataset', 'name of parent dataset')
+@ns.param('dataset', 'dataset name')
 class Get_by_parent(Resource):
     @ns.response(200, 'list of ' + table_name + 's in JSON or TSV format')
     def get(self, dataset):

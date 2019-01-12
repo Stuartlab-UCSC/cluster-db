@@ -11,7 +11,7 @@ ns = api.namespace('attribute')
 model = api.model('attribute', {
     'name': fields.String(required=True, description='sample name'),
     'value': fields.String(required=True, description='value for this sample'),
-    'cluster': fields.String(required=True, description='name of the cluster'),
+    'cluster': fields.String(required=True, description='cluster name'),
 })
 
 

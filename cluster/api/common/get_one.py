@@ -5,7 +5,7 @@ from flask_restplus import Resource
 
 # Get one
 @ns.route('/<string:name>')
-@ns.param('name', 'name of the ' + table_name + ' to get')
+@ns.param('name', table_name + ' name')
 class Get_one(Resource):
     @ns.response(200, table_name + ' in JSON or TSV format')
     @ns.response(404, 'Not found')
