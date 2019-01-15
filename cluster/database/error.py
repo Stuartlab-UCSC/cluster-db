@@ -8,8 +8,6 @@ class Bad_tsv_header(Exception):
     pass
 class Not_found(Exception):
     pass
-class Parent_not_found(Exception):
-    pass
 
 
 def abort_query(code, message):
@@ -44,7 +42,3 @@ def abort_keyError(e):
 
 def abort_not_found(e):
     return abort_query(404, 'Not found: ' + str(e))
-
-
-def abort_parent_not_found(e):
-    return abort_query(404, 'Parent not found: ' + str(e))

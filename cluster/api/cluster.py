@@ -15,6 +15,10 @@ model = api.model('cluster', {
 })
 
 
+# Just debugging:
+#filename = "/Users/swat/dev/cdb/clusterDb/cluster/api/common/get_all.py"
+#exec(compile(source=open(filename).read(), filename='filename', mode='exec'))
+
 filename = \
     "/Users/swat/dev/cdb/clusterDb/cluster/api/common/add_tsv_by_clustering_solution.py"
 exec(compile(source=open(filename).read(), filename='filename', mode='exec'))

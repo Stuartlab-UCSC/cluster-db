@@ -44,7 +44,7 @@ def test_get_by_parent_parent_not_found(app):
         result = signature_gene_set.get_by_parent(
             ['clustering_solutionX', 'dataset1'], ad.accept_json)
         assert result == \
-            '404 Parent not found: clustering_solution: clustering_solutionX'
+            '404 Not found: clustering_solution: clustering_solutionX'
 
 
 """
@@ -67,16 +67,16 @@ def test_tsv_api(app, client):
             '/tsv_file/signature_gene_set.tsv' + \
             '/clustering_solution/clustering_solution1' + \
             '/dataset/dataset1')
-        print('response.data:', response.data)
         assert response.content_type == ad.accept_json
         assert response.data.decode("utf-8") == 'null\n'
 
         # get by parent
         response = client.get(
             '/api/signature_gene_set/get_by' + \
-            'clustering_solution/clustering_solution1' + \
+            '/clustering_solution/clustering_solution1' + \
             '/dataset/dataset1',
             headers=ad.tsv_headers)
+        print('response.data:', response.data)
         assert response.content_type == ad.accept_tsv
         assert response.data.decode("utf-8") == \
 '''name	method
@@ -118,7 +118,7 @@ def test_json_api(client):
         '/dataset/dataset1')
     response = client.get(
         '/api/signature_gene_set/get_by' + \
-        'clustering_solution/clustering_solution1' + \
+        '/clustering_solution/clustering_solution1' + \
         '/dataset/dataset1',
         headers=ad.json_headers)
     assert response.content_type == ad.accept_json

@@ -12,11 +12,12 @@ class Attribute_table(Table):
             'value'
         ]
         s.fields = s.parentless_fields + ['cluster_id']
+        s.tsv_fields = s.parentless_fields + ['cluster']
         s.parent_table = [ # ancestor tables of this table
-            'cluster',
             'clustering_solution',
             'dataset'
         ]
+        s.cluster_table = cluster
 
 
 attribute = Attribute_table()

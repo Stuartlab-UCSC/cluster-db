@@ -86,24 +86,37 @@ add_second_cluster = {
 }
 add_one_attribute = {
     "name": "attribute1",
-    "value": "value1",
+    "value": "value11",
     "cluster": "cluster1"
+}
+add_one_second_attribute = {
+    "name": "attribute1",
+    "value": "value12",
+    "cluster": "cluster2"
 }
 add_second_attribute = {
     "name": "attribute2",
-    "value": "value2",
+    "value": "value21",
     "cluster": "cluster1"
 }
-add_second_attribute = {
+add_second_second_attribute = {
     "name": "attribute2",
-    "value": "value2",
-    "cluster": "cluster1"
+    "value": "value22",
+    "cluster": "cluster2"
 }
 add_one_cluster_assignment = {
     "name": "sample1",
     "cluster": "cluster1"
 }
-add_second_cluster_assignment = {
+add_one_second_cluster_assignment = {
     "name": "sample2",
+    "cluster": "cluster2"
+}
+add_second_cluster_assignment = {
+    "name": "sample3",
     "cluster": "cluster1"
+}
+add_second_one_cluster_assignment = {
+    "name": "sample4",
+    "cluster": "cluster2"
 }

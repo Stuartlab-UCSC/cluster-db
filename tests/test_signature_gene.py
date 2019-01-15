@@ -45,7 +45,7 @@ def test_get_by_parent_parent_not_found(app):
         result = signature_gene.get_by_parent(['signature_gene_setX',
             'clustering_solution1', 'dataset1'], ad.accept_json)
         assert result == \
-            '404 Parent not found: signature_gene_set: signature_gene_setX'
+            '404 Not found: signature_gene_set: signature_gene_setX'
 
 
 def test_tsv_api(client):

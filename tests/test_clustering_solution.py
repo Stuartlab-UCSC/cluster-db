@@ -40,7 +40,7 @@ def test_add_one_parent_not_found(app):
     with app.app_context():
         result = clustering_solution.add_one(
             ad.add_one_clustering_solution, ['dataset1'])
-        assert result == '404 Parent not found: dataset: dataset1'
+        assert result == '404 Not found: dataset: dataset1'
 
 """
 def test_delete(app):
@@ -113,7 +113,7 @@ def test_get_by_parent_parent_not_found(app):
         clustering_solution.add_one(
             ad.add_one_clustering_solution, ['dataset1'])
         result = clustering_solution.get_by_parent(['datasetX'], ad.accept_json)
-        assert result == '404 Parent not found: dataset: datasetX'
+        assert result == '404 Not found: dataset: datasetX'
 
 
 def test_tsv_api(app, client):
@@ -126,7 +126,12 @@ def test_tsv_api(app, client):
             '/dataset/dataset1')
         assert response.content_type == ad.accept_json
         assert response.json == None
-
+        """
+        # get all
+        response = client.get('/api/clustering_solution', headers=ad.json_headers)
+        print('response.data:', response.data)
+        assert False
+        """
         # get by parent
         response = client.get(
             '/api/clustering_solution/get_by/dataset/dataset1',

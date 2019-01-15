@@ -4,22 +4,114 @@ import os, csv, sqlite3
 from flask import current_app
 from cluster.database.db import get_db, lists_equal, merge_dicts
 from cluster.database.error import Bad_tsv_header
+import cluster.database.util as util
 
 
-def requested(accept):
-    return (str(accept) == 'text/tsv')
+def _add_with_parent_id(table, parent_name, rows, db):
+    # Make the first part of the query string without the values.
+    query = \
+        'INSERT INTO ' + table.table + ' (' + \
+            ','.join(table.fields) + \
+        ') ' + \
+        'VALUES '
+    # Find the query values replacing the parent name with parent ID.
+    if table.table == 'attribute':
+        query_vals = _values_attribute(table, parent_name, rows, db)
+    elif table.table == 'cluster_assignment':
+        query_vals = _values_cluster_parent(table, parent_name, rows, db)
+    else:
+        query_vals = _values_same_parent(table, parent_name, rows, db)
+    # Execute the query.
+    db.execute(query + query_vals[:-1]) # remove trailing comma from vals
 
 
-def from_rows(fields, rows):
-    # Convert sqlite rows to TSV lines.
-    tsv = '\t'.join(fields)  # the header
+def _get_clusters(table, clustering_solution_name):
+    # Return a dict of cluster names to cluster IDs.
+    cluster_rows = util.get_by_parent(table.cluster_table,
+        clustering_solution_name, util.accept_json, return_ids=True)
+    clusters = {}
+    for row in cluster_rows:
+        clusters[row['name']] = row['id']
+    return clusters
+
+
+def _get_tsv_fields(table):
+    try:
+        fields = table.tsv_fields
+    except:
+        fields = table.parentless_fields
+    return fields
+
+
+def _header_check_attribute(f_fieldnames, table):
+    # Attribute header is only checked for 'cluster'
+    # because the rest of the header contains variable names.
+    if (f_fieldnames[0] != 'cluster'):
+        raise Bad_tsv_header( \
+            'expected in first column: "cluster' + \
+         '"\n                   given: "' + f_fieldnames[0] + '"')
+
+
+def _header_check(f_fieldnames, table):
+    # Bail if the file header is not correct.
+    if (table.table == 'attribute'):
+        _header_check_attribute(f_fieldnames, table)
+    else:
+        header = _get_tsv_fields(table)
+        if not lists_equal(f_fieldnames, header):
+            raise Bad_tsv_header( \
+                'expected: "' + ' '.join(header) + \
+             '"\n   given: "' + ' '.join(f_fieldnames) + '"')
+
+
+def _values_attribute(table, clustering_solution_name, rows, db):
+    # Special handling due to attribute TSV file being a matrix of attribute
+    # names by cluster names, with attribute names as the first row.
+    clusters = _get_clusters(table, clustering_solution_name)
+    attr_names = rows.fieldnames[1:] # leave out the cluster name
+    query_vals = ''
     for row in rows:
-        lis = list(row.values())
-        lStr = []
-        for l in lis:
-            lStr.append(str(l))
-        tsv += '\n' + '\t'.join(lStr)
-    return tsv
+        # Look at a row which contains one cluster's values.
+        cluster_id = str(clusters[row['cluster']])
+        for attr_name in attr_names:
+            # Build the values string for each cluster,
+            # replacing the cluster name with cluster ID.
+            query_vals += '("' + \
+                attr_name + '","' + \
+                row[attr_name] + '","' + \
+                cluster_id + '"),'
+
+    return query_vals
+
+
+def _values_cluster_parent(table, clustering_solution_name, rows, db):
+    # Special handling where each row may have a different parent cluster.
+    # Build a cluster name to ID mapping.
+    clusters = _get_clusters(table, clustering_solution_name)
+    # Build the query values string.
+    query_vals = ''
+    for row in rows:
+        # Build the values string for each row,
+        # replacing the cluster name with cluster ID.
+        val_string = '('
+        for val in list(row.values())[:-1]:
+            val_string += '"' + val + '",'
+        query_vals += val_string + '"' + str(clusters[row['cluster']]) + '"),'
+
+    return query_vals
+
+
+def _values_same_parent(table, parent_name, rows, db):
+    # Build the values string where all rows have the same parent,
+    # replacing the parent name with the parent ID.
+    parent_id = table._get_closest_parent_id(parent_name)
+    query_vals = ''
+    for row in rows:
+        val_string = '('
+        for val in list(row.values()):
+            val_string += '"' + val + '",'
+        query_vals += val_string + '"' + str(parent_id) + '"),'
+    return query_vals
 
 
 def add(table, tsv_file, parent_name=None):
@@ -32,24 +124,30 @@ def add(table, tsv_file, parent_name=None):
         f = csv.DictReader(f, delimiter='\t')
 
         # Bail if the file header is not correct.
-        if not lists_equal(f.fieldnames, table.parentless_fields):
-            raise Bad_tsv_header( \
-                'expected: "' + ' '.join(table.parentless_fields) + \
-             '"\n   given: "' + ' '.join(f.fieldnames) + '"')
-        # If parent names are required ....
+        _header_check(f.fieldnames, table)
         db = get_db()
         if table.parent_table:
-             parent_id = table._get_closest_parent_id(parent_name)
-             # Add the parent ID to the end of each row before adding to the DB.
-             for row in f:
-                 row = dict(row)
-                 row[table.parent_table[0] + '_id'] = parent_id
-                 table._add_one(row, db)
+            # Table has parents, so add with the parent ID.
+            _add_with_parent_id(table, parent_name, f, db)
         else:
-            # No parents, so simply add the data to the database.
+            # No parents, so simply add to the database.
             for row in f:
                 table._add_one(row, db)
 
         db.commit()
+
+def from_rows(table, rows):
+    # Convert sqlite rows to TSV lines.
+    tsv = '\t'.join(_get_tsv_fields(table))
+    for row in rows:
+        lines = []
+        for l in list(row.values()):
+            lines.append(str(l))
+        tsv += '\n' + '\t'.join(lines)
+    return tsv
+
+
+def requested(accept):
+    return (str(accept) == 'text/tsv')
 
 
