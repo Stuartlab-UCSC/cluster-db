@@ -22,24 +22,27 @@ def add_parent():
     dataset.add_one(ad.add_one_dataset)
 
 
-def test_add_one_and_get_by_parent(app):
+def test_add_two_and_get_by_parent(app):
     with app.app_context():
         add_parent()
-        result = clustering_solution.add_one(
-            ad.add_one_clustering_solution, ['dataset1'])
-        assert result == None
-        result = clustering_solution.add_one(
-            ad.add_second_clustering_solution, ['dataset1'])
-        assert result == None
-        result = clustering_solution.get_by_parent(['dataset1'], ad.accept_json)
-        assert dicts_equal(result[0], one_data_got_by_parent)
-        assert dicts_equal(result[1], second_data_got_by_parent)
+        result = clustering_solution.add_one(ad.add_one_clustering_solution)
+        assert result == 1
+        result = clustering_solution.add_one(ad.add_second_clustering_solution)
+        assert result == 2
+        #result = clustering_solution.get_all()
+        #print('result:', result)
+        #assert false
+        result = clustering_solution.get_by_parent(['dataset1'])
+        print('result:', result)
+        assert result == \
+'''name	method	method_implementation	method_url	method_parameters	analyst	secondary
+clustering_solution1	method1	method_implementation1	method_url1	method_parameters1	analyst1	0
+clustering_solution2	method2	method_implementation2	method_url2	method_parameters2	analyst2	1'''
 
 
 def test_add_one_parent_not_found(app):
     with app.app_context():
-        result = clustering_solution.add_one(
-            ad.add_one_clustering_solution, ['dataset1'])
+        result = clustering_solution.add_one(ad.add_one_clustering_solution)
         assert result == '404 Not found: dataset: dataset1'
 
 """
@@ -50,8 +53,7 @@ def test_delete(app):
         result = clustering_solution.delete(
             'clustering_solution1', ['dataset1'])
         assert result == None
-        result = clustering_solution.get_one(
-            'clustering_solution1', ad.accept_json)
+        result = clustering_solution.get_one('clustering_solution1')
         assert result == \
             '404 Not found: clustering_solution: clustering_solution1'
 
@@ -88,21 +90,10 @@ def test_delete_has_children_cluster(app):
             '400 There are children that would be orphaned, delete those first'
 """
 
-def test_get_by_parent_one_tsv(app):
-    with app.app_context():
-        add_parent()
-        clustering_solution.add_one(
-            ad.add_one_clustering_solution, ['dataset1'])
-        result = clustering_solution.get_by_parent(['dataset1'], ad.accept_tsv)
-        assert result == \
-'''name	method	method_implementation	method_url	method_parameters	analyst	secondary
-clustering_solution1	method1	method_implementation1	method_url1	method_parameters1	analyst1	0'''
-
-
 def test_get_by_parent_child_not_found(app):
     with app.app_context():
         add_parent()
-        result = clustering_solution.get_by_parent(['dataset1'], ad.accept_json)
+        result = clustering_solution.get_by_parent(['dataset1'])
         assert result == \
             '404 Not found: clustering_solution with dataset: dataset1'
 
@@ -110,13 +101,29 @@ def test_get_by_parent_child_not_found(app):
 def test_get_by_parent_parent_not_found(app):
     with app.app_context():
         add_parent()
-        clustering_solution.add_one(
-            ad.add_one_clustering_solution, ['dataset1'])
-        result = clustering_solution.get_by_parent(['datasetX'], ad.accept_json)
+        clustering_solution.add_one(ad.add_one_clustering_solution)
+        result = clustering_solution.get_by_parent(['datasetX'])
         assert result == '404 Not found: dataset: datasetX'
 
 
-def test_tsv_api(app, client):
+def test_api_add_one_and_get_by_parent(client):
+    # add one
+    add_parent()
+    response = ad.post_json(
+        client, '/api/clustering_solution/add', ad.add_one_clustering_solution)
+    assert response.content_type == ad.text_plain
+
+    # get by parent
+    response = client.get(
+        '/api/clustering_solution/get_by/dataset/dataset1')
+    assert response.content_type == ad.text_plain
+    print('response.data:', response.data)
+    assert response.data.decode("utf-8") == \
+'''name	method	method_implementation	method_url	method_parameters	analyst	secondary
+clustering_solution1	method1	method_implementation1	method_url1	method_parameters1	analyst1	0'''
+
+
+def test_api_tsv(app, client):
     with app.app_context():
         # add tsv
         add_parent()
@@ -124,31 +131,27 @@ def test_tsv_api(app, client):
             '/api/clustering_solution/add' + \
             '/tsv_file/clustering_solution.tsv' + \
             '/dataset/dataset1')
-        assert response.content_type == ad.accept_json
-        assert response.json == None
-        """
-        # get all
-        response = client.get('/api/clustering_solution', headers=ad.json_headers)
-        print('response.data:', response.data)
-        assert False
-        """
+        assert response.content_type == ad.text_plain
+        assert response.data.decode("utf-8") == '2'
+
         # get by parent
         response = client.get(
-            '/api/clustering_solution/get_by/dataset/dataset1',
-            headers=ad.tsv_headers)
-        assert response.content_type == ad.accept_tsv
+            '/api/clustering_solution/get_by/dataset/dataset1')
+        assert response.content_type == ad.text_plain
+        print('response.data:', response.data)
         assert response.data.decode("utf-8") == \
 '''name	method	method_implementation	method_url	method_parameters	analyst	secondary
 clustering_solution1	method1	method_implementation1	method_url1	method_parameters1	analyst1	0
 clustering_solution2	method2	method_implementation2	method_url2	method_parameters2	analyst2	1'''
-        """
+
+"""
         # update
         response = client.get('/api/clustering_solution/update/name' + \
             '/clustering_solution1/field/name/value/clustering_solution3')
         assert response.data == b'null\n'
         # check that it was updated
-        response = client.get('/api/clustering_solution/clustering_solution3', headers=ad.tsv_headers)
-        assert response.content_type == ad.accept_tsv
+        response = client.get('/api/clustering_solution/clustering_solution3')
+        assert response.content_type == ad.text_plain
         assert response.data.decode("utf-8") == \
 '''name	method	method_implementation	method_url	method_parameters	analyst	secondary	dataset
 clustering_solution3	method1	method_implementation1	method_url1	method_parameters1	analyst1	0	dataset1'''
@@ -158,46 +161,8 @@ clustering_solution3	method1	method_implementation1	method_url1	method_parameter
             '/api/clustering_solution/delete/clustering_solution3')
         assert response.data == b'null\n'
         # check that it was really deleted
-        response = client.get('/api/clustering_solution/clustering_solution3',
-            headers=ad.tsv_headers)
+        response = client.get('/api/clustering_solution/clustering_solution3')
         assert response.data.decode("utf-8") == \
             '404 Not found: clustering_solution: clustering_solution3'
-        """
+"""
 
-def test_json_api(app, client):
-    with app.app_context():
-        # get by parent
-        add_parent()
-        response = client.get(
-            '/api/clustering_solution/add' + \
-            '/tsv_file/clustering_solution.tsv' + \
-            '/dataset/dataset1')
-        response = client.get(
-            '/api/clustering_solution/get_by/dataset/dataset1',
-            headers=ad.json_headers)
-        assert response.content_type == ad.accept_json
-        print('response.json', response.json)
-        print('one_data_got_by_parent', one_data_got_by_parent)
-        assert dicts_equal(response.json[0], one_data_got_by_parent)
-        """
-        # update
-        response = client.get('/api/clustering_solution/update/name' + \
-            '/clustering_solution1/field/name/value/clustering_solution3')
-        assert response.data == b'null\n'
-        # check that it was updated
-        response = client.get('/api/clustering_solution/clustering_solution3',
-            headers=ad.json_headers)
-        assert response.content_type == ad.accept_json
-        assert dicts_equal(response.json, one_data_updated)
-
-        # delete
-        response = client.get(
-            '/api/clustering_solution/delete/clustering_solution3')
-        assert response.data == b'null\n'
-        # check that it was really deleted
-        response = client.get('/api/clustering_solution/clustering_solution3')
-        assert response.json == \
-            '404 Not found: clustering_solution: clustering_solution3'
-        print('response.json:',response.json[0])
-        print('     expected:',one_data_got_by_parent)
-        """

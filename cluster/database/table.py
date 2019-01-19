@@ -46,7 +46,7 @@ class Table(object):
             raise Not_found(s.table + ': ' + name)
         return row
 
-    def _get_closest_parent_id(s, parent_name):
+    def _get_closest_parent_id_by_name(s, parent_name):
         id = -1
         # Walk the patent table and name lists in reverse
         # to find the closest parent ID.
@@ -61,6 +61,14 @@ class Table(object):
                 raise Not_found(table + ': ' + name)
             id = row['id']
         return id
+
+    def _get_closest_parent_id_by_name_in_child_row(s, row, parent_name):
+        # The parent_name here lacks the closest parent which is in the row,
+        # so add that parent name to the given parent names.
+        parent_names = [row[s.parent_table[0]]]
+        if parent_name:
+            parent_names += parent_name
+        return s._get_closest_parent_id_by_name(parent_names)
 
     def _get_parent_name(s, parent_table, parent_id):
         # Find the parent name from the given parent table name and parent ID.
@@ -109,16 +117,18 @@ class Table(object):
             db = get_db()
             if s.parent_table:
                 # Add the parent ID to the data.
-                parent_id = s._get_closest_parent_id(parent_name)
+                parent_id = s._get_closest_parent_id_by_name_in_child_row(
+                    row, parent_name)
                 parent_table = s.parent_table[0]
                 new_row = merge_dicts(row, {})
                 new_row[parent_table + '_id'] = parent_id
                 # Remove the parent name.
                 del new_row[parent_table]
-                s._add_one(new_row, db)
+                rowId =s._add_one(new_row, db)
             else:
-                s._add_one(row, db)
+                rowId = s._add_one(row, db)
             db.commit()
+            return rowId
 
         except Not_found as e:
             return err.abort_not_found(e)
@@ -129,7 +139,7 @@ class Table(object):
 
     def add_tsv(s, tsv_file, parent_name=None):
         try:
-            tsv.add(s, tsv_file, parent_name)
+            return tsv.add(s, tsv_file, parent_name)
         except Bad_tsv_header as e:
             return err.abort_bad_tsv_header(e)
         except Not_found as e:
@@ -146,7 +156,7 @@ class Table(object):
         try:
             db = get_db()
             if parent_name:
-                parent_id = s._get_closest_parent_id(parent_name)
+                parent_id = s._get_closest_parent_id_by_name(parent_name)
                 row = s._get_one(name) # throw an error if not found
                 db.execute('DELETE FROM ' + s.table + \
                     ' WHERE name = ? AND '  + s.parent + '_id = ?',
@@ -174,22 +184,19 @@ class Table(object):
         except sqlite3.IntegrityError as e:
            return err.abort_has_children()
     """
-    def get_all(s, accept):
+    def get_all(s):
         # Return all rows. Parents are returned as IDs rather than names.
         fields = ','.join(s.fields)
         db = get_db()
         cursor = db.execute('SELECT ' + ','.join(s.fields) + ' FROM ' + s.table)
-        rows = cursor.fetchall()
-        if tsv.requested(accept):
-            rows = tsv.from_rows(s, rows)
-        return rows
+        return(tsv.from_rows(cursor.fetchall()))
 
-    def get_by_clustering_solution_clusters(s, parent_name, accept):
+    def get_by_clustering_solution_clusters(s, parent_name):
         # Special for retrieving by all clusters in a clustering solution.
         try:
             # Find all of the clusters for the given clustering_solution.
             cluster_rows = util.get_by_parent(s.cluster_table,
-                parent_name, util.accept_json, return_ids=True)
+                parent_name, return_ids=True)
             # Find child rows for each cluster querying once per cluster.
             db = get_db()
             rows_of_rows = []
@@ -208,29 +215,25 @@ class Table(object):
             if len(rows_of_rows) < 1:
                 raise Not_found(s.table + ' with ' + s.parent_table[0] + \
                     ': ' + parent_name[0] + ' or with cluster names')
-            if tsv.requested(accept):
-                return tsv.from_rows(s, rows_of_rows)
-            return rows_of_rows
+            return tsv.from_rows(rows_of_rows)
 
         except Not_found as e:
             return err.abort_not_found(e)
 
-    def get_by_parent(s, parent_name, accept):
+    def get_by_parent(s, parent_name):
         # Return rows with the given parent names, without the parent column.
         # Parents is an array of parent names, closest to farthest.
         try:
-            return util.get_by_parent(s, parent_name, accept)
+            return tsv.from_rows(util.get_by_parent(s, parent_name))
         except Not_found as e:
             return err.abort_not_found(e)
 
 
-    def get_one(s, name, accept):
+    def get_one(s, name):
         # Only works for tables with no parent tables.
         try:
             row = s._get_one(name)
-            if tsv.requested(accept):
-                return tsv.from_rows(s, [row])
-            return row
+            return tsv.from_rows([row])
 
         except Not_found as e:
             return err.abort_not_found(e)

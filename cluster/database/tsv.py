@@ -22,13 +22,13 @@ def _add_with_parent_id(table, parent_name, rows, db):
     else:
         query_vals = _values_same_parent(table, parent_name, rows, db)
     # Execute the query.
-    db.execute(query + query_vals[:-1]) # remove trailing comma from vals
-
+    cursor = db.execute(query + query_vals[:-1]) # remove trailing comma from vals
+    return cursor.lastrowid
 
 def _get_clusters(table, clustering_solution_name):
     # Return a dict of cluster names to cluster IDs.
     cluster_rows = util.get_by_parent(table.cluster_table,
-        clustering_solution_name, util.accept_json, return_ids=True)
+        clustering_solution_name, return_ids=True)
     clusters = {}
     for row in cluster_rows:
         clusters[row['name']] = row['id']
@@ -104,7 +104,7 @@ def _values_cluster_parent(table, clustering_solution_name, rows, db):
 def _values_same_parent(table, parent_name, rows, db):
     # Build the values string where all rows have the same parent,
     # replacing the parent name with the parent ID.
-    parent_id = table._get_closest_parent_id(parent_name)
+    parent_id = table._get_closest_parent_id_by_name(parent_name)
     query_vals = ''
     for row in rows:
         val_string = '('
@@ -128,17 +128,21 @@ def add(table, tsv_file, parent_name=None):
         db = get_db()
         if table.parent_table:
             # Table has parents, so add with the parent ID.
-            _add_with_parent_id(table, parent_name, f, db)
+            rowId = _add_with_parent_id(table, parent_name, f, db)
         else:
             # No parents, so simply add to the database.
             for row in f:
-                table._add_one(row, db)
+                rowId = table._add_one(row, db)
 
         db.commit()
+        return rowId
 
-def from_rows(table, rows):
+
+def from_rows(rows):
     # Convert sqlite rows to TSV lines.
-    tsv = '\t'.join(_get_tsv_fields(table))
+    if len(rows) < 1:
+        return ''
+    tsv = '\t'.join(rows[0].keys()) # the header
     for row in rows:
         lines = []
         for l in list(row.values()):
@@ -148,6 +152,6 @@ def from_rows(table, rows):
 
 
 def requested(accept):
-    return (str(accept) == 'text/tsv')
+    return (str(accept) == 'text/tab-separated-values')
 
 

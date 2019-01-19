@@ -1,9 +1,9 @@
 
 # api/clustering_solution.py
 
-from flask import request
+from flask import request, Response
 from flask_restplus import fields,  Resource
-from cluster.api.restplus import api
+from cluster.api.restplus import api, mimetype
 from cluster.database.clustering_solution_table import clustering_solution as table
 
 table_name = 'clustering solution'
@@ -27,10 +27,11 @@ model = api.model('clustering_solution', {
 @ns.param('dataset', 'dataset name')
 @ns.param('tsv_file', 'TSV file name')
 class Add_tsv(Resource):
-    @ns.response(200, 'Success')
+    @ns.response(200, 'database row ID')
     def get(self, tsv_file, dataset):
         '''ADD FROM TSV FILE BY CLUSTERING_SOLUTION'''
-        return table.add_tsv(tsv_file, ['dataset1'])
+        resp = table.add_tsv(tsv_file, ['dataset1'])
+        return Response(str(resp), mimetype=mimetype)
 
 """
 # Delete.
@@ -48,10 +49,11 @@ class Delete_by_dataset(Resource):
 @ns.route('/get_by/dataset/<string:dataset>')
 @ns.param('dataset', 'dataset name')
 class Get_by_parent(Resource):
-    @ns.response(200, 'list of ' + table_name + 's in JSON or TSV format')
+    @ns.response(200, 'list of ' + table_name + 's in TSV format')
     def get(self, dataset):
         '''GET BY DATASET'''
-        return table.get_by_parent([dataset], request.accept_mimetypes)
+        resp = table.get_by_parent([dataset])
+        return Response(str(resp), mimetype=mimetype)
 
 
 # Just debugging:
@@ -59,6 +61,12 @@ class Get_by_parent(Resource):
 #exec(compile(source=open(filename).read(), filename='filename', mode='exec'))
 
 # Do the equivalent of a bash shell 'source' to get the base routes.
+filename = "/Users/swat/dev/cdb/clusterDb/cluster/api/common/add_one.py"
+exec(compile(source=open(filename).read(), filename='filename', mode='exec'))
+
+filename = "/Users/swat/dev/cdb/clusterDb/cluster/api/common/add_one.py"
+exec(compile(source=open(filename).read(), filename='filename', mode='exec'))
+
 #filename = "/Users/swat/dev/cdb/clusterDb/cluster/api/common/update.py"
 #exec(compile(source=open(filename).read(), filename='filename', mode='exec'))
 

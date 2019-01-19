@@ -8,6 +8,8 @@ class Bad_tsv_header(Exception):
     pass
 class Not_found(Exception):
     pass
+class Updates_not_allowed(Exception):
+    pass
 
 
 def abort_query(code, message):
@@ -42,3 +44,8 @@ def abort_keyError(e):
 
 def abort_not_found(e):
     return abort_query(404, 'Not found: ' + str(e))
+
+
+def updates_not_allowed(e):
+    return abort_query(400,
+        'Updates to the database are not allowed, only read queries.')

@@ -20,6 +20,10 @@ model = api.model('signature_gene_set', {
 
 # Do the equivalent of a bash shell 'source' to get the base routes.
 filename = \
+    "/Users/swat/dev/cdb/clusterDb/cluster/api/common/add_one_by_dataset.py"
+exec(compile(source=open(filename).read(), filename='filename', mode='exec'))
+
+filename = \
     "/Users/swat/dev/cdb/clusterDb/cluster/api/common/add_tsv_by_clustering_solution.py"
 exec(compile(source=open(filename).read(), filename='filename', mode='exec'))
 

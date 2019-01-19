@@ -21,19 +21,38 @@ del(second_data_got_by_parent['clustering_solution'])
 
 def add_parents():
     dataset.add_one(ad.add_one_dataset)
-    clustering_solution.add_one(
-        ad.add_one_clustering_solution, ['dataset1'])
+    clustering_solution.add_one(ad.add_one_clustering_solution)
 
-def test_add_tsv_and_get_by_parent(app):
+def test_add_two(app):
+    with app.app_context():
+        add_parents()
+        result = signature_gene_set.add_one(
+            ad.add_one_signature_gene_set, ['dataset1'])
+        result = signature_gene_set.add_one(
+            ad.add_second_signature_gene_set, ['dataset1'])
+        assert result == 2
+        result = signature_gene_set.get_by_parent(
+            ['clustering_solution1', 'dataset1'])
+        print('result:', result)
+        assert result ==  \
+'''name	method
+signature_gene_set1	method1
+signature_gene_set2	method2'''
+
+
+def test_add_tsv(app):
     with app.app_context():
         add_parents()
         result = signature_gene_set.add_tsv(
             'signature_gene_set.tsv', ['clustering_solution1', 'dataset1'])
-        assert result == None
+        assert result == 2
         result = signature_gene_set.get_by_parent(
-            ['clustering_solution1', 'dataset1'], ad.accept_json)
-        assert dicts_equal(result[0], one_data_got_by_parent)
-        assert dicts_equal(result[1], second_data_got_by_parent)
+            ['clustering_solution1', 'dataset1'])
+        print('result:', result)
+        assert result ==  \
+'''name	method
+signature_gene_set1	method1
+signature_gene_set2	method2'''
 
 
 def test_get_by_parent_parent_not_found(app):
@@ -42,7 +61,7 @@ def test_get_by_parent_parent_not_found(app):
         signature_gene_set.add_tsv(
             'signature_gene_set.tsv', ['clustering_solution1', 'dataset1'])
         result = signature_gene_set.get_by_parent(
-            ['clustering_solutionX', 'dataset1'], ad.accept_json)
+            ['clustering_solutionX', 'dataset1'])
         assert result == \
             '404 Not found: clustering_solution: clustering_solutionX'
 
@@ -56,9 +75,38 @@ def test_delete_has_children(app):
         result = signature_gene_set.delete('signature_gene_set1')
         assert result == \
             '400 There are children that would be orphaned, delete those first'
-
 """
-def test_tsv_api(app, client):
+
+
+def test_api_add_one_and_get_by_parent(client):
+    # add one
+    add_parents()
+    response = ad.post_json(
+        client, '/api/signature_gene_set/add_by/dataset/dataset1',
+        ad.add_one_signature_gene_set)
+    print('response.data', response.data)
+    #assert response.content_type == ad.text_plain
+    response = ad.post_json(
+        client, '/api/signature_gene_set/add_by/dataset/dataset1',
+        ad.add_second_signature_gene_set)
+    #assert response.content_type == ad.text_plain
+    print('response.data', response.data)
+    assert response.data.decode("utf-8") == '2'
+
+    # get by parent
+    response = client.get(
+        '/api/signature_gene_set/get_by' + \
+        '/clustering_solution/clustering_solution1' + \
+        '/dataset/dataset1')
+    print('response.data:', response.data)
+    assert response.content_type == ad.text_plain
+    assert response.data.decode("utf-8") == \
+'''name	method
+signature_gene_set1	method1
+signature_gene_set2	method2'''
+
+
+def test_api_tsv(app, client):
     with app.app_context():
         # add many tsv
         add_parents()
@@ -67,31 +115,29 @@ def test_tsv_api(app, client):
             '/tsv_file/signature_gene_set.tsv' + \
             '/clustering_solution/clustering_solution1' + \
             '/dataset/dataset1')
-        assert response.content_type == ad.accept_json
-        assert response.data.decode("utf-8") == 'null\n'
+        assert response.content_type == ad.text_plain
+        assert response.data.decode("utf-8") == '2'
 
         # get by parent
         response = client.get(
             '/api/signature_gene_set/get_by' + \
             '/clustering_solution/clustering_solution1' + \
-            '/dataset/dataset1',
-            headers=ad.tsv_headers)
+            '/dataset/dataset1')
         print('response.data:', response.data)
-        assert response.content_type == ad.accept_tsv
+        assert response.content_type == ad.text_plain
         assert response.data.decode("utf-8") == \
 '''name	method
 signature_gene_set1	method1
 signature_gene_set2	method2'''
 
-    """
+"""
     # update
     response = client.get('/api/signature_gene_set/update/name' + \
         '/signature_gene_set1/field/name/value/signature_gene_set3')
     assert response.data == b'null\n'
     # check that it was updated
-    response = client.get('/api/signature_gene_set/signature_gene_set3',
-        headers=ad.tsv_headers)
-    assert response.content_type == ad.accept_tsv
+    response = client.get('/api/signature_gene_set/signature_gene_set3')
+    assert response.content_type == ad.text_plain
     assert response.data.decode("utf-8") == \
 '''name	method	clustering_solution
 signature_gene_set3	method1	clustering_solution1'''
@@ -101,48 +147,7 @@ signature_gene_set3	method1	clustering_solution1'''
         '/api/signature_gene_set/delete/signature_gene_set3')
     assert response.data == b'null\n'
     # check that it was really deleted
-    response = client.get('/api/signature_gene_set/signature_gene_set3',
-        headers=ad.tsv_headers)
+    response = client.get('/api/signature_gene_set/signature_gene_set3')
     assert response.data.decode("utf-8") == \
         '404 Not found: signature_gene_set: signature_gene_set3'
-    """
-
-
-def test_json_api(client):
-    # get by parent
-    add_parents()
-    client.get(
-        '/api/signature_gene_set/add' + \
-        '/tsv_file/signature_gene_set.tsv' + \
-        '/clustering_solution/clustering_solution1' + \
-        '/dataset/dataset1')
-    response = client.get(
-        '/api/signature_gene_set/get_by' + \
-        '/clustering_solution/clustering_solution1' + \
-        '/dataset/dataset1',
-        headers=ad.json_headers)
-    assert response.content_type == ad.accept_json
-    assert dicts_equal(response.json[0], one_data_got_by_parent)
-    """
-    # update
-    response = client.get('/api/signature_gene_set/update/name/' + \
-        'signature_gene_set1/field/name/value/signature_gene_set3')
-    assert response.data == b'null\n'
-    # check that it was updated
-    response = client.get('/api/signature_gene_set/signature_gene_set3',
-        headers=ad.json_headers)
-    print('response.json:', response.json)
-    print('response.data:', response.data.decode("utf-8"))
-    print('     expected:',one_data_got_by_parent)
-    assert response.content_type == ad.accept_json
-    assert dicts_equal(response.json, one_data_updated)
-
-    # delete
-    response = client.get('/api/signature_gene_set/delete/signature_gene_set3')
-    assert response.data == b'null\n'
-    # check that it was really deleted
-    response = client.get('/api/signature_gene_set/signature_gene_set3')
-    assert response.json == \
-        '404 Not found: signature_gene_set: signature_gene_set3'
-    """
-
+"""

@@ -1,9 +1,9 @@
 
 # api/signature_gene.py
 
-from flask import request
+from flask import request, Response
 from flask_restplus import fields,  Resource
-from cluster.api.restplus import api
+from cluster.api.restplus import api, mimetype
 from cluster.database.signature_gene_table import signature_gene as table
 
 table_name = 'signature gene'
@@ -25,11 +25,12 @@ model = api.model('signature_gene', {
 @ns.param('signature_gene_set', 'signature_gene_set name')
 @ns.param('tsv_file', 'TSV file name')
 class Add_many_tsv_file(Resource):
-    @ns.response(200, 'Success')
+    @ns.response(200, 'last database row ID')
     def get(self, tsv_file, signature_gene_set, clustering_solution, dataset):
         '''ADD MANY FROM TSV FILE'''
-        return table.add_tsv(
+        resp = table.add_tsv(
             tsv_file, [signature_gene_set, clustering_solution, dataset])
+        return Response(str(resp), mimetype=mimetype)
 
 
 # Get rows by signature_gene_set.
@@ -41,12 +42,12 @@ class Add_many_tsv_file(Resource):
 @ns.param('clustering_solution', 'clustering_solution name')
 @ns.param('signature_gene_set', 'signature_gene_set name')
 class Get_by_parent(Resource):
-    @ns.response(200, 'list of ' + table_name + 's in JSON or TSV format')
+    @ns.response(200, 'list of ' + table_name + 's in TSV format')
     def get(self, signature_gene_set, clustering_solution, dataset):
         '''GET BY SIGNATURE GENE SET'''
-        return table.get_by_parent(
-            [signature_gene_set, clustering_solution, dataset],
-            request.accept_mimetypes)
+        resp = table.get_by_parent(
+            [signature_gene_set, clustering_solution, dataset])
+        return Response(str(resp), mimetype=mimetype)
 
 """
 # Delete by signature_gene_set.

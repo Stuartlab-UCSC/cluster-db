@@ -18,20 +18,41 @@ one_data_updated['name'] = 'cluster3'
 second_data_got_by_parent = merge_dicts(ad.add_second_cluster, {})
 del(second_data_got_by_parent['clustering_solution'])
 
+
 def add_parents():
     dataset.add_one(ad.add_one_dataset)
-    clustering_solution.add_one(ad.add_one_clustering_solution, ['dataset1'])
+    clustering_solution.add_one(ad.add_one_clustering_solution)
+
+
+def test_add_two_and_get_by_parent(app):
+    with app.app_context():
+        add_parents()
+        result = cluster.add_one(ad.add_one_cluster, ['dataset1'])
+        assert result == 1
+        result = cluster.add_one(ad.add_second_cluster, ['dataset1'])
+        assert result == 2
+        result = cluster.get_by_parent(
+            ['clustering_solution1', 'dataset1'])
+        print('result:', result)
+        assert result == \
+'''name
+cluster1
+cluster2'''
+
 
 def test_add_tsv_and_get_by_parent(app):
     with app.app_context():
         add_parents()
         result = cluster.add_tsv(
             'cluster.tsv', ['clustering_solution1', 'dataset1'])
-        assert result == None
+        assert result == 2
         result = cluster.get_by_parent(
-            ['clustering_solution1', 'dataset1'], ad.accept_json)
-        assert dicts_equal(result[0], one_data_got_by_parent)
-        assert dicts_equal(result[1], second_data_got_by_parent)
+            ['clustering_solution1', 'dataset1'])
+        print('result:', result)
+        assert result == \
+'''name
+cluster1
+cluster2'''
 
 """
 def test_delete_has_children_attribute(app):
@@ -54,46 +75,34 @@ def test_delete_has_children_cluster_assignment(app):
             '400 There are children that would be orphaned, delete those first'
 
 """
-def test_get_by_parent_one(app):
-    with app.app_context():
-        add_parents()
-        result = cluster.add_tsv(
-            'cluster.tsv', ['clustering_solution1', 'dataset1'])
-        result = cluster.get_by_parent(
-            ['clustering_solution1', 'dataset1'], ad.accept_json)
-        assert dicts_equal(result[0], one_data_got_by_parent)
-
 
 def test_get_by_parent_parent_not_found(app):
     with app.app_context():
         add_parents()
         result = cluster.add_tsv(
             'cluster.tsv', ['clustering_solution1', 'dataset1'])
-        result = cluster.get_by_parent(
-            ['clustering_solutionX', 'dataset1'], ad.accept_json)
+        result = cluster.get_by_parent(['clustering_solutionX', 'dataset1'])
         assert result == \
             '404 Not found: clustering_solution: clustering_solutionX'
 
 
-
-def test_tsv_api(app, client):
+def test_api_tsv(client):
     # add many tsv
     add_parents()
     response = client.get('/api/cluster/add' + \
         '/tsv_file/cluster.tsv' + \
         '/clustering_solution/clustering_solution1' + \
         '/dataset/dataset1')
-    assert response.content_type == ad.accept_json
-    assert response.data.decode("utf-8") == 'null\n'
+    assert response.content_type == ad.text_plain
+    assert response.data.decode("utf-8") == '2'
 
     # get by parent
     response = client.get(
         '/api/cluster/get_by' + \
         '/clustering_solution/clustering_solution1' + \
-        '/dataset/dataset1',
-        headers=ad.tsv_headers)
+        '/dataset/dataset1')
     print('response.data', response.data)
-    assert response.content_type == ad.accept_tsv
+    assert response.content_type == ad.text_plain
     assert response.data.decode("utf-8") == \
 '''name
 cluster1
@@ -105,8 +114,8 @@ cluster2'''
         '/cluster1/field/name/value/cluster3')
     assert response.data == b'null\n'
     # check that it was updated
-    response = client.get('/api/cluster/cluster3', headers=ad.tsv_headers)
-    assert response.content_type == ad.accept_tsv
+    response = client.get('/api/cluster/cluster3')
+    assert response.content_type == ad.text_plain
     assert response.data.decode("utf-8") == \
 '''name	clustering_solution
 cluster3	clustering_solution1'''
@@ -116,47 +125,8 @@ cluster3	clustering_solution1'''
         '/api/cluster/delete/cluster3')
     assert response.data == b'null\n'
     # check that it was really deleted
-    response = client.get('/api/cluster/cluster3',
-        headers=ad.tsv_headers)
-    assert response.data.decode("utf-8") == \
-        '404 Not found: cluster: cluster3'
-    """
-
-def test_json_api(client):
-    # get by parent
-    add_parents()
-    client.get(
-        '/api/cluster/add' + \
-        '/tsv_file/cluster.tsv' + \
-        '/clustering_solution/clustering_solution1' + \
-        '/dataset/dataset1')
-    response = client.get(
-        '/api/cluster/get_by' + \
-        '/clustering_solution/clustering_solution1' + \
-        '/dataset/dataset1',
-        headers=ad.json_headers)
-    print('response.data', response.data)
-    print('one_data_got_by_parent', one_data_got_by_parent)
-    assert response.content_type == ad.accept_json
-    assert dicts_equal(response.json[0], one_data_got_by_parent)
-    assert dicts_equal(response.json[1], second_data_got_by_parent)
-
-    """
-    # update
-    response = client.get(
-        '/api/cluster/update/name/cluster1/field/name/value/cluster3')
-    assert response.data == b'null\n'
-    # check that it was updated
-    response = client.get('/api/cluster/cluster3', headers=ad.json_headers)
-    assert response.content_type == ad.accept_json
-    assert dicts_equal(response.json, one_data_updated)
-
-    # delete
-    response = client.get('/api/cluster/delete/cluster3')
-    assert response.data == b'null\n'
-    # check that it was really deleted
     response = client.get('/api/cluster/cluster3')
-    assert response.json == \
+    assert response.data.decode("utf-8") == \
         '404 Not found: cluster: cluster3'
     """
 

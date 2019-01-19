@@ -1,15 +1,7 @@
 
+import json
 
-accept_tsv = 'text/tsv'
-accept_json = 'application/json'
-json_headers = {
-    'Content-Type': accept_json,
-    'Accept': accept_json
-}
-tsv_headers = {
-    #'Content-Type': accept_tsv,
-    'Accept': accept_tsv
-}
+text_plain = 'text/plain; charset=utf-8'
 
 add_one_dataset = {
     "name": "dataset1",
@@ -120,3 +112,9 @@ add_second_one_cluster_assignment = {
     "name": "sample4",
     "cluster": "cluster2"
 }
+
+
+def post_json(client, url, json_dict):
+    """Send dictionary json_dict as a json to the specified url """
+    return client.post(url, data=json.dumps(json_dict), content_type='application/json')
+

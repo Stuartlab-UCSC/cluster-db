@@ -11,15 +11,18 @@ del one_data_field_missing['species']
 one_data_got_all = merge_dicts(ad.add_one_dataset, {})
 
 
-def test_add_one_and_get_all(app):
+def test_add_two_and_get_all(app):
     with app.app_context():
         result = dataset.add_one(ad.add_one_dataset)
-        assert result == None
+        assert result == 1
         result = dataset.add_one(ad.add_second_dataset)
-        assert result == None
-        result = dataset.get_all(ad.accept_json)
-        assert dicts_equal(result[0], ad.add_one_dataset)
-        assert dicts_equal(result[1], ad.add_second_dataset)
+        assert result == 2
+        result = dataset.get_all()
+        print('result:', result)
+        assert result == \
+'''name	species
+dataset1	dog
+dataset2	cat'''
 
 
 def test_add_one_field_missing(app):
@@ -40,10 +43,12 @@ def test_add_one_duplicate(app):
 def test_add_tsv(app):
     with app.app_context():
         result = dataset.add_tsv('dataset.tsv')
-        assert result == None
-        result = dataset.get_all(ad.accept_json)
-        assert dicts_equal(result[0], ad.add_one_dataset)
-        assert dicts_equal(result[1], ad.add_second_dataset)
+        assert result == 2
+        result = dataset.get_all()
+        assert result == \
+'''name	species
+dataset1	dog
+dataset2	cat'''
 
 
 def test_add_tsv_bad_header(app):
@@ -80,7 +85,7 @@ def test_delete(app):
         dataset.add_one(ad.add_one_dataset)
         result = dataset.delete('dataset1')
         assert result == None
-        result = dataset.get_one('dataset1', ad.accept_json)
+        result = dataset.get_one('dataset1')
         assert result == '404 Not found: dataset: dataset1'
 
 
@@ -98,11 +103,11 @@ def test_delete_has_children(app):
         assert result == \
             '400 There are children that would be orphaned, delete those first'
 """
-
-def test_get_all_of_one_as_tsv(app):
+"""
+def test_get_all_of_one(app):
     with app.app_context():
         dataset.add_one(ad.add_one_dataset)
-        result = dataset.get_all(ad.accept_tsv)
+        result = dataset.get_all()
         assert len(result) == 25
         assert result == 'name\tspecies\ndataset1\tdog'
         # TODO test all fields after dataset fields are firmed up.
@@ -112,17 +117,7 @@ def test_get_all_of_two(app):
     with app.app_context():
         dataset.add_one(ad.add_one_dataset)
         dataset.add_one(ad.add_second_dataset)
-        result = dataset.get_all(ad.accept_json)
-        assert len(result) == 2
-        assert dicts_equal(result[0], ad.add_one_dataset)
-        assert dicts_equal(result[1], ad.add_second_dataset)
-
-
-def test_get_all_of_two_as_tsv(app):
-    with app.app_context():
-        dataset.add_one(ad.add_one_dataset)
-        dataset.add_one(ad.add_second_dataset)
-        result = dataset.get_all(ad.accept_tsv)
+        result = dataset.get_all()
         assert len(result) == 38
         assert result == 'name\tspecies\ndataset1\tdog\ndataset2\tcat'
         # TODO test all fields after dataset fields are firmed up.
@@ -130,14 +125,14 @@ def test_get_all_of_two_as_tsv(app):
 
 def test_get_all_with_none(app):
     with app.app_context():
-        result = dataset.get_all(ad.accept_json)
+        result = dataset.get_all()
         assert len(result) == 0
 
 
-def test_get_one_as_tsv(app):
+def test_get_one(app):
     with app.app_context():
         dataset.add_one(ad.add_one_dataset)
-        result = dataset.get_one('dataset1', ad.accept_tsv)
+        result = dataset.get_one('dataset1')
         assert len(result) == 25
         assert result == 'name\tspecies\ndataset1\tdog'
         # TODO test all fields after dataset fields are firmed up.
@@ -145,16 +140,16 @@ def test_get_one_as_tsv(app):
 
 def test_get_one_not_found(app):
     with app.app_context():
-        result = dataset.get_one('dataset1', ad.accept_json)
+        result = dataset.get_one('dataset1')
         assert result == '404 Not found: dataset: dataset1'
-
+"""
 """
 def test_update(app):
     with app.app_context():
         dataset.add_one(ad.add_one_dataset)
         result = dataset.update('dataset1', 'species', 'newt')
         assert result == None
-        result = dataset.get_one('dataset1', ad.accept_json)
+        result = dataset.get_one('dataset1')
         assert result['species'] == 'newt'
 
 
@@ -179,71 +174,63 @@ def test_update_bad_field(app):
         assert result == "400 Database: invalid field: junkField"
 """
 
-def test_json_api(client):
+
+def test_add_one_api(client):
     # add one
-    response = client.post('/api/dataset/add',
-        data=json.dumps(ad.add_one_dataset), headers=ad.json_headers)
-    assert response.content_type == ad.accept_json
-    assert response.data == b'null\n'
+    response = ad.post_json(client, '/api/dataset/add', ad.add_one_dataset)
+    assert response.content_type == ad.text_plain
+    print('response.data:', response.data)
+    assert response.data.decode("utf-8") == '1'
 
     # get all
-    response = client.get('/api/dataset', headers=ad.json_headers)
-    assert response.content_type == ad.accept_json
-    assert dicts_equal(response.json[0], ad.add_one_dataset)
+    response = client.get('/api/dataset')
+    assert response.content_type == ad.text_plain
+    assert response.data.decode("utf-8") == \
+'''name	species
+dataset1	dog'''
 
-    # get one
-    response = client.get('/api/dataset/dataset1', headers=ad.json_headers)
-    assert response.content_type == ad.accept_json
-    assert dicts_equal(response.json, ad.add_one_dataset)
-    """
-    # update
-    response = client.get(
-        '/api/dataset/update/name/dataset1/field/name/value/dataset3')
-    assert response.data == b'null\n'
-    # check that it was updated
-    response = client.get('/api/dataset', headers=ad.json_headers)
-    assert response.content_type == ad.accept_json
-    assert dicts_equal(response.json[0], ad.add_third_dataset)
 
-    # delete
-    response = client.get('/api/dataset/delete/dataset3')
-    assert response.data == b'null\n'
-    # check that it was really deleted
-    response = client.get('/api/dataset/dataset3')
-    assert response.json == '404 Not found: dataset: dataset3'
-    """
-
-def test_tsv_api(client):
-    # add one
+def test_api(client):
+    # add tsv
     response = client.get('/api/dataset/add/tsv_file/dataset.tsv')
-    assert response.content_type == ad.accept_json
+    assert response.content_type == ad.text_plain
+    print('response.data', response.data)
+    assert response.data.decode("utf-8") == '2'
 
     # get all
-    response = client.get('/api/dataset', headers=ad.tsv_headers)
-    assert response.content_type == ad.accept_tsv
-    assert response.data == b'name\tspecies\ndataset1\tdog\ndataset2\tcat'
+    response = client.get('/api/dataset')
+    assert response.content_type == ad.text_plain
+    assert response.data.decode("utf-8") == \
+'''name	species
+dataset1	dog
+dataset2	cat'''
 
     # get one
-    response = client.get('/api/dataset/dataset1', headers=ad.tsv_headers)
-    assert response.content_type == ad.accept_tsv
-    assert response.data == b'name\tspecies\ndataset1\tdog'
-    """
+    response = client.get('/api/dataset/dataset1')
+    assert response.content_type == ad.text_plain
+    assert response.data.decode("utf-8") == \
+'''name	species
+dataset1	dog'''
+
+"""
+
     # update
     response = client.get(
         '/api/dataset/update/name/dataset1/field/name/value/dataset3')
     assert response.data == b'null\n'
     # check that it was updated
-    response = client.get('/api/dataset', headers=ad.tsv_headers)
-    assert response.content_type == ad.accept_tsv
+    response = client.get('/api/dataset')
+    assert response.content_type == ad.text_plain
     assert response.data == b'name\tspecies\ndataset3\tdog\ndataset2\tcat'
 
     # delete
     response = client.get('/api/dataset/delete/dataset3')
     assert response.data == b'null\n'
     # check that it was really deleted
-    response = client.get('/api/dataset/dataset3', headers=ad.tsv_headers)
+    response = client.get('/api/dataset/dataset3')
     assert response.data == b'404 Not found: dataset: dataset3'
-    """
+"""
+
 
 
 
@@ -256,7 +243,7 @@ def test_delete_including_children_no_children(app):
         dataset.add_one(ad.add_one_dataset)
         result = dataset.delete_including_children('dataset1')
         assert result == None
-        result = dataset.get_one('dataset1', ad.accept_json)
+        result = dataset.get_one('dataset1')
         assert result['message'] == '404 Not found: dataset: dataset1'
 
 
@@ -267,9 +254,9 @@ def test_delete_including_children_with_children(app):
         clustering_solution.add_one(ad.add_second_clustering_solution)
         result = dataset.delete_including_children('dataset1')
         assert result == None
-        result = dataset.get_one('dataset1', ad.accept_json)
+        result = dataset.get_one('dataset1')
         assert result['message'] == '404 Not found: dataset: dataset1'
-        result = clustering_solution.get_all(ad.accept_json)
+        result = clustering_solution.get_all()
         assert len(result) == 0
 
 

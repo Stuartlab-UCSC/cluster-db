@@ -5,14 +5,16 @@ import logging.config
 import os
 from cluster import settings  # TODO why settings.py and config.py?
 from flask import Flask, Blueprint, redirect
+from flask_cors import CORS
 from cluster.api.attribute import ns as attribute_namespace
 from cluster.api.cluster import ns as cluster_namespace
 from cluster.api.cluster_assignment import ns as cluster_assignment_namespace
 from cluster.api.clustering_solution import ns as clustering_solution_namespace
 from cluster.api.dataset import ns as dataset_namespace
+from cluster.api.query import ns as query_namespace
 from cluster.api.signature_gene import ns as signature_gene_namespace
 from cluster.api.signature_gene_set import ns as signature_gene_set_namespace
-from cluster.api.restplus import api, init as api_init
+from cluster.api.restplus import api
 import cluster.database.db as db
 
 logging_conf_path = os.path.normpath(os.path.join(os.path.dirname(__file__), '../logging.conf'))
@@ -55,6 +57,7 @@ def initialize_blueprint(flask_app):
     api.add_namespace(cluster_namespace)
     api.add_namespace(clustering_solution_namespace)
     api.add_namespace(dataset_namespace)
+    api.add_namespace(query_namespace)
     api.add_namespace(signature_gene_namespace)
     api.add_namespace(signature_gene_set_namespace)
     flask_app.register_blueprint(blueprint)
@@ -65,7 +68,6 @@ def initialize_app(flask_app, test_config):
     initialize_blueprint(flask_app)
     with flask_app.app_context():
         db.init_db()
-        api_init(flask_app)
 
 
 def create_app(test_config=None):
@@ -75,7 +77,7 @@ def create_app(test_config=None):
     initialize_app(app, test_config)
     #log.info('>>>>> Starting development server at http://{}/api/ <<<<<'.format(app.config['SERVER_NAME']))
 
-    # Handle the base route.
+    # Handle the base route, redirecting to /api.
     @app.route('/')
     def baseRoute():
         return redirect("/api", code=302)
