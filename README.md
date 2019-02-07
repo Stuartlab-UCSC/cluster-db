@@ -14,8 +14,7 @@ First clone the repo somewhere on your disk.
 
 `cd clusterDb`
 
-
-Create a virtual environment and install the requirements.
+Create a virtual environment, fire it up, and install the requirements.
 
 ``virtualenv -p `which python3` venv``
 
@@ -23,29 +22,7 @@ Create a virtual environment and install the requirements.
 
 `pip install -r requirements.txt`
 
-Set up env vars where CLUSTERDB_UPDATABLE should only be set to '1' if you always want
-DB updates allowed. Leave it undefined if you want to control updatability with this env var
-on the command line.
-
-`echo "export CLUSTERDB=</path/to/my/workspace/>" >> venv/bin/activate`
-
-`echo "export CLUSTERDB_HOST=<hostname>" >> venv/bin/activate`
-
-`echo "export CLUSTERDB_PORT=<port>" >> venv/bin/activate`
-
-`echo "export CLUSTERDB_UPDATABLE=<1-for-always-updateable" >> venv/bin/activate`
-
-`deactivate`
- 
-`source venv/bin/activate`
-
-
 Now you're ready to put the app in development mode and start it up.
-
-`clusterDb/bin/start`
-
-
-Some other  startup to try later:
 
 `python setup.py develop`
 
