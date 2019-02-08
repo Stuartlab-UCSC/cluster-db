@@ -3,7 +3,7 @@
 
 import logging.config
 import os
-from cluster import settings  # TODO why settings.py and config.py?
+from cluster import settings
 from flask import Flask, Blueprint, redirect
 from flask_cors import CORS
 from cluster.api.attribute import ns as attribute_namespace
@@ -52,14 +52,16 @@ def configure_app(flask_app, test_config):
 def initialize_blueprint(flask_app):
     blueprint = Blueprint('api', __name__, url_prefix='/api')
     api.init_app(blueprint)
-    api.add_namespace(attribute_namespace)
-    api.add_namespace(cluster_assignment_namespace)
-    api.add_namespace(cluster_namespace)
-    api.add_namespace(clustering_solution_namespace)
-    api.add_namespace(dataset_namespace)
     api.add_namespace(query_namespace)
-    api.add_namespace(signature_gene_namespace)
-    api.add_namespace(signature_gene_set_namespace)
+    CLUSTERDB_UPDATABLE = os.environ('UPDATES_ALLOWED')
+    if CLUSTERDB_UPDATABLE:
+        api.add_namespace(attribute_namespace)
+        api.add_namespace(cluster_assignment_namespace)
+        api.add_namespace(cluster_namespace)
+        api.add_namespace(clustering_solution_namespace)
+        api.add_namespace(dataset_namespace)
+        api.add_namespace(signature_gene_namespace)
+        api.add_namespace(signature_gene_set_namespace)
     flask_app.register_blueprint(blueprint)
 
 
@@ -72,6 +74,7 @@ def initialize_app(flask_app, test_config):
 
 def create_app(test_config=None):
     app = Flask(__name__)
+    CORS(app)
     app.url_map.strict_slashes = False
     #app = Flask(__name__, instance_relative_config=True)
     initialize_app(app, test_config)

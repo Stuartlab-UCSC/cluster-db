@@ -1,11 +1,11 @@
 # !/usr/bin/env bash
 # start
 
-export CLUSTERDB=/Users/swat/dev/cdb/
 source venv/bin/activate
 export FLASK_APP=cluster
 export FLASK_ENV=development
-flask run -h localhost -p 5555
+flask run -h $CLUSTERDB_HOST -p $CLUSTERDB_PORT
 
+# alternate startup
 #python setup.py develop
 #python cluster/app.py
