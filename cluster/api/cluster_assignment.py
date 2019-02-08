@@ -15,21 +15,21 @@ model = api.model('cluster_assignment', {
 })
 
 # Just debugging:
-#filename = "/Users/swat/dev/cdb/clusterDb/cluster/api/common/get_all.py"
+#filename = "cluster/api/common/get_all.py"
 #exec(compile(source=open(filename).read(), filename='filename', mode='exec'))
 
 filename = \
-    "/Users/swat/dev/cdb/clusterDb/cluster/api/common/add_tsv_by_clustering_solution.py"
+    "cluster/api/common/add_tsv_by_clustering_solution.py"
 exec(compile(source=open(filename).read(), filename='filename', mode='exec'))
 
 filename = \
-    "/Users/swat/dev/cdb/clusterDb/cluster/api/common/get_by_clustering_solution.py"
+    "cluster/api/common/get_by_clustering_solution.py"
 exec(compile(source=open(filename).read(), filename='filename', mode='exec'))
 
 """
-filename = "/Users/swat/dev/cdb/clusterDb/cluster/api/common/delete.py"
+filename = "cluster/api/common/delete.py"
 exec(compile(source=open(filename).read(), filename='filename', mode='exec'))
 
-filename = "/Users/swat/dev/cdb/clusterDb/cluster/api/common/update.py"
+filename = "cluster/api/common/update.py"
 exec(compile(source=open(filename).read(), filename='filename', mode='exec'))
 """

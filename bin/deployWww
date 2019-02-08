@@ -1,0 +1,12 @@
+
+#!/bin/bash
+
+# Build a dev staging bundle and deploy it.
+
+cd $CLUSTERDB
+echo "tarring..."
+tar -czf clusterDb.tgz clusterDb
+scp clusterDb.tgz plaza:ops
+echo
+echo If the scp session timed out, do:
+echo "scp clusterDb.tgz plaza:ops"

@@ -68,11 +68,11 @@ class Delete_by_clustering_solution(Resource):
 """
             
 # Just debugging:
-#filename = "/Users/swat/dev/cdb/clusterDb/cluster/api/common/get_all.py"
+#filename = "cluster/api/common/get_all.py"
 #exec(compile(source=open(filename).read(), filename='filename', mode='exec'))
 
 # Do the equivalent of a bash shell 'source' to get the base routes.
 """
-filename = "/Users/swat/dev/cdb/clusterDb/cluster/api/common/update.py"
+filename = "cluster/api/common/update.py"
 exec(compile(source=open(filename).read(), filename='filename', mode='exec'))
 """

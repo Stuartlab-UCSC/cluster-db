@@ -6,14 +6,7 @@ import os
 from cluster import settings
 from flask import Flask, Blueprint, redirect
 from flask_cors import CORS
-from cluster.api.attribute import ns as attribute_namespace
-from cluster.api.cluster import ns as cluster_namespace
-from cluster.api.cluster_assignment import ns as cluster_assignment_namespace
-from cluster.api.clustering_solution import ns as clustering_solution_namespace
-from cluster.api.dataset import ns as dataset_namespace
 from cluster.api.query import ns as query_namespace
-from cluster.api.signature_gene import ns as signature_gene_namespace
-from cluster.api.signature_gene_set import ns as signature_gene_set_namespace
 from cluster.api.restplus import api
 import cluster.database.db as db
 
@@ -53,8 +46,19 @@ def initialize_blueprint(flask_app):
     blueprint = Blueprint('api', __name__, url_prefix='/api')
     api.init_app(blueprint)
     api.add_namespace(query_namespace)
-    CLUSTERDB_UPDATABLE = os.environ('UPDATES_ALLOWED')
+    try:
+        CLUSTERDB_UPDATABLE = os.environ['CLUSTERDB_UPDATABLE']
+    except:
+        CLUSTERDB_UPDATABLE = 0
     if CLUSTERDB_UPDATABLE:
+        logging.warning('!!!!!!  DATABASE UPDATABLE !!!!!!')
+        from cluster.api.attribute import ns as attribute_namespace
+        from cluster.api.cluster import ns as cluster_namespace
+        from cluster.api.cluster_assignment import ns as cluster_assignment_namespace
+        from cluster.api.clustering_solution import ns as clustering_solution_namespace
+        from cluster.api.dataset import ns as dataset_namespace
+        from cluster.api.signature_gene import ns as signature_gene_namespace
+        from cluster.api.signature_gene_set import ns as signature_gene_set_namespace
         api.add_namespace(attribute_namespace)
         api.add_namespace(cluster_assignment_namespace)
         api.add_namespace(cluster_namespace)
@@ -63,7 +67,6 @@ def initialize_blueprint(flask_app):
         api.add_namespace(signature_gene_namespace)
         api.add_namespace(signature_gene_set_namespace)
     flask_app.register_blueprint(blueprint)
-
 
 def initialize_app(flask_app, test_config):
     configure_app(flask_app, test_config)

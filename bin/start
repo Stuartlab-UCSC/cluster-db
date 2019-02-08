@@ -1,7 +1,7 @@
 # !/usr/bin/env bash
 # start
 
-source venv/bin/activate
+source $CLUSTERDB/venv/bin/activate
 export FLASK_APP=cluster
 export FLASK_ENV=development
 flask run -h $CLUSTERDB_HOST -p $CLUSTERDB_PORT
