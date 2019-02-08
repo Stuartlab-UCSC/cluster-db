@@ -3,5 +3,5 @@
 echo
 echo
 echo
-source $CLUSTERDB/clusterDb/venv/bin/activate
+source $CLUSTERDB/venv/bin/activate
 pytest  -p no:warnings $1

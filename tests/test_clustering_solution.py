@@ -106,19 +106,20 @@ def test_get_by_parent_parent_not_found(app):
         assert result == '404 Not found: dataset: datasetX'
 
 
-def test_api_add_one_and_get_by_parent(client):
+def test_api_add_one_and_get_by_parent(app, client):
     # add one
-    add_parent()
-    response = ad.post_json(
-        client, '/api/clustering_solution/add', ad.add_one_clustering_solution)
-    assert response.content_type == ad.text_plain
+    with app.app_context():
+        add_parent()
+        response = ad.post_json(
+            client, '/api/clustering_solution/add', ad.add_one_clustering_solution)
+        assert response.content_type == ad.text_plain
 
-    # get by parent
-    response = client.get(
-        '/api/clustering_solution/get_by/dataset/dataset1')
-    assert response.content_type == ad.text_plain
-    print('response.data:', response.data)
-    assert response.data.decode("utf-8") == \
+        # get by parent
+        response = client.get(
+            '/api/clustering_solution/get_by/dataset/dataset1')
+        assert response.content_type == ad.text_plain
+        print('response.data:', response.data)
+        assert response.data.decode("utf-8") == \
 '''name	method	method_implementation	method_url	method_parameters	analyst	secondary
 clustering_solution1	method1	method_implementation1	method_url1	method_parameters1	analyst1	0'''
 

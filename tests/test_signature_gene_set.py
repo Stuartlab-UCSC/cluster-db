@@ -78,29 +78,30 @@ def test_delete_has_children(app):
 """
 
 
-def test_api_add_one_and_get_by_parent(client):
+def test_api_add_one_and_get_by_parent(client, app):
     # add one
-    add_parents()
-    response = ad.post_json(
-        client, '/api/signature_gene_set/add_by/dataset/dataset1',
-        ad.add_one_signature_gene_set)
-    print('response.data', response.data)
-    #assert response.content_type == ad.text_plain
-    response = ad.post_json(
-        client, '/api/signature_gene_set/add_by/dataset/dataset1',
-        ad.add_second_signature_gene_set)
-    #assert response.content_type == ad.text_plain
-    print('response.data', response.data)
-    assert response.data.decode("utf-8") == '2'
+    with app.app_context():
+        add_parents()
+        response = ad.post_json(
+            client, '/api/signature_gene_set/add_by/dataset/dataset1',
+            ad.add_one_signature_gene_set)
+        print('response.data', response.data)
+        #assert response.content_type == ad.text_plain
+        response = ad.post_json(
+            client, '/api/signature_gene_set/add_by/dataset/dataset1',
+            ad.add_second_signature_gene_set)
+        #assert response.content_type == ad.text_plain
+        print('response.data', response.data)
+        assert response.data.decode("utf-8") == '2'
 
-    # get by parent
-    response = client.get(
-        '/api/signature_gene_set/get_by' + \
-        '/clustering_solution/clustering_solution1' + \
-        '/dataset/dataset1')
-    print('response.data:', response.data)
-    assert response.content_type == ad.text_plain
-    assert response.data.decode("utf-8") == \
+        # get by parent
+        response = client.get(
+            '/api/signature_gene_set/get_by' + \
+            '/clustering_solution/clustering_solution1' + \
+            '/dataset/dataset1')
+        print('response.data:', response.data)
+        assert response.content_type == ad.text_plain
+        assert response.data.decode("utf-8") == \
 '''name	method
 signature_gene_set1	method1
 signature_gene_set2	method2'''

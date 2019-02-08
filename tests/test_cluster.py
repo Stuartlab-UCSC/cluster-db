@@ -86,24 +86,25 @@ def test_get_by_parent_parent_not_found(app):
             '404 Not found: clustering_solution: clustering_solutionX'
 
 
-def test_api_tsv(client):
-    # add many tsv
-    add_parents()
-    response = client.get('/api/cluster/add' + \
-        '/tsv_file/cluster.tsv' + \
-        '/clustering_solution/clustering_solution1' + \
-        '/dataset/dataset1')
-    assert response.content_type == ad.text_plain
-    assert response.data.decode("utf-8") == '2'
+def test_api_tsv(client, app):
+    with app.app_context():
+        # add many tsv
+        add_parents()
+        response = client.get('/api/cluster/add' + \
+            '/tsv_file/cluster.tsv' + \
+            '/clustering_solution/clustering_solution1' + \
+            '/dataset/dataset1')
+        assert response.content_type == ad.text_plain
+        assert response.data.decode("utf-8") == '2'
 
-    # get by parent
-    response = client.get(
-        '/api/cluster/get_by' + \
-        '/clustering_solution/clustering_solution1' + \
-        '/dataset/dataset1')
-    print('response.data', response.data)
-    assert response.content_type == ad.text_plain
-    assert response.data.decode("utf-8") == \
+        # get by parent
+        response = client.get(
+            '/api/cluster/get_by' + \
+            '/clustering_solution/clustering_solution1' + \
+            '/dataset/dataset1')
+        print('response.data', response.data)
+        assert response.content_type == ad.text_plain
+        assert response.data.decode("utf-8") == \
 '''name
 cluster1
 cluster2'''

@@ -62,23 +62,24 @@ def test_get_by_clustering_solution_clustering_solution_not_found(app):
 
 def test_api(app, client):
     # add many tsv
-    add_parents()
-    cluster.add_one(ad.add_second_cluster, ['clustering_solution1', 'dataset1'])
-    response = client.get(
-        '/api/cluster_assignment/add' + \
-        '/tsv_file/cluster_assignment.tsv' + \
-        '/clustering_solution/clustering_solution1' + \
-        '/dataset/dataset1')
-    assert response.content_type == ad.text_plain
-    assert response.data.decode("utf-8") == '4'
+    with app.app_context():
+        add_parents()
+        cluster.add_one(ad.add_second_cluster, ['clustering_solution1', 'dataset1'])
+        response = client.get(
+            '/api/cluster_assignment/add' + \
+            '/tsv_file/cluster_assignment.tsv' + \
+            '/clustering_solution/clustering_solution1' + \
+            '/dataset/dataset1')
+        assert response.content_type == ad.text_plain
+        assert response.data.decode("utf-8") == '4'
 
-    # get by parent
-    response = client.get(
-        '/api/cluster_assignment/get_by' + \
-        '/clustering_solution/clustering_solution1' + \
-        '/dataset/dataset1')
-    assert response.content_type == ad.text_plain
-    assert response.data.decode("utf-8") == \
+        # get by parent
+        response = client.get(
+            '/api/cluster_assignment/get_by' + \
+            '/clustering_solution/clustering_solution1' + \
+            '/dataset/dataset1')
+        assert response.content_type == ad.text_plain
+        assert response.data.decode("utf-8") == \
 '''name	cluster
 sample1	cluster1
 sample3	cluster1

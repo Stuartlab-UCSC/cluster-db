@@ -50,27 +50,28 @@ def test_get_by_parent_parent_not_found(app):
             '404 Not found: signature_gene_set: signature_gene_setX'
 
 
-def test_api(client):
+def test_api(client, app):
     # add many tsv
-    add_parents()
-    response = client.get(
-        '/api/signature_gene/add' + \
-        '/tsv_file/signature_gene.tsv' + \
-        '/signature_gene_set/signature_gene_set1' + \
-        '/clustering_solution/clustering_solution1' + \
-        '/dataset/dataset1')
-    assert response.content_type == ad.text_plain
-    assert response.data.decode("utf-8") == '2'
+    with app.app_context():
+        add_parents()
+        response = client.get(
+            '/api/signature_gene/add' + \
+            '/tsv_file/signature_gene.tsv' + \
+            '/signature_gene_set/signature_gene_set1' + \
+            '/clustering_solution/clustering_solution1' + \
+            '/dataset/dataset1')
+        assert response.content_type == ad.text_plain
+        assert response.data.decode("utf-8") == '2'
 
-    # get by parent
-    response = client.get(
-        '/api/signature_gene/get_by' + \
-        '/signature_gene_set/signature_gene_set1' + \
-        'clustering_solution/clustering_solution1' + \
-        '/dataset/dataset1')
-    assert response.content_type == ad.text_plain
-    print('response.data:', response.data)
-    assert response.data.decode("utf-8") == \
+        # get by parent
+        response = client.get(
+            '/api/signature_gene/get_by' + \
+            '/signature_gene_set/signature_gene_set1' + \
+            'clustering_solution/clustering_solution1' + \
+            '/dataset/dataset1')
+        assert response.content_type == ad.text_plain
+        print('response.data:', response.data)
+        assert response.data.decode("utf-8") == \
 '''name
 signature_gene1
 signature_gene2'''
