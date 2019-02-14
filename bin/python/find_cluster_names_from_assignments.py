@@ -6,7 +6,7 @@
 import sys, argparse, csv, traceback
 
 input_file = 'clustAssign.tsv'
-output_file = 'clustNames.tsv'
+output_file = 'cluster.tsv'
 
 def main():
     print('processing:', input_file)

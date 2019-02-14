@@ -50,6 +50,16 @@ add_second_clustering_solution = {
     "secondary": 1,
     "dataset": "dataset1",
 }
+add_third_clustering_solution = {
+    "name": "clustering_solution2",
+    "method": "method3",
+    "method_implementation": "method_implementation3",
+    "method_url": "method_url3",
+    "method_parameters": "method_parameters3",
+    "analyst": "analyst3",
+    "secondary": 1,
+    "dataset": "dataset2",
+}
 add_one_signature_gene_set = {
     "name": "signature_gene_set1",
     "method": "method1",
@@ -60,57 +70,10 @@ add_second_signature_gene_set = {
     "method": "method2",
     "clustering_solution": "clustering_solution1"
 }
-add_one_signature_gene = {
-    "name": "signature_gene1",
-    "signature_gene_set": "signature_gene_set1"
-}
-add_second_signature_gene = {
-    "name": "signature_gene2",
-    "signature_gene_set": "signature_gene_set1"
-}
-add_one_cluster = {
-    "name": "cluster1",
-    "clustering_solution": "clustering_solution1"
-}
-add_second_cluster = {
-    "name": "cluster2",
-    "clustering_solution": "clustering_solution1"
-}
-add_one_attribute = {
-    "name": "attribute1",
-    "value": "value11",
-    "cluster": "cluster1"
-}
-add_one_second_attribute = {
-    "name": "attribute1",
-    "value": "value12",
-    "cluster": "cluster2"
-}
-add_second_attribute = {
-    "name": "attribute2",
-    "value": "value21",
-    "cluster": "cluster1"
-}
-add_second_second_attribute = {
-    "name": "attribute2",
-    "value": "value22",
-    "cluster": "cluster2"
-}
-add_one_cluster_assignment = {
-    "name": "sample1",
-    "cluster": "cluster1"
-}
-add_one_second_cluster_assignment = {
-    "name": "sample2",
-    "cluster": "cluster2"
-}
-add_second_cluster_assignment = {
-    "name": "sample3",
-    "cluster": "cluster1"
-}
-add_second_one_cluster_assignment = {
-    "name": "sample4",
-    "cluster": "cluster2"
+add_third_signature_gene_set = {
+    "name": "signature_gene_set2",
+    "method": "method2",
+    "clustering_solution": "clustering_solution2"
 }
 
 

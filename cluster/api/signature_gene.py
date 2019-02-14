@@ -49,7 +49,7 @@ class Get_by_parent(Resource):
             [signature_gene_set, clustering_solution, dataset])
         return Response(str(resp), mimetype=mimetype)
 
-"""
+
 # Delete by signature_gene_set.
 @ns.route('/delete_by' + \
     '/signature_gene_set/<string:signature_gene_set>' + \
@@ -61,18 +61,12 @@ class Get_by_parent(Resource):
 class Delete_by_clustering_solution(Resource):
     @ns.response(200, 'Success')
     @ns.response(404, 'Not found')
-    def get(self, dataset, clustering_solution, signature_gene_set):
-        '''DELETE BY CLUSTERING_SOLUTION'''
-        return table.delete_by_clustering_solution(
-            dataset, clustering_solution, signature_gene_set)
-"""
-            
-# Just debugging:
-#filename = "cluster/api/common/get_all.py"
-#exec(compile(source=open(filename).read(), filename='filename', mode='exec'))
+    def get(self, signature_gene_set, clustering_solution, dataset):
+        '''DELETE BY SIGNATURE GENE SET'''
+        resp = table.delete_by_parent(
+            [signature_gene_set, clustering_solution, dataset])
+        return Response(str(resp), mimetype=mimetype)
 
 # Do the equivalent of a bash shell 'source' to get the base routes.
-"""
-filename = "cluster/api/common/update.py"
+filename = "cluster/api/common/get_all.py"
 exec(compile(source=open(filename).read(), filename='filename', mode='exec'))
-"""

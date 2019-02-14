@@ -10,6 +10,20 @@ from cluster.api.query import ns as query_namespace
 from cluster.api.restplus import api
 import cluster.database.db as db
 
+CLUSTERDB_UPDATABLE = 0
+try:
+    CLUSTERDB_UPDATABLE = int(os.environ['CLUSTERDB_UPDATABLE'])
+except:
+    pass
+if CLUSTERDB_UPDATABLE > 0:
+    from cluster.api.attribute import ns as attribute_namespace
+    from cluster.api.cluster import ns as cluster_namespace
+    from cluster.api.cluster_assignment import ns as cluster_assignment_namespace
+    from cluster.api.clustering_solution import ns as clustering_solution_namespace
+    from cluster.api.dataset import ns as dataset_namespace
+    from cluster.api.signature_gene import ns as signature_gene_namespace
+    from cluster.api.signature_gene_set import ns as signature_gene_set_namespace
+
 logging_conf_path = os.path.normpath(os.path.join(os.path.dirname(__file__), '../logging.conf'))
 logging.config.fileConfig(logging_conf_path)
 log = logging.getLogger(__name__)
@@ -24,7 +38,6 @@ def configure_app(flask_app, test_config):
             #SERVER_NAME = settings.FLASK_SERVER_NAME,
             RESTPLUS_VALIDATE = settings.RESTPLUS_VALIDATE,
             RESTPLUS_MASK_SWAGGER = settings.RESTPLUS_MASK_SWAGGER,
-            ERROR_404_HELP = settings.RESTPLUS_ERROR_404_HELP,
             DATABASE = settings.DATABASE,
             UPLOADS = settings.UPLOADS,
         )
@@ -46,19 +59,9 @@ def initialize_blueprint(flask_app):
     blueprint = Blueprint('api', __name__, url_prefix='/api')
     api.init_app(blueprint)
     api.add_namespace(query_namespace)
-    try:
-        CLUSTERDB_UPDATABLE = os.environ['CLUSTERDB_UPDATABLE']
-    except:
-        CLUSTERDB_UPDATABLE = 0
-    if CLUSTERDB_UPDATABLE:
-        logging.warning('!!!!!!  DATABASE UPDATABLE !!!!!!')
-        from cluster.api.attribute import ns as attribute_namespace
-        from cluster.api.cluster import ns as cluster_namespace
-        from cluster.api.cluster_assignment import ns as cluster_assignment_namespace
-        from cluster.api.clustering_solution import ns as clustering_solution_namespace
-        from cluster.api.dataset import ns as dataset_namespace
-        from cluster.api.signature_gene import ns as signature_gene_namespace
-        from cluster.api.signature_gene_set import ns as signature_gene_set_namespace
+    if CLUSTERDB_UPDATABLE > 0:
+        if not flask_app.config['TESTING']:
+            logging.warning('!!!!!!  DATABASE UPDATABLE !!!!!!')
         api.add_namespace(attribute_namespace)
         api.add_namespace(cluster_assignment_namespace)
         api.add_namespace(cluster_namespace)
@@ -66,6 +69,7 @@ def initialize_blueprint(flask_app):
         api.add_namespace(dataset_namespace)
         api.add_namespace(signature_gene_namespace)
         api.add_namespace(signature_gene_set_namespace)
+    
     flask_app.register_blueprint(blueprint)
 
 def initialize_app(flask_app, test_config):

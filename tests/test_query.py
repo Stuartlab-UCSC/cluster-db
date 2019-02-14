@@ -14,39 +14,11 @@ from cluster.database.query import query
 from cluster.database.signature_gene_set_table import signature_gene_set
 from cluster.database.signature_gene_table import signature_gene
 
-one_dataset_got_all = merge_dicts({ 'id': 1 }, ad.add_one_dataset)
-second_dataset_got_all = merge_dicts({ 'id': 2 }, ad.add_second_dataset)
-
-clustering_solution_got_all = merge_dicts(
-    { 'id': 1 }, ad.add_one_clustering_solution)
-clustering_solution_got_all['dataset_id'] = 1
-del clustering_solution_got_all['dataset']
-
-cluster_got_all = merge_dicts( { 'id': 1 }, ad.add_one_cluster)
-cluster_got_all['clustering_solution_id'] = 1
-del cluster_got_all['clustering_solution']
-
-cluster_assignment_got_all = merge_dicts( { 'id': 1 }, ad.add_one_cluster_assignment)
-cluster_assignment_got_all['cluster_id'] = 1
-del cluster_assignment_got_all['cluster']
-
-attribute_got_all = merge_dicts( { 'id': 1 }, ad.add_one_attribute)
-attribute_got_all['cluster_id'] = 1
-del attribute_got_all['cluster']
-
-signature_gene_got_all = merge_dicts( { 'id': 1 }, ad.add_one_signature_gene)
-signature_gene_got_all['signature_gene_set_id'] = 1
-del signature_gene_got_all['signature_gene_set']
-
-signature_gene_set_got_all = merge_dicts( { 'id': 1 }, ad.add_one_signature_gene_set)
-signature_gene_set_got_all['clustering_solution_id'] = 1
-del signature_gene_set_got_all['clustering_solution']
 
 def add_data():
     dataset.add_one(ad.add_one_dataset)
     dataset.add_one(ad.add_second_dataset)
-    clustering_solution.add_one(
-        ad.add_one_clustering_solution, ['dataset1'])
+    clustering_solution.add_one(ad.add_one_clustering_solution)
     cluster.add_tsv('cluster.tsv', ['clustering_solution1', 'dataset1'])
     cluster_assignment.add_tsv('cluster_assignment.tsv',
         ['clustering_solution1', 'dataset1'])

@@ -18,17 +18,18 @@ def _add_with_parent_id(table, parent_name, rows, db):
     if table.table == 'attribute':
         query_vals = _values_attribute(table, parent_name, rows, db)
     elif table.table == 'cluster_assignment':
-        query_vals = _values_cluster_parent(table, parent_name, rows, db)
+        query_vals = _values_cluster_assignment(table, parent_name, rows, db)
     else:
         query_vals = _values_same_parent(table, parent_name, rows, db)
     # Execute the query.
-    cursor = db.execute(query + query_vals[:-1]) # remove trailing comma from vals
+    cursor = db.execute(query + query_vals[:-1]) # remove trailing comma
     return cursor.lastrowid
 
-def _get_clusters(table, clustering_solution_name):
+
+def _get_clusters(table, parent_name):
     # Return a dict of cluster names to cluster IDs.
     cluster_rows = util.get_by_parent(table.cluster_table,
-        clustering_solution_name, return_ids=True)
+        parent_name, return_ids=True)
     clusters = {}
     for row in cluster_rows:
         clusters[row['name']] = row['id']
@@ -64,16 +65,15 @@ def _header_check(f_fieldnames, table):
              '"\n   given: "' + ' '.join(f_fieldnames) + '"')
 
 
-def _values_attribute(table, clustering_solution_name, rows, db):
+def _values_attribute(table, parent_name, rows, db):
     # Special handling due to attribute TSV file being a matrix of attribute
     # names by cluster names, with attribute names as the first row.
-    clusters = _get_clusters(table, clustering_solution_name)
-    attr_names = rows.fieldnames[1:] # leave out the cluster name
+    clusters = _get_clusters(table, parent_name)
     query_vals = ''
     for row in rows:
         # Look at a row which contains one cluster's values.
         cluster_id = str(clusters[row['cluster']])
-        for attr_name in attr_names:
+        for attr_name in rows.fieldnames[1:]: # leave out the cluster name
             # Build the values string for each cluster,
             # replacing the cluster name with cluster ID.
             query_vals += '("' + \
@@ -84,11 +84,10 @@ def _values_attribute(table, clustering_solution_name, rows, db):
     return query_vals
 
 
-def _values_cluster_parent(table, clustering_solution_name, rows, db):
-    # Special handling where each row may have a different parent cluster.
-    # Build a cluster name to ID mapping.
-    clusters = _get_clusters(table, clustering_solution_name)
-    # Build the query values string.
+def _values_cluster_assignment(table, parent_name, rows, db):
+    # Special handling due to cluster_assignments TSV file where each row may
+    # have a different parent cluster.
+    clusters = _get_clusters(table, parent_name)
     query_vals = ''
     for row in rows:
         # Build the values string for each row,

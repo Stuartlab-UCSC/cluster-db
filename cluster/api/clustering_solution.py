@@ -20,6 +20,7 @@ model = api.model('clustering_solution', {
     'dataset': fields.String(required=True, description='Name of dataset that was analyzed'),
 })
 
+
 # Add from TSV file.
 @ns.route('/add' + \
     '/tsv_file/<string:tsv_file>' + \
@@ -33,17 +34,25 @@ class Add_tsv(Resource):
         resp = table.add_tsv(tsv_file, ['dataset1'])
         return Response(str(resp), mimetype=mimetype)
 
-"""
-# Delete.
-@ns.route('/delete_by/dataset/<string:dataset>')
+
+# Delete one.
+@ns.route('/delete' + \
+    '/<string:clustering_solution>' + \
+    '/dataset/<string:dataset>')
 @ns.param('dataset', 'dataset name')
-class Delete_by_dataset(Resource):
+@ns.param('clustering_solution', 'clustering_solution name')
+class Delete(Resource):
     @ns.response(200, 'Success')
     @ns.response(404, 'Not found')
-    def get(self, dataset):
+    def get(self, clustering_solution, dataset):
+        print('query:Delete')
+        print('clustering_solution', clustering_solution)
+        print('dataset', dataset)
+
         '''DELETE'''
-        return table.delete(dataset)
-"""
+        resp = table.delete_one(clustering_solution, [dataset])
+        return Response(str(resp), mimetype=mimetype)
+
 
 # Get rows by dataset.
 @ns.route('/get_by/dataset/<string:dataset>')
@@ -56,17 +65,10 @@ class Get_by_parent(Resource):
         return Response(str(resp), mimetype=mimetype)
 
 
-# Just debugging:
-#filename = "cluster/api/common/get_all.py"
-#exec(compile(source=open(filename).read(), filename='filename', mode='exec'))
-
 # Do the equivalent of a bash shell 'source' to get the base routes.
 filename = "cluster/api/common/add_one.py"
 exec(compile(source=open(filename).read(), filename='filename', mode='exec'))
 
-filename = "cluster/api/common/add_one.py"
+filename = "cluster/api/common/get_all.py"
 exec(compile(source=open(filename).read(), filename='filename', mode='exec'))
-
-#filename = "cluster/api/common/update.py"
-#exec(compile(source=open(filename).read(), filename='filename', mode='exec'))
 

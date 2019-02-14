@@ -1,8 +1,9 @@
 
 from flask_restplus import Resource
+from cluster.api.restplus import mimetype
 
 
-# Delete
+# Delete for tables with no parents.
 @ns.route('/delete/<string:name>')
 @ns.param('name', 'Name of ' + table_name + ' to delete')
 class Delete(Resource):
@@ -10,4 +11,5 @@ class Delete(Resource):
     @ns.response(404, 'Not found')
     def get(self, name):
         '''DELETE'''
-        return table.delete(name)
+        resp = table.delete_one(name)
+        return Response(str(resp), mimetype=mimetype)

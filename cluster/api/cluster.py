@@ -15,9 +15,9 @@ model = api.model('cluster', {
 })
 
 
-# Just debugging:
-#filename = "cluster/api/common/get_all.py"
-#exec(compile(source=open(filename).read(), filename='filename', mode='exec'))
+# Do the equivalent of a bash shell 'source' to get the base routes.
+filename = "cluster/api/common/get_all.py"
+exec(compile(source=open(filename).read(), filename='filename', mode='exec'))
 
 filename = \
     "cluster/api/common/add_tsv_by_clustering_solution.py"
@@ -27,9 +27,5 @@ filename = \
     "cluster/api/common/get_by_clustering_solution.py"
 exec(compile(source=open(filename).read(), filename='filename', mode='exec'))
 
-# Do the equivalent of a bash shell 'source' to get the base routes.
-#filename = "cluster/api/common/delete.py"
-#exec(compile(source=open(filename).read(), filename='filename', mode='exec'))
-
-#filename = "cluster/api/common/update.py"
-#exec(compile(source=open(filename).read(), filename='filename', mode='exec'))
+filename = "cluster/api/common/delete_by_clustering_solution.py"
+exec(compile(source=open(filename).read(), filename='filename', mode='exec'))

@@ -1,5 +1,6 @@
 # !/usr/bin/env bash
 # start_test
+# Note: this only works for no options passed to pytest except a test file
 echo
 echo
 echo
