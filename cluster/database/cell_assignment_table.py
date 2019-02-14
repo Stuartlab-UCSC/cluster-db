@@ -1,7 +1,7 @@
 
 from cluster.database.table import Table
 from cluster.database.cluster_table import cluster
-from cluster.database.clustering_solution_table import clustering_solution
+from cluster.database.cluster_solution_table import cluster_solution
 from cluster.database.dataset_table import dataset
 from cluster.database.db import get_db
 import cluster.database.error as err
@@ -18,7 +18,7 @@ class Cluster_assignment_table(Table):
         s.fields = s.parentless_fields + ['cluster_id']
         s.tsv_fields = s.parentless_fields + ['cluster']
         s.parent_table = [ # ancestor tables of this table
-            'clustering_solution',
+            'cluster_solution',
             'dataset'
         ]
         s.cluster_table = cluster

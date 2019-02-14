@@ -6,7 +6,7 @@ from cluster.database.dataset_table import dataset
 class Clustering_solution_table(Table):
 
     def __init__(s):
-        s.table = 'clustering_solution'  # table name
+        s.table = 'cluster_solution'  # table name
         s.parentless_fields = [          # table fields minus row ID
             'name',
             'method',
@@ -21,5 +21,5 @@ class Clustering_solution_table(Table):
         s.child_table = ['signature_gene_set', 'cluster']
 
 
-clustering_solution = Clustering_solution_table()
+cluster_solution = Clustering_solution_table()
 

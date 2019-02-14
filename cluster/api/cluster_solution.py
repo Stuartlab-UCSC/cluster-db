@@ -1,14 +1,14 @@
 
-# api/clustering_solution.py
+# api/cluster_solution.py
 
 from flask import request, Response
 from flask_restplus import fields,  Resource
 from cluster.api.restplus import api, mimetype
-from cluster.database.clustering_solution_table import clustering_solution as table
+from cluster.database.cluster_solution_table import cluster_solution as table
 
 table_name = 'clustering solution'
-ns = api.namespace('clustering_solution')
-model = api.model('clustering_solution', {
+ns = api.namespace('cluster_solution')
+model = api.model('cluster_solution', {
     'name': fields.String(required=True, description='Unique clustering solution name'),
     'method': fields.String(required=True, description='Clustering method applied'),
     'method_implementation': fields.String(required=True, description='Clustering method implementation'),
@@ -37,20 +37,20 @@ class Add_tsv(Resource):
 
 # Delete one.
 @ns.route('/delete' + \
-    '/<string:clustering_solution>' + \
+    '/<string:cluster_solution>' + \
     '/dataset/<string:dataset>')
 @ns.param('dataset', 'dataset name')
-@ns.param('clustering_solution', 'clustering_solution name')
+@ns.param('cluster_solution', 'cluster_solution name')
 class Delete(Resource):
     @ns.response(200, 'Success')
     @ns.response(404, 'Not found')
-    def get(self, clustering_solution, dataset):
+    def get(self, cluster_solution, dataset):
         print('query:Delete')
-        print('clustering_solution', clustering_solution)
+        print('cluster_solution', cluster_solution)
         print('dataset', dataset)
 
         '''DELETE'''
-        resp = table.delete_one(clustering_solution, [dataset])
+        resp = table.delete_one(cluster_solution, [dataset])
         return Response(str(resp), mimetype=mimetype)
 
 
