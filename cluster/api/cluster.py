@@ -10,8 +10,8 @@ table_name = 'cluster'
 ns = api.namespace('cluster')
 model = api.model('cluster', {
     'name': fields.String(required=True, description='Cluster name'),
-    'clustering_solution': fields.String(
-        required=True, description='Name of the clustering solution'),
+    'cluster_solution': fields.String(
+        required=True, description='Name of the cluster solution'),
 })
 
 
@@ -20,12 +20,12 @@ filename = "cluster/api/common/get_all.py"
 exec(compile(source=open(filename).read(), filename='filename', mode='exec'))
 
 filename = \
-    "cluster/api/common/add_tsv_by_clustering_solution.py"
+    "cluster/api/common/add_tsv_by_cluster_solution.py"
 exec(compile(source=open(filename).read(), filename='filename', mode='exec'))
 
 filename = \
-    "cluster/api/common/get_by_clustering_solution.py"
+    "cluster/api/common/get_by_cluster_solution.py"
 exec(compile(source=open(filename).read(), filename='filename', mode='exec'))
 
-filename = "cluster/api/common/delete_by_clustering_solution.py"
+filename = "cluster/api/common/delete_by_cluster_solution.py"
 exec(compile(source=open(filename).read(), filename='filename', mode='exec'))

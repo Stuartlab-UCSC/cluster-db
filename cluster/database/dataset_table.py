@@ -13,7 +13,7 @@ class Dataset_table(Table):
         ]
         s.fields = s.parentless_fields
         s.parent_table = None  # ancestor tables of this table
-        s.child_table = ['clustering_solution']
+        s.child_table = ['cluster_solution']
 
 # The table instance.
 dataset = Dataset_table()

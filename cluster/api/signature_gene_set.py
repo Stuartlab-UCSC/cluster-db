@@ -12,13 +12,14 @@ ns = api.namespace('signature_gene_set')
 model = api.model('signature_gene_set', {
     'name': fields.String(required=True, description='Gene set name'),
     'method': fields.String(required=True, description='Method used to determine this gene set'),
-    'clustering_solution': fields.String(required=True, description='Name of the clustering solution'),
+    'cluster_solution': fields.String(required=True, description='Name of the cluster solution'),
 })
 
-# Add one by clustering_solution.
+# Add one by cluster_solution.
 @ns.route('/add/dataset/<string:dataset>')
 @ns.param('dataset', 'dataset name')
 class Add_many_tsv_file(Resource):
+    @ns.expect(model)
     @ns.response(200, 'last database row ID added')
     def post(self, dataset):
         '''ADD ONE'''
@@ -29,17 +30,17 @@ class Add_many_tsv_file(Resource):
 # Delete one
 @ns.route(
     '/delete/<string:signature_gene_set>' + \
-    '/clustering_solution/<string:clustering_solution>' + \
+    '/cluster_solution/<string:cluster_solution>' + \
     '/dataset/<string:dataset>')
 @ns.param('dataset', 'dataset name')
-@ns.param('clustering_solution', 'clustering_solution name')
+@ns.param('cluster_solution', 'cluster_solution name')
 @ns.param('signature_gene_set', 'signature_gene_set name')
-class Delete_by_clustering_solution(Resource):
+class Delete_by_cluster_solution(Resource):
     @ns.response(200, 'success')
-    def get(self, signature_gene_set, clustering_solution, dataset):
+    def get(self, signature_gene_set, cluster_solution, dataset):
         '''DELETE ONE'''
         resp = table.delete_one(signature_gene_set,
-            [clustering_solution, dataset])
+            [cluster_solution, dataset])
         return Response(str(resp), mimetype=mimetype)
 
 
@@ -47,6 +48,6 @@ class Delete_by_clustering_solution(Resource):
 filename = "cluster/api/common/get_all.py"
 exec(compile(source=open(filename).read(), filename='filename', mode='exec'))
 
-filename = "cluster/api/common/get_by_clustering_solution.py"
+filename = "cluster/api/common/get_by_cluster_solution.py"
 exec(compile(source=open(filename).read(), filename='filename', mode='exec'))
 

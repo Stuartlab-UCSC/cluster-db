@@ -1,40 +1,40 @@
 
 # We don't duplicate tests aready done for common code
-# in test_dataset.py and test_clustering_solution.py
+# in test_dataset.py and test_cluster_solution.py
 
 import pytest
 import tests.access_db_data as ad
 from cluster.database.dataset_table import dataset
-from cluster.database.clustering_solution_table import clustering_solution
+from cluster.database.cluster_solution_table import cluster_solution
 from cluster.database.cluster_table import cluster
 from cluster.database.attribute_table import attribute
 from cluster.database.db import dicts_equal, merge_dicts
 
 # We don't duplicate tests aready done for common code
-# in test_dataset.py and test_clustering_solution.py
+# in test_dataset.py and test_cluster_solution.py
 
 def add_parents():
     dataset.add_one(ad.add_one_dataset)
     dataset.add_one(ad.add_second_dataset)
-    clustering_solution.add_one(ad.add_one_clustering_solution)
-    clustering_solution.add_one(ad.add_second_clustering_solution)
-    clustering_solution.add_one(ad.add_third_clustering_solution)
-    cluster.add_tsv('cluster.tsv', ['clustering_solution1', 'dataset1'])
-    cluster.add_tsv('cluster.tsv', ['clustering_solution2', 'dataset1'])
-    cluster.add_tsv('cluster.tsv', ['clustering_solution2', 'dataset2'])
+    cluster_solution.add_one(ad.add_one_cluster_solution)
+    cluster_solution.add_one(ad.add_second_cluster_solution)
+    cluster_solution.add_one(ad.add_third_cluster_solution)
+    cluster.add_tsv('cluster.tsv', ['cluster_solution1', 'dataset1'])
+    cluster.add_tsv('cluster.tsv', ['cluster_solution2', 'dataset1'])
+    cluster.add_tsv('cluster.tsv', ['cluster_solution2', 'dataset2'])
 
 
 def test_db(app):
     with app.app_context():
         add_parents()
         result = attribute.add_tsv(
-            'attribute.tsv', ['clustering_solution1', 'dataset1'])
+            'attribute.tsv', ['cluster_solution1', 'dataset1'])
         assert result == 4
         result = attribute.add_tsv(
-            'attribute.tsv', ['clustering_solution2', 'dataset1'])
+            'attribute.tsv', ['cluster_solution2', 'dataset1'])
         assert result == 8
         result = attribute.add_tsv(
-            'attribute.tsv', ['clustering_solution2', 'dataset2'])
+            'attribute.tsv', ['cluster_solution2', 'dataset2'])
         assert result == 12
 
         # verify adds
@@ -55,9 +55,9 @@ attribute2	value21	5
 attribute1	value12	6
 attribute2	value22	6'''
 
-        # get by clustering_solution
-        result = attribute.get_by_clustering_solution_clusters(
-            ['clustering_solution1', 'dataset1'])
+        # get by cluster_solution
+        result = attribute.get_by_cluster_solution_clusters(
+            ['cluster_solution1', 'dataset1'])
         #print('result:', result)
         assert result == \
 '''name	value	cluster
@@ -66,9 +66,9 @@ attribute2	value21	cluster1
 attribute1	value12	cluster2
 attribute2	value22	cluster2'''
 
-        # delete for one clustering_solution
-        result = attribute.delete_by_clustering_solution_clusters(
-            ['clustering_solution1', 'dataset1'])
+        # delete for one cluster_solution
+        result = attribute.delete_by_cluster_solution_clusters(
+            ['cluster_solution1', 'dataset1'])
         #print('result:', result)
         assert result == ''
 
@@ -88,13 +88,13 @@ attribute1	value12	6
 attribute2	value22	6'''
 
 
-def test_get_by_clustering_solution_clustering_solution_not_found(app):
+def test_get_by_cluster_solution_cluster_solution_not_found(app):
     with app.app_context():
         add_parents()
         attribute.add_tsv(
-            'attribute.tsv', ['clustering_solution1', 'dataset1'])
+            'attribute.tsv', ['cluster_solution1', 'dataset1'])
         result = attribute.get_by_parent(
-            ['clustering_solutionX', 'dataset1'])
+            ['cluster_solutionX', 'dataset1'])
         assert result == \
             '404 Not found: parent'
 
@@ -106,7 +106,7 @@ def test_api(app, client):
         response = client.get(
             '/api/attribute/add' + \
             '/tsv_file/attribute.tsv' + \
-            '/clustering_solution/clustering_solution1' + \
+            '/cluster_solution/cluster_solution1' + \
             '/dataset/dataset1')
         print('response.data:',  response.data.decode("utf-8"))
         assert response.content_type == ad.text_plain
@@ -114,14 +114,14 @@ def test_api(app, client):
         response = client.get(
             '/api/attribute/add' + \
             '/tsv_file/attribute.tsv' + \
-            '/clustering_solution/clustering_solution2' + \
+            '/cluster_solution/cluster_solution2' + \
             '/dataset/dataset1')
         assert response.content_type == ad.text_plain
         assert response.data.decode("utf-8") == '8'
         response = client.get(
             '/api/attribute/add' + \
             '/tsv_file/attribute.tsv' + \
-            '/clustering_solution/clustering_solution2' + \
+            '/cluster_solution/cluster_solution2' + \
             '/dataset/dataset2')
         assert response.content_type == ad.text_plain
         assert response.data.decode("utf-8") == '12'
@@ -147,7 +147,7 @@ attribute2	value22	6'''
         # get by parent
         response = client.get(
             '/api/attribute/get_by' + \
-            '/clustering_solution/clustering_solution1' + \
+            '/cluster_solution/cluster_solution1' + \
             '/dataset/dataset1')
         print('response.json:', response.json)
         assert response.content_type == ad.text_plain
@@ -161,7 +161,7 @@ attribute2	value22	cluster2'''
         # delete
         response = client.get(
             '/api/attribute/delete_by' + \
-            '/clustering_solution/clustering_solution1' + \
+            '/cluster_solution/cluster_solution1' + \
             '/dataset/dataset1')
         assert response.content_type == ad.text_plain
         assert response.data.decode("utf-8") == ''

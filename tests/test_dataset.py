@@ -3,7 +3,7 @@ import json
 import pytest
 import tests.access_db_data as ad
 from cluster.database.dataset_table import dataset
-from cluster.database.clustering_solution_table import clustering_solution
+from cluster.database.cluster_solution_table import cluster_solution
 from cluster.database.db import dicts_equal, merge_dicts
 
 one_data_field_missing = merge_dicts(ad.add_one_dataset, {})
@@ -110,7 +110,7 @@ def test_delete_not_found(app):
 def test_delete_has_children(app):
     with app.app_context():
         dataset.add_one(ad.add_one_dataset)
-        clustering_solution.add_one(ad.add_one_clustering_solution)
+        cluster_solution.add_one(ad.add_one_cluster_solution)
         result = dataset.delete_one('dataset1')
         assert result == \
             '400 There are children that would be orphaned, delete those first'

@@ -9,9 +9,9 @@ from cluster.database.error import Not_found, Updates_not_allowed
 import cluster.database.tsv as tsv
 
 from cluster.database.attribute_table import attribute
-from cluster.database.cluster_assignment_table import cluster_assignment
+from cluster.database.cell_assignment_table import cell_assignment
 from cluster.database.cluster_table import cluster
-from cluster.database.clustering_solution_table import clustering_solution
+from cluster.database.cluster_solution_table import cluster_solution
 from cluster.database.dataset_table import dataset
 from cluster.database.signature_gene_set_table import signature_gene_set
 from cluster.database.signature_gene_table import signature_gene

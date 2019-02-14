@@ -13,6 +13,7 @@ class Clustering_solution_table(Table):
             'method_implementation',
             'method_url',
             'method_parameters',
+            'scores',
             'analyst',
             'secondary'
         ]

@@ -17,8 +17,8 @@ def _add_with_parent_id(table, parent_name, rows, db):
     # Find the query values replacing the parent name with parent ID.
     if table.table == 'attribute':
         query_vals = _values_attribute(table, parent_name, rows, db)
-    elif table.table == 'cluster_assignment':
-        query_vals = _values_cluster_assignment(table, parent_name, rows, db)
+    elif table.table == 'cell_assignment':
+        query_vals = _values_cell_assignment(table, parent_name, rows, db)
     else:
         query_vals = _values_same_parent(table, parent_name, rows, db)
     # Execute the query.
@@ -84,8 +84,8 @@ def _values_attribute(table, parent_name, rows, db):
     return query_vals
 
 
-def _values_cluster_assignment(table, parent_name, rows, db):
-    # Special handling due to cluster_assignments TSV file where each row may
+def _values_cell_assignment(table, parent_name, rows, db):
+    # Special handling due to cell_assignments TSV file where each row may
     # have a different parent cluster.
     clusters = _get_clusters(table, parent_name)
     query_vals = ''

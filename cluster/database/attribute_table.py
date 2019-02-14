@@ -15,7 +15,7 @@ class Attribute_table(Table):
         s.tsv_fields = s.parentless_fields + ['cluster']
         s.parent_table = [ # ancestor tables of this table
             'cluster',
-            'clustering_solution',
+            'cluster_solution',
             'dataset'
         ]
         s.cluster_table = cluster

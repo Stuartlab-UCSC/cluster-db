@@ -13,8 +13,8 @@ from cluster.api.restplus import mimetype
 class Get_by_parent(Resource):
     @ns.response(200, 'list of ' + table_name + 's in TSV format')
     def get(self, cluster_solution, dataset):
-        '''GET BY CLUSTERING SOLUTION'''
-        if table_name == 'attribute' or table_name == 'cluster_assignment':
+        '''GET BY CLUSTER SOLUTION'''
+        if table_name == 'attribute' or table_name == 'cell_assignment':
             resp = table.get_by_cluster_solution_clusters(
                 [cluster_solution, dataset])
         else:

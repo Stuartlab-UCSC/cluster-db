@@ -8,7 +8,7 @@ import tests.access_db_data as ad
 from cluster.database.dataset_table import dataset
 from cluster.database.cluster_solution_table import cluster_solution
 from cluster.database.cluster_table import cluster
-from cluster.database.cluster_assignment_table import cluster_assignment
+from cluster.database.cell_assignment_table import cell_assignment
 from cluster.database.db import dicts_equal, merge_dicts
 
 
@@ -32,18 +32,18 @@ def test_add_tsv_and_get_by_parent(app):
         add_parents()
         
         # add three sets of assignments
-        result = cluster_assignment.add_tsv(
-            'cluster_assignment.tsv', ['cluster_solution1', 'dataset1'])
+        result = cell_assignment.add_tsv(
+            'cell_assignment.tsv', ['cluster_solution1', 'dataset1'])
         assert result == 4
-        result = cluster_assignment.add_tsv(
-            'cluster_assignment.tsv', ['cluster_solution2', 'dataset1'])
+        result = cell_assignment.add_tsv(
+            'cell_assignment.tsv', ['cluster_solution2', 'dataset1'])
         assert result == 8
-        result = cluster_assignment.add_tsv(
-            'cluster_assignment.tsv', ['cluster_solution2', 'dataset2'])
+        result = cell_assignment.add_tsv(
+            'cell_assignment.tsv', ['cluster_solution2', 'dataset2'])
         assert result == 12
 
         # verify adds
-        result = cluster_assignment.get_all()
+        result = cell_assignment.get_all()
         print('result', result)
         assert result == \
 '''name	cluster_id
@@ -61,7 +61,7 @@ sample3	5
 sample4	6'''
 
         # get by cluster solution
-        result = cluster_assignment.get_by_cluster_solution_clusters(
+        result = cell_assignment.get_by_cluster_solution_clusters(
             ['cluster_solution1', 'dataset1'])
         print('result:', result)
         assert result == \
@@ -73,13 +73,13 @@ sample4	cluster2'''
 
 
         # delete
-        result = cluster_assignment.delete_by_cluster_solution_clusters(
+        result = cell_assignment.delete_by_cluster_solution_clusters(
             ['cluster_solution2', 'dataset1'])
         print('result:', result)
         assert result == ''
         
         # verify delete
-        result = cluster_assignment.get_all()
+        result = cell_assignment.get_all()
         print('result', result)
         assert result == \
 '''name	cluster_id
@@ -96,7 +96,7 @@ sample4	6'''
 def test_get_by_cluster_solution_cluster_solution_not_found(app):
     with app.app_context():
         add_parents()
-        result = cluster_assignment.get_by_parent(
+        result = cell_assignment.get_by_parent(
             ['cluster_solutionX', 'dataset1'])
         assert result == \
             '404 Not found: parent'
@@ -108,29 +108,29 @@ def test_api(app, client):
         
         # add three sets of assignments
         response = client.get(
-            '/api/cluster_assignment/add' + \
-            '/tsv_file/cluster_assignment.tsv' + \
+            '/api/cell_assignment/add' + \
+            '/tsv_file/cell_assignment.tsv' + \
             '/cluster_solution/cluster_solution1' + \
             '/dataset/dataset1')
         assert response.content_type == ad.text_plain
         assert response.data.decode("utf-8") == '4'
         response = client.get(
-            '/api/cluster_assignment/add' + \
-            '/tsv_file/cluster_assignment.tsv' + \
+            '/api/cell_assignment/add' + \
+            '/tsv_file/cell_assignment.tsv' + \
             '/cluster_solution/cluster_solution2' + \
             '/dataset/dataset1')
         assert response.content_type == ad.text_plain
         assert response.data.decode("utf-8") == '8'
         response = client.get(
-            '/api/cluster_assignment/add' + \
-            '/tsv_file/cluster_assignment.tsv' + \
+            '/api/cell_assignment/add' + \
+            '/tsv_file/cell_assignment.tsv' + \
             '/cluster_solution/cluster_solution2' + \
             '/dataset/dataset2')
         assert response.content_type == ad.text_plain
         assert response.data.decode("utf-8") == '12'
         
         # verify adds
-        response = client.get('/api/cluster_assignment')
+        response = client.get('/api/cell_assignment')
         print('response.data:', response.data.decode("utf-8"))
         assert response.content_type == ad.text_plain
         assert response.data.decode("utf-8") == \
@@ -150,7 +150,7 @@ sample4	6'''
 
         # get by parent
         response = client.get(
-            '/api/cluster_assignment/get_by' + \
+            '/api/cell_assignment/get_by' + \
             '/cluster_solution/cluster_solution1' + \
             '/dataset/dataset1')
         assert response.content_type == ad.text_plain
@@ -163,14 +163,14 @@ sample4	cluster2'''
 
         # delete
         response = client.get( \
-            '/api/cluster_assignment/delete_by' + \
+            '/api/cell_assignment/delete_by' + \
             '/cluster_solution/cluster_solution1' + \
             '/dataset/dataset1')
         assert response.data.decode("utf-8") == ''
 
         # verify delete
         # verify adds
-        response = client.get('/api/cluster_assignment')
+        response = client.get('/api/cell_assignment')
 '''name	cluster_id
 sample1	3
 sample2	4

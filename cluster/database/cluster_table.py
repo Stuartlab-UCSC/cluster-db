@@ -1,6 +1,6 @@
 
 from cluster.database.table import Table
-from cluster.database.clustering_solution_table import clustering_solution
+from cluster.database.cluster_solution_table import cluster_solution
 from cluster.database.db import get_db
 
 
@@ -10,14 +10,14 @@ class Cluster_table(Table):
         s.parentless_fields = [ # table fields minus row ID
             'name',
         ]
-        s.fields = s.parentless_fields + ['clustering_solution_id']
+        s.fields = s.parentless_fields + ['cluster_solution_id']
         s.parent_table = [ # ancestor tables of this table
-            'clustering_solution',
+            'cluster_solution',
             'dataset'
         ]
         s.child_table = [ # descendent tables of this table
             'attribute',
-            'cluster_assignment',
+            'cell_assignment',
         ]
 
 

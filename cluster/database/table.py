@@ -77,7 +77,7 @@ class Table(object):
         
         # TODO It may be better to include the parent name in the endpoint's URL
         # rather than in the post payload. Then this function would not be
-        # needed. It is only used when adding a clustering_solution or signature
+        # needed. It is only used when adding a cluster_solution or signature
         # _gene_set.
         parent_names = [row[s.parent_table[0]]]
         if parent_name:
@@ -128,7 +128,7 @@ class Table(object):
     def add_one(s, row, parent_name=None):
         # This should only be used by tables where the usual method is to add
         # one row at a time. Other tables should use add_tsv.
-        # (for dataset, clustering_solution, signature_gene_set)
+        # (for dataset, cluster_solution, signature_gene_set)
         try:
             # Add one row.
             db = get_db()
@@ -184,10 +184,10 @@ class Table(object):
         except sqlite3.IntegrityError as e:
             return err.abort_has_children()
 
-    def delete_by_clustering_solution_clusters(s, parent_name):
-    	# Delete all of the children of all clusters in a clustering_solution.
+    def delete_by_cluster_solution_clusters(s, parent_name):
+    	# Delete all of the children of all clusters in a cluster_solution.
         try:
-            # Find all of the clusters for the given clustering_solution.
+            # Find all of the clusters for the given cluster_solution.
             cluster_rows = util.get_by_parent(s.cluster_table,
                 parent_name, return_ids=True)
             # Find child rows for each cluster querying once per cluster.
@@ -234,10 +234,10 @@ class Table(object):
         cursor = db.execute(query)
         return(tsv.from_rows(cursor.fetchall()))
 
-    def get_by_clustering_solution_clusters(s, parent_name):
-        # Special for retrieving by all clusters in a clustering solution.
+    def get_by_cluster_solution_clusters(s, parent_name):
+        # Special for retrieving by all clusters in a cluster solution.
         try:
-            # Find all of the clusters for the given clustering_solution.
+            # Find all of the clusters for the given cluster_solution.
             cluster_rows = util.get_by_parent(s.cluster_table,
                 parent_name, return_ids=True)
             # Find child rows for each cluster querying once per cluster.

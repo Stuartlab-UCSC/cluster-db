@@ -11,7 +11,7 @@ import cluster.database.tsv as tsv
 
 class Cluster_assignment_table(Table):
     def __init__(s):
-        s.table = 'cluster_assignment'  # table name
+        s.table = 'cell_assignment'  # table name
         s.parentless_fields = [         # table fields minus IDs
             'name',
         ]
@@ -24,5 +24,5 @@ class Cluster_assignment_table(Table):
         s.cluster_table = cluster
 
 
-cluster_assignment = Cluster_assignment_table()
+cell_assignment = Cluster_assignment_table()
 

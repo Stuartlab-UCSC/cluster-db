@@ -13,7 +13,7 @@ class Signature_gene_table(Table):
         s.fields = s.parentless_fields + ['signature_gene_set_id']
         s.parent_table = [ # ancestor tables of this table
             'signature_gene_set',
-            'clustering_solution',
+            'cluster_solution',
             'dataset'
         ]
         s.child_table = None
