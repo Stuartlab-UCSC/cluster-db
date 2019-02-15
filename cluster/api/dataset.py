@@ -25,3 +25,11 @@ model = api.model('dataset', {
     'expressionDataSource': fields.String(description='Source of expression data'),
     'expressionDataSourceURL': fields.String(description='URL of expression source'),
 """
+
+# Get all
+@ns.route('/')
+class List(Resource):
+    @ns.response(200, 'list of all ' + table_name + 's in TSV format')
+    def get(self):
+        '''GET ALL'''
+        return Response(table.get_all(), mimetype=mimetype)
