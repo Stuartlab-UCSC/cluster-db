@@ -4,15 +4,15 @@
 
 import pytest
 import tests.access_db_data as ad
-from cluster.database.attribute_table import attribute
-from cluster.database.cell_assignment_table import cell_assignment
-from cluster.database.cluster_table import cluster
-from cluster.database.cluster_solution_table import cluster_solution
-from cluster.database.dataset_table import dataset
+from cluster.database_update.attribute_table import attribute
+from cluster.database_update.cell_assignment_table import cell_assignment
+from cluster.database_update.cluster_table import cluster
+from cluster.database_update.cluster_solution_table import cluster_solution
+from cluster.database_update.dataset_table import dataset
 from cluster.database.db import dicts_equal, merge_dicts
 from cluster.database.query import query
-from cluster.database.signature_gene_set_table import signature_gene_set
-from cluster.database.signature_gene_table import signature_gene
+from cluster.database_update.signature_gene_set_table import signature_gene_set
+from cluster.database_update.signature_gene_table import signature_gene
 
 
 def add_data():

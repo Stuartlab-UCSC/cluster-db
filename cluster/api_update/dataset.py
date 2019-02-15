@@ -4,7 +4,7 @@
 from flask import current_app, Response
 from flask_restplus import fields, Resource
 from cluster.api.restplus import api, mimetype
-from cluster.database.dataset_table import dataset as table
+from cluster.database_update.dataset_table import dataset as table
 
 table_name = 'dataset'
 ns = api.namespace('dataset_update')

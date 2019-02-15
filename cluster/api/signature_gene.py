@@ -4,7 +4,6 @@
 from flask import request, Response
 from flask_restplus import fields,  Resource
 from cluster.api.restplus import api, mimetype
-from cluster.database.signature_gene_table import signature_gene as table
 
 table_name = 'signature gene'
 ns = api.namespace('signature_gene')

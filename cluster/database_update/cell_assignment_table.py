@@ -1,8 +1,8 @@
 
-from cluster.database.table import Table
-from cluster.database.cluster_table import cluster
-from cluster.database.cluster_solution_table import cluster_solution
-from cluster.database.dataset_table import dataset
+from cluster.database_update.table import Table
+from cluster.database_update.cluster_table import cluster
+from cluster.database_update.cluster_solution_table import cluster_solution
+from cluster.database_update.dataset_table import dataset
 from cluster.database.db import get_db
 import cluster.database.error as err
 from cluster.database.error import Not_found, Not_found

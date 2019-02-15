@@ -1,6 +1,6 @@
 
-from cluster.database.table import Table
-from cluster.database.cluster_table import cluster
+from cluster.database_update.table import Table
+from cluster.database_update.cluster_table import cluster
 from cluster.database.db import get_db
 
 

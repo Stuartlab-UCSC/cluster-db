@@ -1,5 +1,5 @@
 
-from cluster.database.table import Table
+from cluster.database_update.table import Table
 
 
 class Dataset_table(Table):

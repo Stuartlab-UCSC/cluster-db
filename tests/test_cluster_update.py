@@ -4,11 +4,11 @@
 
 import pytest, json
 import tests.access_db_data as ad
-from cluster.database.dataset_table import dataset
-from cluster.database.cluster_solution_table import cluster_solution
-from cluster.database.cluster_table import cluster
-from cluster.database.attribute_table import attribute
-from cluster.database.cell_assignment_table import cell_assignment
+from cluster.database_update.dataset_table import dataset
+from cluster.database_update.cluster_solution_table import cluster_solution
+from cluster.database_update.cluster_table import cluster
+from cluster.database_update.attribute_table import attribute
+from cluster.database_update.cell_assignment_table import cell_assignment
 from cluster.database.db import dicts_equal, merge_dicts
 
 
@@ -129,19 +129,19 @@ def test_api(client, app):
     with app.app_context():
         # add many tsv
         add_parents()
-        response = client.get('/api/cluster/add' + \
+        response = client.get('/cluster_update/add' + \
             '/tsv_file/cluster.tsv' + \
             '/cluster_solution/cluster_solution1' + \
             '/dataset/dataset1')
         assert response.content_type == ad.text_plain
         assert response.data.decode("utf-8") == '2'
-        response = client.get('/api/cluster/add' + \
+        response = client.get('/cluster_update/add' + \
             '/tsv_file/cluster.tsv' + \
             '/cluster_solution/cluster_solution2' + \
             '/dataset/dataset1')
         assert response.content_type == ad.text_plain
         assert response.data.decode("utf-8") == '4'
-        response = client.get('/api/cluster/add' + \
+        response = client.get('/cluster_update/add' + \
             '/tsv_file/cluster.tsv' + \
             '/cluster_solution/cluster_solution2' + \
             '/dataset/dataset2')
@@ -149,7 +149,7 @@ def test_api(client, app):
         assert response.data.decode("utf-8") == '6'
 
         # verify adds
-        response = client.get('/api/cluster')
+        response = client.get('/cluster_update')
         print('response.data', response.data)
         assert response.content_type == ad.text_plain
         assert response.data.decode("utf-8") == \
@@ -163,7 +163,7 @@ cluster2	3'''
 
         # get by parent
         response = client.get(
-            '/api/cluster/get_by' + \
+            '/cluster_update/get_by' + \
             '/cluster_solution/cluster_solution1' + \
             '/dataset/dataset1')
         print('response.data', response.data)
@@ -175,13 +175,13 @@ cluster2'''
 
         # delete
         response = client.get(
-            '/api/cluster/delete_by' + \
+            '/cluster_update/delete_by' + \
             '/cluster_solution/cluster_solution2' + \
             '/dataset/dataset1')
         assert response.data.decode("utf-8") == 'None'
 
         # verify delete
-        response = client.get('/api/cluster')
+        response = client.get('/cluster_update')
         print('response.data', response.data)
         assert response.content_type == ad.text_plain
         assert response.data.decode("utf-8") == \

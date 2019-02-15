@@ -4,7 +4,6 @@
 from flask import request, Response
 from flask_restplus import fields,  Resource
 from cluster.api.restplus import api, mimetype
-from cluster.database.cluster_solution_table import cluster_solution as table
 
 table_name = 'cluster_solution'
 ns = api.namespace('cluster_solution')

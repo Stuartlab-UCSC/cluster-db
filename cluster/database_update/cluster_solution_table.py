@@ -1,6 +1,6 @@
 
-from cluster.database.table import Table
-from cluster.database.dataset_table import dataset
+from cluster.database_update.table import Table
+from cluster.database_update.dataset_table import dataset
 
 
 class Clustering_solution_table(Table):

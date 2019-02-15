@@ -4,7 +4,7 @@
 from flask import request
 from flask_restplus import fields,  Resource
 from cluster.api.restplus import api
-from cluster.database.cluster_table import cluster as table
+from cluster.database_update.cluster_table import cluster as table
 
 table_name = 'cluster'
 ns = api.namespace('cluster_update')

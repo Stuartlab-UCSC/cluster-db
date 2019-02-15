@@ -8,13 +8,13 @@ import cluster.database.error as err
 from cluster.database.error import Not_found, Updates_not_allowed
 import cluster.database.tsv as tsv
 
-from cluster.database.attribute_table import attribute
-from cluster.database.cell_assignment_table import cell_assignment
-from cluster.database.cluster_table import cluster
-from cluster.database.cluster_solution_table import cluster_solution
-from cluster.database.dataset_table import dataset
-from cluster.database.signature_gene_set_table import signature_gene_set
-from cluster.database.signature_gene_table import signature_gene
+from cluster.database_update.attribute_table import attribute
+from cluster.database_update.cell_assignment_table import cell_assignment
+from cluster.database_update.cluster_table import cluster
+from cluster.database_update.cluster_solution_table import cluster_solution
+from cluster.database_update.dataset_table import dataset
+from cluster.database_update.signature_gene_set_table import signature_gene_set
+from cluster.database_update.signature_gene_table import signature_gene
 
 def query(query):
     try:

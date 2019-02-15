@@ -1,6 +1,6 @@
 
-from cluster.database.table import Table
-from cluster.database.signature_gene_set_table import signature_gene_set
+from cluster.database_update.table import Table
+from cluster.database_update.signature_gene_set_table import signature_gene_set
 from cluster.database.db import get_db
 
 

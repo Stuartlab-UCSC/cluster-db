@@ -5,10 +5,10 @@
 import json
 import pytest
 import tests.access_db_data as ad
-from cluster.database.dataset_table import dataset
-from cluster.database.cluster_solution_table import cluster_solution
-from cluster.database.signature_gene_set_table import signature_gene_set
-from cluster.database.signature_gene_table import signature_gene
+from cluster.database_update.dataset_table import dataset
+from cluster.database_update.cluster_solution_table import cluster_solution
+from cluster.database_update.signature_gene_set_table import signature_gene_set
+from cluster.database_update.signature_gene_table import signature_gene
 from cluster.database.db import dicts_equal, merge_dicts
 
 
@@ -92,7 +92,7 @@ def test_api(client, app):
         
         # Add three sets of signature genes.
         response = client.get(
-            '/api/signature_gene/add' + \
+            '/signature_gene_update/add' + \
             '/tsv_file/signature_gene.tsv' + \
             '/signature_gene_set/signature_gene_set1' + \
             '/cluster_solution/cluster_solution1' + \
@@ -100,7 +100,7 @@ def test_api(client, app):
         assert response.content_type == ad.text_plain
         assert response.data.decode("utf-8") == '2'
         response = client.get(
-            '/api/signature_gene/add' + \
+            '/signature_gene_update/add' + \
             '/tsv_file/signature_gene.tsv' + \
             '/signature_gene_set/signature_gene_set2' + \
             '/cluster_solution/cluster_solution1' + \
@@ -108,7 +108,7 @@ def test_api(client, app):
         assert response.content_type == ad.text_plain
         assert response.data.decode("utf-8") == '4'
         response = client.get(
-            '/api/signature_gene/add' + \
+            '/signature_gene_update/add' + \
             '/tsv_file/signature_gene.tsv' + \
             '/signature_gene_set/signature_gene_set2' + \
             '/cluster_solution/cluster_solution2' + \
@@ -117,7 +117,7 @@ def test_api(client, app):
         assert response.data.decode("utf-8") == '6'
 
         # verify adds with get all
-        response = client.get('/api/signature_gene')
+        response = client.get('/signature_gene update')
         #print('response.decode:', response.data.decode("utf-8"))
         assert response.content_type == ad.text_plain
         assert response.data.decode("utf-8") ==  \
@@ -131,7 +131,7 @@ signature_gene2	3'''
 
         # get by parent
         response = client.get(
-            '/api/signature_gene/get_by' + \
+            '/signature_gene_update/get_by' + \
             '/signature_gene_set/signature_gene_set1' + \
             'cluster_solution/cluster_solution1' + \
             '/dataset/dataset1')
@@ -144,7 +144,7 @@ signature_gene2'''
 
         # delete
         response = client.get(
-            '/api/signature_gene' + \
+            '/signature_gene update' + \
             '/delete_by' + \
             '/signature_gene_set/signature_gene_set2' + \
             '/cluster_solution/cluster_solution1' + \
@@ -153,7 +153,7 @@ signature_gene2'''
         assert response.data.decode("utf-8") == 'None'
         
         # verify the delete with a get all
-        response = client.get('/api/signature_gene')
+        response = client.get('/signature_gene update')
         print('response.data:', response.data.decode("utf-8"))
         assert response.data.decode("utf-8") ==  \
 '''name	signature_gene_set_id

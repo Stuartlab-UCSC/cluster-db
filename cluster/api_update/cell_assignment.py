@@ -4,7 +4,7 @@
 from flask import request
 from flask_restplus import fields,  Resource
 from cluster.api.restplus import api
-from cluster.database.cell_assignment_table \
+from cluster.database_update.cell_assignment_table \
     import cell_assignment as table
 
 table_name = 'cell_assignment'
