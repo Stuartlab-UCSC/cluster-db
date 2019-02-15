@@ -9,6 +9,13 @@ from flask_cors import CORS
 from cluster.api.query import ns as query_namespace
 from cluster.api.restplus import api
 import cluster.database.db as db
+from cluster.api.attribute import ns as attribute_namespace
+from cluster.api.cluster import ns as cluster_namespace
+from cluster.api.cell_assignment import ns as cell_assignment_namespace
+from cluster.api.cluster_solution import ns as cluster_solution_namespace
+from cluster.api.dataset import ns as dataset_namespace
+from cluster.api.signature_gene import ns as signature_gene_namespace
+from cluster.api.signature_gene_set import ns as signature_gene_set_namespace
 
 CLUSTERDB_UPDATABLE = 0
 try:
@@ -16,13 +23,13 @@ try:
 except:
     pass
 if CLUSTERDB_UPDATABLE > 0:
-    from cluster.api.attribute import ns as attribute_namespace
-    from cluster.api.cluster import ns as cluster_namespace
-    from cluster.api.cell_assignment import ns as cell_assignment_namespace
-    from cluster.api.cluster_solution import ns as cluster_solution_namespace
-    from cluster.api.dataset import ns as dataset_namespace
-    from cluster.api.signature_gene import ns as signature_gene_namespace
-    from cluster.api.signature_gene_set import ns as signature_gene_set_namespace
+    from cluster.api_update.attribute import ns as attribute_namespace_update
+    from cluster.api_update.cluster import ns as cluster_namespace_update
+    from cluster.api_update.cell_assignment import ns as cell_assignment_namespace_update
+    from cluster.api_update.cluster_solution import ns as cluster_solution_namespace_update
+    from cluster.api_update.dataset import ns as dataset_namespace_update
+    from cluster.api_update.signature_gene import ns as signature_gene_namespace_update
+    from cluster.api_update.signature_gene_set import ns as signature_gene_set_namespace_update
 
 logging_conf_path = os.path.normpath(os.path.join(os.path.dirname(__file__), '../logging.conf'))
 logging.config.fileConfig(logging_conf_path)
@@ -56,21 +63,29 @@ def configure_app(flask_app, test_config):
 
 
 def initialize_blueprint(flask_app):
-    blueprint = Blueprint('api', __name__, url_prefix='/api')
+    blueprint = Blueprint('api', __name__, url_prefix='')
     api.init_app(blueprint)
     api.add_namespace(query_namespace)
+    api.add_namespace(attribute_namespace)
+    api.add_namespace(cell_assignment_namespace)
+    api.add_namespace(cluster_namespace)
+    api.add_namespace(cluster_solution_namespace)
+    api.add_namespace(dataset_namespace)
+    api.add_namespace(signature_gene_namespace)
+    api.add_namespace(signature_gene_set_namespace)
     if CLUSTERDB_UPDATABLE > 0:
         if not flask_app.config['TESTING']:
             logging.warning('!!!!!!  DATABASE UPDATABLE !!!!!!')
-        api.add_namespace(attribute_namespace)
-        api.add_namespace(cell_assignment_namespace)
-        api.add_namespace(cluster_namespace)
-        api.add_namespace(cluster_solution_namespace)
-        api.add_namespace(dataset_namespace)
-        api.add_namespace(signature_gene_namespace)
-        api.add_namespace(signature_gene_set_namespace)
+        api.add_namespace(attribute_namespace_update)
+        api.add_namespace(cell_assignment_namespace_update)
+        api.add_namespace(cluster_namespace_update)
+        api.add_namespace(cluster_solution_namespace_update)
+        api.add_namespace(dataset_namespace_update)
+        api.add_namespace(signature_gene_namespace_update)
+        api.add_namespace(signature_gene_set_namespace_update)
     
     flask_app.register_blueprint(blueprint)
+
 
 def initialize_app(flask_app, test_config):
     configure_app(flask_app, test_config)
@@ -88,9 +103,9 @@ def create_app(test_config=None):
     #log.info('>>>>> Starting development server at http://{}/api/ <<<<<'.format(app.config['SERVER_NAME']))
 
     # Handle the base route, redirecting to /api.
-    @app.route('/')
-    def baseRoute():
-        return redirect("/api", code=302)
+    #@app.route('/')
+    #def baseRoute():
+    #    return redirect("/api", code=302)
 
     # Handle the test route.
     @app.route('/test')

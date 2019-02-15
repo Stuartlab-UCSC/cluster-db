@@ -14,14 +14,3 @@ model = api.model('cell_assignment', {
     'cluster': fields.String(required=True, description='Name of the cluster'),
 })
 
-filename = "cluster/api/common/get_all.py"
-exec(compile(source=open(filename).read(), filename='filename', mode='exec'))
-
-filename = "cluster/api/common/add_tsv_by_cluster_solution.py"
-exec(compile(source=open(filename).read(), filename='filename', mode='exec'))
-
-filename = "cluster/api/common/get_by_cluster_solution.py"
-exec(compile(source=open(filename).read(), filename='filename', mode='exec'))
-
-filename = "cluster/api/common/delete_by_cluster_solution.py"
-exec(compile(source=open(filename).read(), filename='filename', mode='exec'))

@@ -4,7 +4,12 @@
 source $CLUSTERDB/venv/bin/activate
 export FLASK_APP=cluster
 export FLASK_ENV=development
+
+# Foreground
 flask run -h $CLUSTERDB_HOST -p $CLUSTERDB_PORT
+
+# Background
+# nohup flask run -h $CLUSTERDB_HOST -p $CLUSTERDB_PORT &> log &
 
 # alternate startup
 #python setup.py develop

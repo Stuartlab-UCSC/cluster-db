@@ -13,15 +13,3 @@ model = api.model('attribute', {
     'value': fields.String(required=True, description='value for this sample'),
     'cluster': fields.String(required=True, description='cluster name'),
 })
-
-filename = "cluster/api/common/get_all.py"
-exec(compile(source=open(filename).read(), filename='filename', mode='exec'))
-
-filename = "cluster/api/common/add_tsv_by_cluster_solution.py"
-exec(compile(source=open(filename).read(), filename='filename', mode='exec'))
-
-filename = "cluster/api/common/get_by_cluster_solution.py"
-exec(compile(source=open(filename).read(), filename='filename', mode='exec'))
-
-filename = "cluster/api/common/delete_by_cluster_solution.py"
-exec(compile(source=open(filename).read(), filename='filename', mode='exec'))
