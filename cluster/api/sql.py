@@ -7,16 +7,16 @@ from flask_restplus import fields,  Resource
 from cluster.api.restplus import api, mimetype
 from cluster.database.query import query as database_query
 
-ns = api.namespace('query')
+ns = api.namespace('sql')
 
 
-@ns.route('/<string:query>')
-@ns.param('query', 'SQL query string')
+@ns.route('/<string:sql>')
+@ns.param('sql', 'SQL query string')
 class List(Resource):
     @ns.response(200, 'Result of query')
-    def get(self, query):
+    def get(self, sql):
         '''SQL QUERY'''
-        resp = database_query(query)
+        resp = database_query(sql)
         return Response(str(resp), mimetype=mimetype)
 
 

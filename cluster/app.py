@@ -6,7 +6,7 @@ import os
 from cluster import settings
 from flask import Flask, Blueprint, redirect
 from flask_cors import CORS
-from cluster.api.query import ns as query_namespace
+from cluster.api.sql import ns as sql_namespace
 from cluster.api.restplus import api
 import cluster.database.db as db
 from cluster.api.attribute import ns as attribute_namespace
@@ -65,7 +65,7 @@ def configure_app(flask_app, test_config):
 def initialize_blueprint(flask_app):
     blueprint = Blueprint('api', __name__, url_prefix='')
     api.init_app(blueprint)
-    api.add_namespace(query_namespace)
+    api.add_namespace(sql_namespace)
     api.add_namespace(attribute_namespace)
     api.add_namespace(cell_assignment_namespace)
     api.add_namespace(cluster_namespace)
