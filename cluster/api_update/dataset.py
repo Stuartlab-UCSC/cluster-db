@@ -7,7 +7,7 @@ from cluster.api.restplus import api, mimetype
 from cluster.database_update.dataset_table import dataset as table
 
 table_name = 'dataset'
-ns = api.namespace('dataset_update')
+ns = api.namespace('dataset-update')
 model = api.model('dataset', {
     'name': fields.String(required=True, description='Unique dataset name'),
     'species': fields.String(required=True, description='Species studied')

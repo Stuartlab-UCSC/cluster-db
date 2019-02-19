@@ -7,7 +7,7 @@ from cluster.api.restplus import api
 from cluster.database_update.cluster_table import cluster as table
 
 table_name = 'cluster'
-ns = api.namespace('cluster_update')
+ns = api.namespace('cluster-update')
 model = api.model('cluster', {
     'name': fields.String(required=True, description='Cluster name'),
     'cluster_solution': fields.String(

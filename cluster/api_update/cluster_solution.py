@@ -7,7 +7,7 @@ from cluster.api.restplus import api, mimetype
 from cluster.database_update.cluster_solution_table import cluster_solution as table
 
 table_name = 'cluster_solution'
-ns = api.namespace('cluster_solution_update')
+ns = api.namespace('cluster-solution-update')
 model = api.model('cluster_solution', {
     'name': fields.String(required=True, description='Unique cluster solution name'),
     'method': fields.String(required=True, description='Clustering method applied'),
@@ -46,10 +46,6 @@ class Delete(Resource):
     @ns.response(200, 'Success')
     @ns.response(404, 'Not found')
     def get(self, cluster_solution, dataset):
-        print('query:Delete')
-        print('cluster_solution', cluster_solution)
-        print('dataset', dataset)
-
         '''DELETE'''
         resp = table.delete_one(cluster_solution, [dataset])
         return Response(str(resp), mimetype=mimetype)

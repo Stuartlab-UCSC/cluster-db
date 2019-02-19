@@ -92,7 +92,7 @@ def test_api(client, app):
         
         # Add three sets of signature genes.
         response = client.get(
-            '/signature_gene_update/add' + \
+            '/signature-gene-update/add' + \
             '/tsv_file/signature_gene.tsv' + \
             '/signature_gene_set/signature_gene_set1' + \
             '/cluster_solution/cluster_solution1' + \
@@ -100,7 +100,7 @@ def test_api(client, app):
         assert response.content_type == ad.text_plain
         assert response.data.decode("utf-8") == '2'
         response = client.get(
-            '/signature_gene_update/add' + \
+            '/signature-gene-update/add' + \
             '/tsv_file/signature_gene.tsv' + \
             '/signature_gene_set/signature_gene_set2' + \
             '/cluster_solution/cluster_solution1' + \
@@ -108,7 +108,7 @@ def test_api(client, app):
         assert response.content_type == ad.text_plain
         assert response.data.decode("utf-8") == '4'
         response = client.get(
-            '/signature_gene_update/add' + \
+            '/signature-gene-update/add' + \
             '/tsv_file/signature_gene.tsv' + \
             '/signature_gene_set/signature_gene_set2' + \
             '/cluster_solution/cluster_solution2' + \
@@ -117,7 +117,7 @@ def test_api(client, app):
         assert response.data.decode("utf-8") == '6'
 
         # verify adds with get all
-        response = client.get('/signature_gene update')
+        response = client.get('/signature-gene-update')
         #print('response.decode:', response.data.decode("utf-8"))
         assert response.content_type == ad.text_plain
         assert response.data.decode("utf-8") ==  \
@@ -131,7 +131,7 @@ signature_gene2	3'''
 
         # get by parent
         response = client.get(
-            '/signature_gene_update/get_by' + \
+            '/signature-gene-update/get_by' + \
             '/signature_gene_set/signature_gene_set1' + \
             'cluster_solution/cluster_solution1' + \
             '/dataset/dataset1')
@@ -144,7 +144,7 @@ signature_gene2'''
 
         # delete
         response = client.get(
-            '/signature_gene update' + \
+            '/signature-gene-update' + \
             '/delete_by' + \
             '/signature_gene_set/signature_gene_set2' + \
             '/cluster_solution/cluster_solution1' + \
@@ -153,7 +153,7 @@ signature_gene2'''
         assert response.data.decode("utf-8") == 'None'
         
         # verify the delete with a get all
-        response = client.get('/signature_gene update')
+        response = client.get('/signature-gene-update')
         print('response.data:', response.data.decode("utf-8"))
         assert response.data.decode("utf-8") ==  \
 '''name	signature_gene_set_id

@@ -7,8 +7,8 @@ from cluster.api.restplus import api
 from cluster.database_update.signature_gene_set_table \
     import signature_gene_set as table
 
-table_name = 'signature gene set'
-ns = api.namespace('signature_gene_set_update')
+table_name = 'signature_gene_set'
+ns = api.namespace('signature-gene-set-update')
 model = api.model('signature_gene_set', {
     'name': fields.String(required=True, description='Gene set name'),
     'method': fields.String(required=True, description='Method used to determine this gene set'),

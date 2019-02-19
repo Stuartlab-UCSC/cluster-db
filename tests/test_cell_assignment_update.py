@@ -108,21 +108,21 @@ def test_api(app, client):
         
         # add three sets of assignments
         response = client.get(
-            '/cell_assignment_update/add' + \
+            '/cell-assignment-update/add' + \
             '/tsv_file/cell_assignment.tsv' + \
             '/cluster_solution/cluster_solution1' + \
             '/dataset/dataset1')
         assert response.content_type == ad.text_plain
         assert response.data.decode("utf-8") == '4'
         response = client.get(
-            '/cell_assignment_update/add' + \
+            '/cell-assignment-update/add' + \
             '/tsv_file/cell_assignment.tsv' + \
             '/cluster_solution/cluster_solution2' + \
             '/dataset/dataset1')
         assert response.content_type == ad.text_plain
         assert response.data.decode("utf-8") == '8'
         response = client.get(
-            '/cell_assignment_update/add' + \
+            '/cell-assignment-update/add' + \
             '/tsv_file/cell_assignment.tsv' + \
             '/cluster_solution/cluster_solution2' + \
             '/dataset/dataset2')
@@ -130,7 +130,7 @@ def test_api(app, client):
         assert response.data.decode("utf-8") == '12'
         
         # verify adds
-        response = client.get('/cell_assignment_update')
+        response = client.get('/cell-assignment-update')
         print('response.data:', response.data.decode("utf-8"))
         assert response.content_type == ad.text_plain
         assert response.data.decode("utf-8") == \
@@ -150,7 +150,7 @@ sample4	6'''
 
         # get by parent
         response = client.get(
-            '/cell_assignment_update/get_by' + \
+            '/cell-assignment-update/get_by' + \
             '/cluster_solution/cluster_solution1' + \
             '/dataset/dataset1')
         assert response.content_type == ad.text_plain
@@ -163,14 +163,14 @@ sample4	cluster2'''
 
         # delete
         response = client.get( \
-            '/cell_assignment_update/delete_by' + \
+            '/cell-assignment-update/delete_by' + \
             '/cluster_solution/cluster_solution1' + \
             '/dataset/dataset1')
         assert response.data.decode("utf-8") == ''
 
         # verify delete
         # verify adds
-        response = client.get('/cell_assignment_update')
+        response = client.get('/cell-assignment-update')
 '''name	cluster_id
 sample1	3
 sample2	4

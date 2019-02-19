@@ -7,7 +7,7 @@ from cluster.api.restplus import api, mimetype
 from cluster.database_update.signature_gene_table import signature_gene as table
 
 table_name = 'signature gene'
-ns = api.namespace('signature_gene_update')
+ns = api.namespace('signature-gene-update')
 model = api.model('signature_gene', {
     'name': fields.String(required=True, description='Gene name'),
     'signature_gene_set': fields.String(required=True, description='Name of the signature gene set'),

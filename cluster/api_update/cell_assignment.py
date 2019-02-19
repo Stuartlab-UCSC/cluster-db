@@ -8,7 +8,7 @@ from cluster.database_update.cell_assignment_table \
     import cell_assignment as table
 
 table_name = 'cell_assignment'
-ns = api.namespace('cell_assignment_update')
+ns = api.namespace('cell-assignment-update')
 model = api.model('cell_assignment', {
     'name': fields.String(required=True, description='Sample name'),
     'cluster': fields.String(required=True, description='Name of the cluster'),

@@ -98,14 +98,14 @@ def test_api(client, app):
         add_parents()
         response = ad.post_json(
             client,
-            '/signature_gene_set_update/add' + \
+            '/signature-gene-set-update/add' + \
             '/dataset/dataset1',
             ad.add_one_signature_gene_set)
         #print('response.data', response.data)
         assert response.content_type == ad.text_plain
         response = ad.post_json(
             client,
-            '/signature_gene_set_update/add' + \
+            '/signature-gene-set-update/add' + \
             '/dataset/dataset1',
             ad.add_second_signature_gene_set)
         #print('response.data', response.data)
@@ -113,7 +113,7 @@ def test_api(client, app):
         assert response.data.decode("utf-8") == '2'
         response = ad.post_json(
             client,
-            '/signature_gene_set_update/add' + \
+            '/signature-gene-set-update/add' + \
             '/dataset/dataset2',
             ad.add_third_signature_gene_set)
         #print('response.data', response.data)
@@ -121,7 +121,7 @@ def test_api(client, app):
         assert response.data.decode("utf-8") == '3'
 
         # get all
-        response = client.get('/signature_gene_set_update')
+        response = client.get('/signature-gene-set-update')
         print('response.data:', response.data.decode("utf-8"))
         assert response.content_type == ad.text_plain
         assert response.data.decode("utf-8") == \
@@ -132,7 +132,7 @@ signature_gene_set2	method2	3'''
 
         # get by parent
         response = client.get(
-            '/signature_gene_set_update/get_by' + \
+            '/signature-gene-set-update/get_by' + \
             '/cluster_solution/cluster_solution1' + \
             '/dataset/dataset1')
         #print('response.data:', response.data)
@@ -144,7 +144,7 @@ signature_gene_set2	method2'''
 
         # delete
         response = client.get(
-            '/signature_gene_set_update' + \
+            '/signature-gene-set-update' + \
             '/delete/signature_gene_set2' + \
             '/cluster_solution/cluster_solution1' + \
             '/dataset/dataset1')
@@ -152,7 +152,7 @@ signature_gene_set2	method2'''
         assert response.data.decode("utf-8") == 'None'
         
         # check that it was really deleted
-        response = client.get('/signature_gene_set_update')
+        response = client.get('/signature-gene-set-update')
         #print('response.data:', response.data.decode("utf-8"))
         assert response.data.decode("utf-8") == \
 '''name	method	cluster_solution_id

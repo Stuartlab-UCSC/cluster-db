@@ -177,58 +177,59 @@ def test_update_bad_field(app):
 """
 
 
-def test_add_two_api(client):
-    # add two
-    response = ad.post_json(client, '/dataset_update/add', ad.add_one_dataset)
-    assert response.content_type == ad.text_plain
-    #print('response.data:', response.data)
-    assert response.data.decode("utf-8") == '1'
+def test_add_two_api(client, app):
+    with app.app_context():
+        # add two
+        response = ad.post_json(client, '/dataset-update/add', ad.add_one_dataset)
+        print('response:', response.data.decode("utf-8"))
+        assert response.content_type == ad.text_plain
+        #print('response.data:', response.data)
+        assert response.data.decode("utf-8") == '1'
+        response = ad.post_json(client, '/dataset-update/add', ad.add_second_dataset)
+        assert response.content_type == ad.text_plain
+        #print('response.data:', response.data)
+        assert response.data.decode("utf-8") == '2'
 
-    response = ad.post_json(client, '/dataset_update/add', ad.add_second_dataset)
-    assert response.content_type == ad.text_plain
-    #print('response.data:', response.data)
-    assert response.data.decode("utf-8") == '2'
-
-    # get all
-    response = client.get('/dataset_update')
-    #print('response:',response)
-    assert response.content_type == ad.text_plain
-    assert response.data.decode("utf-8") == \
+        # get all
+        response = client.get('/dataset-update')
+        #print('response:',response)
+        assert response.content_type == ad.text_plain
+        assert response.data.decode("utf-8") == \
 '''name	species
 dataset1	dog
 dataset2	cat'''
 
-    # delete one
-    response = client.get('/dataset_update/delete/dataset1')
-    print('response:',response)
-    print('response.decode:',response.data.decode("utf-8"))
-    assert response.content_type == ad.text_plain
+        # delete one
+        response = client.get('/dataset-update/delete/dataset1')
+        print('response:',response)
+        print('response.decode:',response.data.decode("utf-8"))
+        assert response.content_type == ad.text_plain
 
-    # get all
-    response = client.get('/dataset_update')
-    print('response:',response)
-    assert response.content_type == ad.text_plain
-    assert response.data.decode("utf-8") == \
+        # get all
+        response = client.get('/dataset-update')
+        print('response:',response)
+        assert response.content_type == ad.text_plain
+        assert response.data.decode("utf-8") == \
 '''name	species
 dataset2	cat'''
 
-    # delete one not there
-    response = client.get('/dataset_update/delete/dataset1')
-    print('response:',response)
-    print('response.decode:',response.data.decode("utf-8"))
-    assert response.content_type == ad.text_plain
-    assert response.data.decode("utf-8") == \
-    	'404 Not found: dataset: dataset1'
+        # delete one not there
+        response = client.get('/dataset-update/delete/dataset1')
+        print('response:',response)
+        print('response.decode:',response.data.decode("utf-8"))
+        assert response.content_type == ad.text_plain
+        assert response.data.decode("utf-8") == \
+            '404 Not found: dataset: dataset1'
 
 def test_api(client):
     # add tsv
-    response = client.get('/dataset_update/add/tsv_file/dataset.tsv')
+    response = client.get('/dataset-update/add/tsv_file/dataset.tsv')
     assert response.content_type == ad.text_plain
     print('response.data', response.data)
     assert response.data.decode("utf-8") == '2'
 
     # get all
-    response = client.get('/dataset_update')
+    response = client.get('/dataset-update')
     assert response.content_type == ad.text_plain
     assert response.data.decode("utf-8") == \
 '''name	species
@@ -236,8 +237,9 @@ dataset1	dog
 dataset2	cat'''
 
     # get one
-    response = client.get('/dataset_update/dataset1')
+    response = client.get('/dataset-update/dataset1')
     assert response.content_type == ad.text_plain
     assert response.data.decode("utf-8") == \
 '''name	species
 dataset1	dog'''
+

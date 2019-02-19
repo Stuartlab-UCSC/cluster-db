@@ -104,7 +104,7 @@ def test_api(app, client):
         # add many tsv
         add_parents()
         response = client.get(
-            '/attribute_update/add' + \
+            '/attribute-update/add' + \
             '/tsv_file/attribute.tsv' + \
             '/cluster_solution/cluster_solution1' + \
             '/dataset/dataset1')
@@ -112,14 +112,14 @@ def test_api(app, client):
         assert response.content_type == ad.text_plain
         assert response.data.decode("utf-8") == '4'
         response = client.get(
-            '/attribute_update/add' + \
+            '/attribute-update/add' + \
             '/tsv_file/attribute.tsv' + \
             '/cluster_solution/cluster_solution2' + \
             '/dataset/dataset1')
         assert response.content_type == ad.text_plain
         assert response.data.decode("utf-8") == '8'
         response = client.get(
-            '/attribute_update/add' + \
+            '/attribute-update/add' + \
             '/tsv_file/attribute.tsv' + \
             '/cluster_solution/cluster_solution2' + \
             '/dataset/dataset2')
@@ -127,7 +127,7 @@ def test_api(app, client):
         assert response.data.decode("utf-8") == '12'
 
         # verify adds.
-        response = client.get('/attribute_update')
+        response = client.get('/attribute-update')
         assert response.content_type == ad.text_plain
         assert response.data.decode("utf-8") == \
 '''name	value	cluster_id
@@ -146,7 +146,7 @@ attribute2	value22	6'''
 
         # get by parent
         response = client.get(
-            '/attribute_update/get_by' + \
+            '/attribute-update/get_by' + \
             '/cluster_solution/cluster_solution1' + \
             '/dataset/dataset1')
         print('response.json:', response.json)
@@ -160,7 +160,7 @@ attribute2	value22	cluster2'''
 
         # delete
         response = client.get(
-            '/attribute_update/delete_by' + \
+            '/attribute-update/delete_by' + \
             '/cluster_solution/cluster_solution1' + \
             '/dataset/dataset1')
         assert response.content_type == ad.text_plain
@@ -168,7 +168,7 @@ attribute2	value22	cluster2'''
         
         
         # verify delete
-        response = client.get('/attribute_update')
+        response = client.get('/attribute-update')
         assert response.content_type == ad.text_plain
         assert response.data.decode("utf-8") == \
 '''name	value	cluster_id

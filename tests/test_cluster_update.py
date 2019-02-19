@@ -129,19 +129,19 @@ def test_api(client, app):
     with app.app_context():
         # add many tsv
         add_parents()
-        response = client.get('/cluster_update/add' + \
+        response = client.get('/cluster-update/add' + \
             '/tsv_file/cluster.tsv' + \
             '/cluster_solution/cluster_solution1' + \
             '/dataset/dataset1')
         assert response.content_type == ad.text_plain
         assert response.data.decode("utf-8") == '2'
-        response = client.get('/cluster_update/add' + \
+        response = client.get('/cluster-update/add' + \
             '/tsv_file/cluster.tsv' + \
             '/cluster_solution/cluster_solution2' + \
             '/dataset/dataset1')
         assert response.content_type == ad.text_plain
         assert response.data.decode("utf-8") == '4'
-        response = client.get('/cluster_update/add' + \
+        response = client.get('/cluster-update/add' + \
             '/tsv_file/cluster.tsv' + \
             '/cluster_solution/cluster_solution2' + \
             '/dataset/dataset2')
@@ -149,7 +149,7 @@ def test_api(client, app):
         assert response.data.decode("utf-8") == '6'
 
         # verify adds
-        response = client.get('/cluster_update')
+        response = client.get('/cluster-update')
         print('response.data', response.data)
         assert response.content_type == ad.text_plain
         assert response.data.decode("utf-8") == \
@@ -163,7 +163,7 @@ cluster2	3'''
 
         # get by parent
         response = client.get(
-            '/cluster_update/get_by' + \
+            '/cluster-update/get_by' + \
             '/cluster_solution/cluster_solution1' + \
             '/dataset/dataset1')
         print('response.data', response.data)
@@ -175,13 +175,13 @@ cluster2'''
 
         # delete
         response = client.get(
-            '/cluster_update/delete_by' + \
+            '/cluster-update/delete_by' + \
             '/cluster_solution/cluster_solution2' + \
             '/dataset/dataset1')
         assert response.data.decode("utf-8") == 'None'
 
         # verify delete
-        response = client.get('/cluster_update')
+        response = client.get('/cluster-update')
         print('response.data', response.data)
         assert response.content_type == ad.text_plain
         assert response.data.decode("utf-8") == \

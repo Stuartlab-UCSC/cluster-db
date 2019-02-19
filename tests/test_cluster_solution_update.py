@@ -120,16 +120,16 @@ def test_api_add_one_and_get_by_parent(app, client):
     with app.app_context():
         add_parent()
         response = ad.post_json(
-            client, '/cluster_solution_update/add', ad.add_one_cluster_solution)
+            client, '/cluster-solution-update/add', ad.add_one_cluster_solution)
         response = ad.post_json(
-            client, '/cluster_solution_update/add', ad.add_third_cluster_solution)
+            client, '/cluster-solution-update/add', ad.add_third_cluster_solution)
         #print('response', response)
         #print('response.decode', response.data.decode("utf-8"))
         assert response.content_type == ad.text_plain
 
         # get by parent
         response = client.get(
-            '/cluster_solution_update/get_by/dataset/dataset1')
+            '/cluster-solution-update/get_by/dataset/dataset1')
         assert response.content_type == ad.text_plain
         #print('response.data:', response.data)
         #print('response.decode', response.data.decode("utf-8"))
@@ -139,7 +139,7 @@ cluster_solution1	method1	method_implementation1	method_url1	method_parameters1	
 
         # delete
         response = client.get(
-            '/cluster_update_solution' +
+            '/cluster-solution-update' +
             '/delete/cluster_solution1' +
             '/dataset/dataset1')
         print('response.data:', response.data)
@@ -148,14 +148,14 @@ cluster_solution1	method1	method_implementation1	method_url1	method_parameters1	
 
         # verify delete
         response = client.get(
-            '/cluster_solution_update/get_by/dataset/dataset1')
+            '/cluster-solution-update/get_by/dataset/dataset1')
         assert response.content_type == ad.text_plain
         assert response.data.decode("utf-8") == \
         	'404 Not found: cluster_solution with dataset: dataset1'
         
         # verify delete did not delete another
         response = client.get(
-            '/cluster_solution_update/get_by/dataset/dataset2')
+            '/cluster-solution-update/get_by/dataset/dataset2')
         assert response.content_type == ad.text_plain
         print('response.data:', response.data)
         assert response.data.decode("utf-8") == \

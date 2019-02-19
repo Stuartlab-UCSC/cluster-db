@@ -132,3 +132,13 @@ def test_update(app):
         assert result == \
             '400 Updates to the database are not allowed, only read queries.'
 
+def test_api(client, app):
+    with app.app_context():
+        add_data()
+        response = client.get('/sql/select%20*%20from%20dataset')
+        print('response.decode:', response.data.decode("utf-8"))
+        assert response.content_type == ad.text_plain
+        assert response.data.decode("utf-8") == \
+'''id	name	species
+1	dataset1	dog
+2	dataset2	cat'''

@@ -7,7 +7,7 @@ from cluster.api.restplus import api
 from cluster.database_update.attribute_table import attribute as table
 
 table_name = 'attribute'
-ns = api.namespace('attribute_update')
+ns = api.namespace('attribute-update')
 model = api.model('attribute', {
     'name': fields.String(required=True, description='sample name'),
     'value': fields.String(required=True, description='value for this sample'),
