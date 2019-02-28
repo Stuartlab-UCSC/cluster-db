@@ -14,11 +14,10 @@ class Get_by_parent(Resource):
     @ns.response(200, 'list of ' + table_name + 's in TSV format')
     def get(self, cluster_solution, dataset):
         '''GET BY CLUSTER SOLUTION'''
-        if table_name == 'attribute' or table_name == 'cell_assignment':
+        if table_name == 'cluster_attribute' or table_name == 'cell_of_cluster':
             resp = table.get_by_cluster_solution_clusters(
                 [cluster_solution, dataset])
         else:
             resp = table.get_by_parent([cluster_solution, dataset])
-        print('Get_by_parent:resp:',resp)
         return Response(str(resp), mimetype=mimetype)
 

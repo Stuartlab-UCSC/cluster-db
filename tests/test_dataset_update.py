@@ -21,9 +21,10 @@ def test_add_two_and_get_all_delete(app):
         result = dataset.get_all()
         print('result:', result)
         assert result == \
-'''name	species
-dataset1	dog
-dataset2	cat'''
+'''name	uuid	species	organ	cell_count	disease	platform	description	data_source_url	publication_url
+dataset1	uuid1	dog	organ1	1	disease1	platform1	description1	data_source_url1	publication_url1
+dataset2	uuid2	cat	organ2	2	disease2	platform2	description2	data_source_url2	publication_url2'''
+
 
         # delete one
         result = dataset.delete_one('dataset1')
@@ -33,8 +34,8 @@ dataset2	cat'''
         result = dataset.get_all()
         print('result:', result)
         assert result == \
-'''name	species
-dataset2	cat'''
+'''name	uuid	species	organ	cell_count	disease	platform	description	data_source_url	publication_url
+dataset2	uuid2	cat	organ2	2	disease2	platform2	description2	data_source_url2	publication_url2'''
 
 
 def test_add_one_field_missing(app):
@@ -42,7 +43,7 @@ def test_add_one_field_missing(app):
         result = dataset.add_one(one_data_field_missing)
         assert result == '400 Database: Wrong number of columns supplied ' + \
             'for add: Incorrect number of bindings supplied. The current ' + \
-            'statement uses 2, and there are 1 supplied.'
+            'statement uses 10, and there are 9 supplied.'
 
 
 def test_add_one_duplicate(app):
@@ -58,16 +59,16 @@ def test_add_tsv(app):
         assert result == 2
         result = dataset.get_all()
         assert result == \
-'''name	species
-dataset1	dog
-dataset2	cat'''
+'''name	uuid	species	organ	cell_count	disease	platform	description	data_source_url	publication_url
+dataset1	uuid1	dog	organ1	1	disease1	platform1	description1	data_source_url1	publication_url1
+dataset2	uuid2	cat	organ2	2	disease2	platform2	description2	data_source_url2	publication_url2'''
 
 
 def test_add_tsv_bad_header(app):
     with app.app_context():
         result = dataset.add_tsv('dataset_bad_header.tsv')
         assert result == '400 Bad TSV header:\n' + \
-                                    'expected: "name species"\n' + \
+                                    'expected: "name uuid species organ cell_count disease platform description data_source_url publication_url"\n' + \
                                     '   given: "bad header"'
 
 
@@ -76,14 +77,13 @@ def test_add_tsv_too_many_columns(app):
         result = dataset.add_tsv('dataset_too_many_columns.tsv')
         assert result == '400 Database: Wrong number of columns ' + \
             'supplied for add: Incorrect number of bindings supplied. The ' + \
-            'current statement uses 2, and there are 3 supplied.'
+            'current statement uses 10, and there are 11 supplied.'
 
 
 def test_add_tsv_not_enough_columns(app):
     with app.app_context():
         result = dataset.add_tsv('dataset_not_enough_columns.tsv')
-        assert result == \
-            '400 Database: NOT NULL constraint failed: dataset.species'
+        assert result == 2
 
 
 def test_add_tsv_duplicate(app):
@@ -120,9 +120,9 @@ def test_get_all_of_one(app):
     with app.app_context():
         dataset.add_one(ad.add_one_dataset)
         result = dataset.get_all()
-        assert len(result) == 25
-        assert result == 'name\tspecies\ndataset1\tdog'
-        # TODO test all fields after dataset fields are firmed up.
+        assert result == \
+'''name	uuid	species	organ	cell_count	disease	platform	description	data_source_url	publication_url
+dataset1	uuid1	dog	organ1	1	disease1	platform1	description1	data_source_url1	publication_url1'''
 
 
 def test_get_all_with_none(app):
@@ -135,9 +135,9 @@ def test_get_one(app):
     with app.app_context():
         dataset.add_one(ad.add_one_dataset)
         result = dataset.get_one('dataset1')
-        assert len(result) == 25
-        assert result == 'name\tspecies\ndataset1\tdog'
-        # TODO test all fields after dataset fields are firmed up.
+        assert result == \
+'''name	uuid	species	organ	cell_count	disease	platform	description	data_source_url	publication_url
+dataset1	uuid1	dog	organ1	1	disease1	platform1	description1	data_source_url1	publication_url1'''
 
 
 def test_get_one_not_found(app):
@@ -195,9 +195,9 @@ def test_add_two_api(client, app):
         #print('response:',response)
         assert response.content_type == ad.text_plain
         assert response.data.decode("utf-8") == \
-'''name	species
-dataset1	dog
-dataset2	cat'''
+'''name	uuid	species	organ	cell_count	disease	platform	description	data_source_url	publication_url
+dataset1	uuid1	dog	organ1	1	disease1	platform1	description1	data_source_url1	publication_url1
+dataset2	uuid2	cat	organ2	2	disease2	platform2	description2	data_source_url2	publication_url2'''
 
         # delete one
         response = client.get('/dataset-update/delete/dataset1')
@@ -210,8 +210,8 @@ dataset2	cat'''
         print('response:',response)
         assert response.content_type == ad.text_plain
         assert response.data.decode("utf-8") == \
-'''name	species
-dataset2	cat'''
+'''name	uuid	species	organ	cell_count	disease	platform	description	data_source_url	publication_url
+dataset2	uuid2	cat	organ2	2	disease2	platform2	description2	data_source_url2	publication_url2'''
 
         # delete one not there
         response = client.get('/dataset-update/delete/dataset1')
@@ -232,14 +232,14 @@ def test_api(client):
     response = client.get('/dataset-update')
     assert response.content_type == ad.text_plain
     assert response.data.decode("utf-8") == \
-'''name	species
-dataset1	dog
-dataset2	cat'''
+'''name	uuid	species	organ	cell_count	disease	platform	description	data_source_url	publication_url
+dataset1	uuid1	dog	organ1	1	disease1	platform1	description1	data_source_url1	publication_url1
+dataset2	uuid2	cat	organ2	2	disease2	platform2	description2	data_source_url2	publication_url2'''
 
     # get one
     response = client.get('/dataset-update/dataset1')
     assert response.content_type == ad.text_plain
     assert response.data.decode("utf-8") == \
-'''name	species
-dataset1	dog'''
+'''name	uuid	species	organ	cell_count	disease	platform	description	data_source_url	publication_url
+dataset1	uuid1	dog	organ1	1	disease1	platform1	description1	data_source_url1	publication_url1'''
 

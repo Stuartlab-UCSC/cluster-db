@@ -1,15 +1,15 @@
 
-# api/cell_assignment.py
+# api/cell_of_cluster.py
 
 from flask import request
 from flask_restplus import fields,  Resource
 from cluster.api.restplus import api
-from cluster.database_update.cell_assignment_table \
-    import cell_assignment as table
+from cluster.database_update.cell_of_cluster_table \
+    import cell_of_cluster as table
 
-table_name = 'cell_assignment'
-ns = api.namespace('cell-assignment-update')
-model = api.model('cell_assignment', {
+table_name = 'cell_of_cluster'
+ns = api.namespace('cell-of-cluster-update')
+model = api.model('cell_of_cluster', {
     'name': fields.String(required=True, description='Sample name'),
     'cluster': fields.String(required=True, description='Name of the cluster'),
 })

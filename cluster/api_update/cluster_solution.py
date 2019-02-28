@@ -10,16 +10,23 @@ table_name = 'cluster_solution'
 ns = api.namespace('cluster-solution-update')
 model = api.model('cluster_solution', {
     'name': fields.String(required=True, description='Unique cluster solution name'),
+    'description': fields.String(required=True, description='Summary'),
     'method': fields.String(required=True, description='Clustering method applied'),
     'method_implementation': fields.String(required=True, description='Clustering method implementation'),
     'method_url': fields.String(required=True, description='URL of clustering method'),
     'method_parameters': fields.String(required=True, description='Clustering method parameters'),
     'scores': fields.String(description='Scores for this cluster solution'),
     'analyst': fields.String(required=True, description='Person who ran the analysis'),
-    'secondary': fields.Integer(required=True, \
-        description='One means this is a secondary cluster solution and some other cluster solution is the default'),
+    'analyst_favorite': fields.Integer(description="Analyst's favorite solution"),
+    'likes': fields.Integer(description='Sum of up and down votes for this solution'),
+    'expression_hash': fields.String(description='Hash over expression matrix used'),
     'dataset': fields.String(required=True, description='Name of dataset that was analyzed'),
 })
+
+
+
+
+
 
 
 # Add from TSV file.

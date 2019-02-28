@@ -6,7 +6,7 @@ from flask_restplus import fields,  Resource
 from cluster.api.restplus import api, mimetype
 
 table_name = 'cluster_solution'
-ns = api.namespace('cluster_solution')
+ns = api.namespace('cluster-solution')
 model = api.model('cluster_solution', {
     'name': fields.String(required=True, description='Unique cluster solution name'),
     'method': fields.String(required=True, description='Clustering method applied'),

@@ -46,7 +46,7 @@ def average_gene_expression_per_cluster():
     avg_expr_df.T.to_csv("./cluster_db_input_test/pbmc8k_louvain100pcs_avg_expr_per_cluster.tsv", sep='\t', index=True,header=True)
 
 
-def compute_signature_gene()
+def compute_gene_of_set()
     # compute the signature genes (AUC method)
     louvain_clusters = sorted(set(sc_obj.obs.louvain))
     auc_df_louvain = pd.DataFrame(data=0, index = sc_obj.raw.var.index.tolist(), columns = louvain_clusters)
@@ -67,12 +67,12 @@ def compute_signature_gene()
     AUCsig_louvainClusters_genes = list(auc_df_louvain_inverted[auc_df_louvain_inverted['max']>0.75].index)
 
 
-def signature_gene():
+def gene_of_set():
     # bring signature genes in correct format and write to file
-    first = ["signature_gene_set_name","method","clustering_solution_name","dataset_name"] + ["gene_"+str(i) for i in range(len(AUCsig_louvainClusters_genes))]
+    first = ["gene_set_name","method","clustering_solution_name","dataset_name"] + ["gene_"+str(i) for i in range(len(AUCsig_louvainClusters_genes))]
     second = ["AUCge75","gene included if ROCAUC >= 0.75 for any cluster","louvain100pcs","pbmc8k"] + AUCsig_louvainClusters_genes
 
-    signature_gene_set_df = pd.DataFrame(data=0, index = first, columns = ["second"])
-    signature_gene_set_df["second"] = second
+    gene_set_df = pd.DataFrame(data=0, index = first, columns = ["second"])
+    gene_set_df["second"] = second
 
-    signature_gene_set_df.to_csv("./cluster_db_input_test/pbmc8k_louvain100pcs_AUCge75_sigGeneSet.tsv", sep='\t', index=True,header=False)
+    gene_set_df.to_csv("./cluster_db_input_test/pbmc8k_louvain100pcs_AUCge75_sigGeneSet.tsv", sep='\t', index=True,header=False)

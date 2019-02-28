@@ -5,7 +5,7 @@ import pytest, json
 import tests.access_db_data as ad
 from cluster.database_update.dataset_table import dataset
 from cluster.database_update.cluster_solution_table import cluster_solution
-from cluster.database_update.signature_gene_set_table import signature_gene_set
+from cluster.database_update.gene_set_table import gene_set
 from cluster.database_update.cluster_table import cluster
 from cluster.database.db import dicts_equal, merge_dicts
 
@@ -32,33 +32,33 @@ def test_add_three_and_get_by_parent(app):
         #print('result:', result)
         #assert false
 
-		# verify first two adds.
+        # verify first two adds.
         result = cluster_solution.get_by_parent(['dataset1'])
         #print('result:', result)
         assert result == \
-'''name	method	method_implementation	method_url	method_parameters	scores	analyst	secondary
-cluster_solution1	method1	method_implementation1	method_url1	method_parameters1	scores1	analyst1	0
-cluster_solution2	method2	method_implementation2	method_url2	method_parameters2	scores2	analyst2	1'''
+'''name	description	method	method_implementation	method_url	method_parameters	scores	analyst	analyst_favorite	likes	expression_hash
+cluster_solution1	description1	method1	method_implementation1	method_url1	method_parameters1	scores1	analyst1	1	1	expression_hash1
+cluster_solution2	description2	method2	method_implementation2	method_url2	method_parameters2	scores2	analyst2	0	2	expression_hash2'''
 
-		# verify last add
+        # verify last add
         result = cluster_solution.get_by_parent(['dataset2'])
-        print('result:', result)
+        #print('result:', result)
         assert result == \
-'''name	method	method_implementation	method_url	method_parameters	scores	analyst	secondary
-cluster_solution2	method3	method_implementation3	method_url3	method_parameters3	scores3	analyst3	1'''
+'''name	description	method	method_implementation	method_url	method_parameters	scores	analyst	analyst_favorite	likes	expression_hash
+cluster_solution2	description3	method3	method_implementation3	method_url3	method_parameters3	scores3	analyst3	1	3	expression_hash3'''
 
-        # delete what doesn't exist
+        # delete one
         result = cluster_solution.delete_one(
             'cluster_solution1', ['dataset1'])
         assert result == None
         
-        # verify deleted nothing
+        # verify delete
         result = cluster_solution.get_all()
         print('result:', result)
         assert result == \
-'''name	method	method_implementation	method_url	method_parameters	scores	analyst	secondary	dataset_id
-cluster_solution2	method2	method_implementation2	method_url2	method_parameters2	scores2	analyst2	1	1
-cluster_solution2	method3	method_implementation3	method_url3	method_parameters3	scores3	analyst3	1	2'''
+'''name	description	method	method_implementation	method_url	method_parameters	scores	analyst	analyst_favorite	likes	expression_hash	dataset_id
+cluster_solution2	description2	method2	method_implementation2	method_url2	method_parameters2	scores2	analyst2	0	2	expression_hash2	1
+cluster_solution2	description3	method3	method_implementation3	method_url3	method_parameters3	scores3	analyst3	1	3	expression_hash3	2'''
 
 
 def test_add_one_parent_not_found(app):
@@ -76,11 +76,11 @@ def test_delete_not_found(app):
         assert result == '404 Not found: cluster_solution: cluster_solution1'
 
 
-def test_delete_has_children_signature_gene_set(app):
+def test_delete_has_children_gene_set(app):
     with app.app_context():
         add_parent()
         cluster_solution.add_one(ad.add_one_cluster_solution)
-        signature_gene_set.add_tsv('signature_gene_set.tsv',
+        gene_set.add_tsv('gene_set.tsv',
             ['cluster_solution1', 'dataset1'])
         result = cluster_solution.delete_one(
             'cluster_solution1', ['dataset1'])
@@ -123,7 +123,6 @@ def test_api_add_one_and_get_by_parent(app, client):
             client, '/cluster-solution-update/add', ad.add_one_cluster_solution)
         response = ad.post_json(
             client, '/cluster-solution-update/add', ad.add_third_cluster_solution)
-        #print('response', response)
         #print('response.decode', response.data.decode("utf-8"))
         assert response.content_type == ad.text_plain
 
@@ -134,16 +133,16 @@ def test_api_add_one_and_get_by_parent(app, client):
         #print('response.data:', response.data)
         #print('response.decode', response.data.decode("utf-8"))
         assert response.data.decode("utf-8") == \
-'''name	method	method_implementation	method_url	method_parameters	scores	analyst	secondary
-cluster_solution1	method1	method_implementation1	method_url1	method_parameters1	scores1	analyst1	0'''
+'''name	description	method	method_implementation	method_url	method_parameters	scores	analyst	analyst_favorite	likes	expression_hash
+cluster_solution1	description1	method1	method_implementation1	method_url1	method_parameters1	scores1	analyst1	1	1	expression_hash1'''
 
         # delete
         response = client.get(
             '/cluster-solution-update' +
             '/delete/cluster_solution1' +
             '/dataset/dataset1')
-        print('response.data:', response.data)
-        print('response.decode', response.data.decode("utf-8"))
+        #print('response.data:', response.data)
+        #print('response.decode', response.data.decode("utf-8"))
         assert response.content_type == ad.text_plain
 
         # verify delete
@@ -157,8 +156,8 @@ cluster_solution1	method1	method_implementation1	method_url1	method_parameters1	
         response = client.get(
             '/cluster-solution-update/get_by/dataset/dataset2')
         assert response.content_type == ad.text_plain
-        print('response.data:', response.data)
+        print('response.data:', response.data.decode("utf-8"))
         assert response.data.decode("utf-8") == \
-'''name	method	method_implementation	method_url	method_parameters	scores	analyst	secondary
-cluster_solution2	method3	method_implementation3	method_url3	method_parameters3	scores3	analyst3	1'''
+'''name	description	method	method_implementation	method_url	method_parameters	scores	analyst	analyst_favorite	likes	expression_hash
+cluster_solution2	description3	method3	method_implementation3	method_url3	method_parameters3	scores3	analyst3	1	3	expression_hash3'''
 

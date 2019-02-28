@@ -1,16 +1,17 @@
 
-# api/signature_gene_set.py
+# api/gene_set.py
 
 from flask import request
 from flask_restplus import fields,  Resource
 from cluster.api.restplus import api
-from cluster.database_update.signature_gene_set_table \
-    import signature_gene_set as table
+from cluster.database_update.gene_set_table \
+    import gene_set as table
 
-table_name = 'signature_gene_set'
-ns = api.namespace('signature-gene-set-update')
-model = api.model('signature_gene_set', {
+table_name = 'gene_set'
+ns = api.namespace('gene-set-update')
+model = api.model('gene_set', {
     'name': fields.String(required=True, description='Gene set name'),
+    'type': fields.String(required=True, description='Gene set type'),
     'method': fields.String(required=True, description='Method used to determine this gene set'),
     'cluster_solution': fields.String(required=True, description='Name of the cluster solution'),
 })
@@ -29,17 +30,17 @@ class Add_many_tsv_file(Resource):
 
 # Delete one
 @ns.route(
-    '/delete/<string:signature_gene_set>' + \
+    '/delete/<string:gene_set>' + \
     '/cluster_solution/<string:cluster_solution>' + \
     '/dataset/<string:dataset>')
 @ns.param('dataset', 'dataset name')
 @ns.param('cluster_solution', 'cluster_solution name')
-@ns.param('signature_gene_set', 'signature_gene_set name')
+@ns.param('gene_set', 'gene_set name')
 class Delete_by_cluster_solution(Resource):
     @ns.response(200, 'success')
-    def get(self, signature_gene_set, cluster_solution, dataset):
+    def get(self, gene_set, cluster_solution, dataset):
         '''DELETE ONE'''
-        resp = table.delete_one(signature_gene_set,
+        resp = table.delete_one(gene_set,
             [cluster_solution, dataset])
         return Response(str(resp), mimetype=mimetype)
 

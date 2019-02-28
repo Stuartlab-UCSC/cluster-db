@@ -9,7 +9,15 @@ class Dataset_table(Table):
         s.table = 'dataset'      # table name
         s.parentless_fields = [  # table fields minus parent IDs
             'name',
+            'uuid',
             'species',
+            'organ',
+            'cell_count',
+            'disease',
+            'platform',
+            'description',
+            'data_source_url',
+            'publication_url',
         ]
         s.fields = s.parentless_fields
         s.parent_table = None  # ancestor tables of this table

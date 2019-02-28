@@ -1,28 +1,25 @@
 
 from cluster.database_update.table import Table
 from cluster.database_update.cluster_table import cluster
-from cluster.database_update.cluster_solution_table import cluster_solution
-from cluster.database_update.dataset_table import dataset
 from cluster.database.db import get_db
-import cluster.database.error as err
-from cluster.database.error import Not_found, Not_found
-import cluster.database.tsv as tsv
 
 
-class Cluster_assignment_table(Table):
+class Attribute_table(Table):
     def __init__(s):
-        s.table = 'cell_assignment'  # table name
-        s.parentless_fields = [         # table fields minus IDs
+        s.table = 'cluster_attribute'   # table name
+        s.parentless_fields = [ # table fields minus row ID
             'name',
+            'value'
         ]
         s.fields = s.parentless_fields + ['cluster_id']
         s.tsv_fields = s.parentless_fields + ['cluster']
         s.parent_table = [ # ancestor tables of this table
+            'cluster',
             'cluster_solution',
             'dataset'
         ]
         s.cluster_table = cluster
 
 
-cell_assignment = Cluster_assignment_table()
+cluster_attribute = Attribute_table()
 

@@ -9,7 +9,9 @@ from cluster.database_update.cluster_table import cluster as table
 table_name = 'cluster'
 ns = api.namespace('cluster-update')
 model = api.model('cluster', {
-    'name': fields.String(required=True, description='Cluster name'),
+    'name': fields.String(required=True, description='Original cluster name'),
+    'label': fields.String(description='More descriptive label for display'),
+    'description': fields.String(description='Summary'),
     'cluster_solution': fields.String(
         required=True, description='Name of the cluster solution'),
 })

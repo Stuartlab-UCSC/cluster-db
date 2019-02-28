@@ -10,21 +10,15 @@ table_name = 'dataset'
 ns = api.namespace('dataset')
 model = api.model('dataset', {
     'name': fields.String(required=True, description='Unique dataset name'),
-    'species': fields.String(required=True, description='Species studied')
-})
-"""
+    'uuid': fields.String(description='Universally unique ID'),
+    'species': fields.String(description='Species studied'),
     'organ': fields.String(description='source organ'),
-    'sampleCount': fields.Integer(description='Count of samples in the dataset'),
-    'abnormality': fields.String(description='Any abnormality of the dataset, i.e. cancer'),
-    'primaryData': fields.String(description='location of initial data'),
-    'scanpyObjectOfPrimaryData': fields.String(description='location of initial scanpy object'),
-    'sampleMetadata': fields.String(description='Initial metadata of samples'),
-    'primaryDataNormalizationStatus': fields.String(description='Normalization status of initial data'),
-    'reasonableForTrajectoryAnalysis': fields.Boolean(description='Is suitable for trajectory analysis'),
+    'cell_count': fields.Integer(description='Count of cells in the dataset'),
+    'disease': fields.String(description='Any disease of the dataset, i.e. cancer'),
     'platform': fields.String(description='Genomic sequencing platform'),
-    'expressionDataSource': fields.String(description='Source of expression data'),
-    'expressionDataSourceURL': fields.String(description='URL of expression source'),
-"""
+    'data_source_url': fields.String(description='URL of data source'),
+    'publication_url': fields.String(description='URL of publication'),
+})
 
 # Get all
 @ns.route('/')

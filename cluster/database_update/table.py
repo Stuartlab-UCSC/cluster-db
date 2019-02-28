@@ -128,7 +128,7 @@ class Table(object):
     def add_one(s, row, parent_name=None):
         # This should only be used by tables where the usual method is to add
         # one row at a time. Other tables should use add_tsv.
-        # (for dataset, cluster_solution, signature_gene_set)
+        # (for dataset, cluster_solution, gene_set)
         try:
             # Add one row.
             db = get_db()

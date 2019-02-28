@@ -14,7 +14,7 @@ class Delete_by_cluster_solution(Resource):
     @ns.response(404, 'Not found')
     def get(self, cluster_solution, dataset):
         '''DELETE BY CLUSTERING_SOLUTION'''
-        if table_name == 'attribute' or table_name == 'cell_assignment':
+        if table_name == 'cluster_attribute' or table_name == 'cell_of_cluster':
             resp = table.delete_by_cluster_solution_clusters(
                 [cluster_solution, dataset])
         else:

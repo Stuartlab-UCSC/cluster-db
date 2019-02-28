@@ -9,17 +9,20 @@ class Clustering_solution_table(Table):
         s.table = 'cluster_solution'  # table name
         s.parentless_fields = [          # table fields minus row ID
             'name',
+            'description',
             'method',
             'method_implementation',
             'method_url',
             'method_parameters',
             'scores',
             'analyst',
-            'secondary'
+            'analyst_favorite',
+            'likes',
+            'expression_hash',
         ]
         s.fields = s.parentless_fields + ['dataset_id']
         s.parent_table = ['dataset'] # ancestor tables of this table
-        s.child_table = ['signature_gene_set', 'cluster']
+        s.child_table = ['gene_set', 'cluster']
 
 
 cluster_solution = Clustering_solution_table()

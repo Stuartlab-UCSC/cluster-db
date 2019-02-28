@@ -4,11 +4,12 @@ from cluster.database_update.cluster_solution_table import cluster_solution
 from cluster.database.db import get_db
 
 
-class Signature_gene_set_table(Table):
+class Gene_set_table(Table):
     def __init__(s):
-        s.table = 'signature_gene_set'  # table name
+        s.table = 'gene_set'  # table name
         s.parentless_fields = [         # table fields minus row ID
             'name',
+            'type',
             'method',
         ]
         s.fields = s.parentless_fields + ['cluster_solution_id']
@@ -16,8 +17,8 @@ class Signature_gene_set_table(Table):
             'cluster_solution',
             'dataset'
         ]
-        s.child_table = ['signature_gene']
+        s.child_table = ['gene_of_set']
 
 
-signature_gene_set = Signature_gene_set_table()
+gene_set = Gene_set_table()
 
