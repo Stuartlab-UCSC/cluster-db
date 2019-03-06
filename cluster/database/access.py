@@ -8,7 +8,7 @@ from sqlalchemy import create_engine, select
 
 # Connection to the database.
 database_path = os.path.join(os.environ.get("CLUSTERDB"), "cluster.db")
-engine = create_engine("sqlite:///%s" % database_path, echo=True)
+engine = create_engine("sqlite:///%s" % database_path, echo=False)
 
 
 def one_dataset(dataset_table, dataset_table_id, conn):
