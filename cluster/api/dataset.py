@@ -1,39 +1,48 @@
 from flask_restplus import fields, Resource
 from cluster.api.restplus import api
-from cluster.database.tableaccess import engine, dataset, alldatasets, cluster_solution, cluster_solutions_per_dataset
-table_name = 'datasets'
+import cluster.database.tables as tables
+from cluster.database.access import all_datasets, cluster_solutions, engine
+
+
 ns = api.namespace('dataset')
+
 model = api.model('dataset', {
-    'name': fields.String(required=True, description='Unique dataset name'),
-    'description': fields.String(description='Unique dataset name'),
-    'id': fields.String(description='Access identifier for the data set')
+    'name': fields.String(required=True, description='Unique dataset name.'),
+    'description': fields.String(description='Data set description.'),
+    'id': fields.String(description='Identifier for accessing the data set.')
 })
 
 cs_model = api.model('cluster_solution', {
-    'name': fields.String(required=True, description='Curator made identifier'),
-    'method': fields.String(description='Curator method identifier'),
-    "id": fields.String(description='Access identifier for the cluster solution')}
-                     )
+    'name': fields.String(required=True, description='Curator made name for the clustering solution.'),
+    'method': fields.String(description='Curator made name for the method used.'),
+    "id": fields.String(description='Identifier for accessing the cluster solution.')
+})
+
 
 @ns.route('/')
-class DatasetList(Resource):
+class DataSetList(Resource):
     @api.marshal_with(model, envelope="resource")
-    @ns.response(200, 'list of all datasets, with name, description, and id')
+    @ns.response(200, 'datasets')
     def get(self):
-        """a list of data sets: name, description, and id."""
-        return alldatasets(dataset, engine.connect())
+        """A list of data sets: name, description, and id."""
+
+        return all_datasets(
+            tables.dataset,
+            engine.connect()
+        )
+
 
 @ns.route('/<int:id>/cluster-solutions')
 @ns.param('id', 'Data set identifier')
-class ClusterSolsForDataset(Resource):
+class ClusterSolsForDataSet(Resource):
     @api.marshal_with(cs_model, envelope="resource")
-    @ns.response(200, 'list of available clustering solutions for a dataset')
+    @ns.response(200, 'cluster solutions')
     def get(self, id):
-        """a list of available cluster solutions for a data set: name, method and id."""
+        """A list of available cluster solutions for a data set: name, method and id."""
 
-        return cluster_solutions_per_dataset(
-            cluster_solution,
-            dataset,
+        return cluster_solutions(
+            tables.cluster_solution,
+            tables.dataset,
             id,
             engine.connect()
         )
