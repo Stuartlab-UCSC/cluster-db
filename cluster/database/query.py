@@ -1,20 +1,11 @@
 
 # A generic read-only SQL query.
-
 import sqlite3
-from flask import request
 from cluster.database.db import get_db
 import cluster.database.error as err
 from cluster.database.error import Not_found, Updates_not_allowed
 import cluster.database.tsv as tsv
 
-from cluster.database_update.cluster_attribute_table import cluster_attribute
-from cluster.database_update.cell_of_cluster_table import cell_of_cluster
-from cluster.database_update.cluster_table import cluster
-from cluster.database_update.cluster_solution_table import cluster_solution
-from cluster.database_update.dataset_table import dataset
-from cluster.database_update.gene_set_table import gene_set
-from cluster.database_update.gene_of_set_table import gene_of_set
 
 def query(query):
     try:
