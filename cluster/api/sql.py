@@ -11,10 +11,10 @@ ns = api.namespace('sql')
 
 
 @ns.route('/<string:sql>')
-@ns.param('sql', 'SQL query string')
+@ns.param('sql', 'SQL read-only query string')
 class List(Resource):
     @ns.response(200, 'Result of query')
     def get(self, sql):
-        '''SQL QUERY'''
+        '''Generic read-only queries using raw sql.'''
         resp = database_query(sql)
         return Response(str(resp), mimetype=mimetype)
