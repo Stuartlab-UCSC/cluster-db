@@ -3,7 +3,7 @@
 
 FILE=clusterDb.tgz
 LOCALTAR=$CLUSTERDB/$FILE
-FROMTAR=plaza:ops/$FILE
+FROMTAR=swat@plaza:ops/$FILE
 echo "scp'g from $FROMTAR to $LOCALTAR..."
 scp $FROMTAR $LOCALTAR
 

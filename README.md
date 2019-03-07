@@ -11,8 +11,6 @@ First clone the repo somewhere on your disk.
 
 `git clone https://github.com/terraswat/clusterDb`
 
-`cd clusterDb`
-
 
 Create a virtual environment and install the requirements.
 
@@ -34,6 +32,20 @@ export CLUSTERDB=</path/to/my/workspace/>
 export CLUSTERDB_HOST=<hostname>
 export CLUSTERDB_PORT=<port>
 `
+for example:
+`
+export CLUSTERDB=/data/users/swat/dev/cdb
+export CLUSTERDB_HOST=hexcalc.ucsc.edu
+export CLUSTERDB_PORT=9000
+export CLUSTERDB_UPDATABLE=0
+`
+`
+export CLUSTERDB=/Users/swat/dev/cdb
+export CLUSTERDB_HOST=localhost
+export CLUSTERDB_PORT=5555
+export CLUSTERDB_UPDATABLE=0
+` 
+
 
 Set CLUSTERDB_UPDATABLE to '1' if you always want DB updates allowed.
 
