@@ -26,26 +26,28 @@ Create a virtual environment and install the requirements.
 
 `vi ../venv/bin/activate`
 
-Add the following lines to the bottom of the file:
+Add configuration environment variables to the bottom of the file, something like:
 `
-export CLUSTERDB=</path/to/my/workspace/>
-export CLUSTERDB_HOST=<hostname>
-export CLUSTERDB_PORT=<port>
+export CLUSTERDB=/data/cdb
+export HOST=hexcalc.ucsc.edu
+export PORT=9000
+export WWW_SOCKET=127.0.0.1:$PORT
 `
-for example:
-`
-export CLUSTERDB=/data/users/swat/dev/cdb
-export CLUSTERDB_HOST=hexcalc.ucsc.edu
-export CLUSTERDB_PORT=9000
-export CLUSTERDB_UPDATABLE=0
-`
+or this:
 `
 export CLUSTERDB=/Users/swat/dev/cdb
-export CLUSTERDB_HOST=localhost
-export CLUSTERDB_PORT=5555
-export CLUSTERDB_UPDATABLE=0
+export HOST=localhost
+export PORT=5555
+export WWW_SOCKET=127.0.0.1:$PORT
 ` 
-
+If you want to use https, also add environment variables something like:
+`
+export HTTPS=1
+export CERTS=/data/certs
+export CERT=$CERTS/server.crt
+export CA=$CERTS/chain.crt
+export KEY=$CERTS/server.key
+`
 
 Set CLUSTERDB_UPDATABLE to '1' if you always want DB updates allowed.
 
@@ -54,8 +56,6 @@ Set CLUSTERDB_UPDATABLE to '1' if you always want DB updates allowed.
 Or this to never allow any updates to the database:
 
 `export CLUSTERDB_UPDATABLE=0`
-
-Or leave it undefined if you want to control updatability from the command line.
 
 Now you're ready to put the app in development mode and start it up.
 

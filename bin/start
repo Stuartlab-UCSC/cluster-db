@@ -1,28 +1,12 @@
 # !/usr/bin/env bash
 # start
 
-source $CLUSTERDB/venv/bin/activate
+source $CLUSTERDB/env/bin/activate
 export FLASK_APP=cluster
 export FLASK_ENV=development
 
-CERTS=/data/certs
-WWW_SOCKET=127.0.0.1:$PORT
-CERT=$CERTS/server.crt
-CA=$CERTS/chain.crt
-KEY=$CERTS/server.key
-
-nohup flask run -h $CLUSTERDB_HOST -p $CLUSTERDB_PORT \
-    --cert $CERT --key $KEY --with-threads &> log &
-exit
-
-
-
-# Old background
-#nohup flask run -h $CLUSTERDB_HOST -p $CLUSTERDB_PORT &> log &
-
-# After uwsgi is running
-LOGARGS=' --logto2 '$CLUSTERDB/log
-BASEARGS='--master --processes 2 --threads 100 --callable app --wsgi-file '$CLUSTERDB/cluster/__init__.py
-SOCKETARGS='--https-socket '$WWW_SOCKET,$CERT,$KEY,HIGH,$CA
-
-nohup uwsgi $BASEARGS $SOCKETARGS $LOGARGS &
+if [ $HTTPS ]; then
+    nohup flask run -h $HOST -p $PORT --with-threads --cert $CERT --key $KEY &> log &
+else
+    flask run -h $HOST -p $PORT --with-threads $USE_HTTPS
+fi
