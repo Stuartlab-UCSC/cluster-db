@@ -16,6 +16,7 @@ model = api.model('dataset', {
     'cell_count': fields.Integer(description='Count of cells in the dataset'),
     'disease': fields.String(description='Any disease of the dataset, i.e. cancer'),
     'platform': fields.String(description='Genomic sequencing platform'),
+    'description': fields.String(description='Short description'),
     'data_source_url': fields.String(description='URL of data source'),
     'publication_url': fields.String(description='URL of publication'),
 })
