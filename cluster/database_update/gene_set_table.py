@@ -1,7 +1,7 @@
 
 from cluster.database_update.table import Table
 from cluster.database_update.cluster_solution_table import cluster_solution
-from cluster.database.db import get_db
+from cluster.database.db_old import get_db
 
 
 class Gene_set_table(Table):

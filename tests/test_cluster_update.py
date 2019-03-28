@@ -9,7 +9,7 @@ from cluster.database_update.cluster_solution_table import cluster_solution
 from cluster.database_update.cluster_table import cluster
 from cluster.database_update.cluster_attribute_table import cluster_attribute
 from cluster.database_update.cell_of_cluster_table import cell_of_cluster
-from cluster.database.db import dicts_equal, merge_dicts
+from cluster.database.db_old import dicts_equal, merge_dicts
 
 
 def add_parents():

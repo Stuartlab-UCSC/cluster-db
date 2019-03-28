@@ -8,7 +8,7 @@ from flask import Flask, Blueprint, redirect
 from flask_cors import CORS
 from cluster.api.sql import ns as sql_namespace
 from cluster.api.restplus import api
-import cluster.database.db as db
+import cluster.database.db_old as db
 from cluster.api.cluster_attribute import ns as cluster_attribute_namespace
 from cluster.api.cluster import ns as cluster_namespace
 from cluster.api.cell_of_cluster import ns as cell_of_cluster_namespace

@@ -1,7 +1,7 @@
 
 import sqlite3
 import pytest
-from cluster.database.db import get_db, init_db
+from cluster.database.db_old import get_db, init_db
 
 def test_get_close_db(app):
     # Within an application context, get_db should return the same connection

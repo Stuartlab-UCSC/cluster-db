@@ -5,7 +5,7 @@
 # All other access methods return nothing.
 import os, sqlite3
 from flask import request
-from cluster.database.db import get_db, merge_dicts
+from cluster.database.db_old import get_db, merge_dicts
 import cluster.database.error as err
 from cluster.database.error import Bad_tsv_header, Not_found
 import cluster.database.tsv as tsv
