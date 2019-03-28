@@ -1,6 +1,6 @@
 from flask_restplus import fields, Resource
 from cluster.api.restplus import api
-import cluster.database.tables as tables
+import cluster.database.models as tables
 from cluster.database.access import cell_assignments, engine
 
 ns = api.namespace('cluster-solution')
