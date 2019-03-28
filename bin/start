@@ -1,16 +1,12 @@
 # !/usr/bin/env bash
 # start
 
-source $CLUSTERDB/venv/bin/activate
+source $CLUSTERDB/env/bin/activate
 export FLASK_APP=cluster
 export FLASK_ENV=development
 
-# Foreground
-flask run -h $CLUSTERDB_HOST -p $CLUSTERDB_PORT
-
-# Background
-# nohup flask run -h $CLUSTERDB_HOST -p $CLUSTERDB_PORT &> log &
-
-# alternate startup
-#python setup.py develop
-#python cluster/app.py
+if [ $HTTPS ]; then
+    nohup flask run -h $HOST -p $PORT --with-threads --cert $CERT --key $KEY &> log &
+else
+    flask run -h $HOST -p $PORT --with-threads $USE_HTTPS
+fi
