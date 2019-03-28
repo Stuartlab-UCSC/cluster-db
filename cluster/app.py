@@ -1,10 +1,9 @@
-
 # app.py
 
 import logging.config
 import os
 from cluster import settings
-from flask import Flask, Blueprint, redirect
+from flask import Flask, Blueprint
 from flask_cors import CORS
 from cluster.api.sql import ns as sql_namespace
 from cluster.api.restplus import api
@@ -16,6 +15,8 @@ from cluster.api.cluster_solution import ns as cluster_solution_namespace
 from cluster.api.dataset import ns as dataset_namespace
 from cluster.api.gene_of_set import ns as gene_of_set_namespace
 from cluster.api.gene_set import ns as gene_set_namespace
+from cluster.api.marker import ns as marker_namespace
+from cluster.database import db
 
 CLUSTERDB_UPDATABLE = 0
 try:
@@ -31,6 +32,7 @@ if CLUSTERDB_UPDATABLE > 0:
     from cluster.api_update.gene_of_set import ns as gene_of_set_namespace_update
     from cluster.api_update.gene_set import ns as gene_set_namespace_update
 
+app = Flask(__name__)
 logging_conf_path = os.path.normpath(os.path.join(os.path.dirname(__file__), '../logging.conf'))
 logging.config.fileConfig(logging_conf_path)
 log = logging.getLogger(__name__)
@@ -43,10 +45,11 @@ def configure_app(flask_app, test_config):
         flask_app.config.from_mapping(
             SECRET_KEY='dev',
             #SERVER_NAME = settings.FLASK_SERVER_NAME,
-            RESTPLUS_VALIDATE = settings.RESTPLUS_VALIDATE,
-            RESTPLUS_MASK_SWAGGER = settings.RESTPLUS_MASK_SWAGGER,
-            DATABASE = settings.DATABASE,
-            UPLOADS = settings.UPLOADS,
+            RESTPLUS_VALIDATE= settings.RESTPLUS_VALIDATE,
+            RESTPLUS_MASK_SWAGGER= settings.RESTPLUS_MASK_SWAGGER,
+            SQLALCHEMY_DATABASE_URI= "sqlite:///" + settings.DATABASE,
+            DATABASE= settings.DATABASE,
+            UPLOADS= settings.UPLOADS,
         )
         # Doesn't work:
         #flask_app.config.from_pyfile('config.py', silent=True)
@@ -73,6 +76,7 @@ def initialize_blueprint(flask_app):
     api.add_namespace(dataset_namespace)
     api.add_namespace(gene_of_set_namespace)
     api.add_namespace(gene_set_namespace)
+    api.add_namespace(marker_namespace)
     if CLUSTERDB_UPDATABLE > 0:
         if not flask_app.config['TESTING']:
             logging.warning('!!!!!!  DATABASE UPDATABLE !!!!!!')
@@ -90,22 +94,16 @@ def initialize_blueprint(flask_app):
 def initialize_app(flask_app, test_config):
     configure_app(flask_app, test_config)
     initialize_blueprint(flask_app)
+
     with flask_app.app_context():
-        db.init_db()
+        db.init_app(flask_app)
+        db.create_all()
 
 
 def create_app(test_config=None):
-    app = Flask(__name__)
     CORS(app)
     app.url_map.strict_slashes = False
-    #app = Flask(__name__, instance_relative_config=True)
     initialize_app(app, test_config)
-    #log.info('>>>>> Starting development server at http://{}/api/ <<<<<'.format(app.config['SERVER_NAME']))
-
-    # Handle the base route, redirecting to /api.
-    #@app.route('/')
-    #def baseRoute():
-    #    return redirect("/api", code=302)
 
     # Handle the test route.
     @app.route('/test')
