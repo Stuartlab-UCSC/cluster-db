@@ -8,6 +8,7 @@ marker_fields = ["sensitivity", "specificity", "accuracy", "precision", "recall"
                  "log2_fold_change_vs_next", "log2_fold_change_vs_min", "mean_expression"]
 dotplot_color_fields = marker_fields[5:]
 dotplot_size_fields = marker_fields[:5]
+
 marker_values = fields.String(
     required=True,
     description="Values stored for a marker gene.",
@@ -25,7 +26,9 @@ dotplot_size_values = fields.String(
     description="Values available for circle size in dotplot.",
     enum=dotplot_size_fields
 )
+
 cluster_name = fields.String(required=True, description='Name of the cluster a circle represents.')
+
 
 cluster_dotplot_model = api.model("marker-dotplot-values", {
     'name': cluster_name,
@@ -34,8 +37,14 @@ cluster_dotplot_model = api.model("marker-dotplot-values", {
     "cell_count": fields.Integer(description="Number of cells in the cluster.")
 })
 
+dataset_model = api.model("dataset_model", {
+    "name": fields.String(required=True, description='Name of the dataset the cluster solution was computed on.'),
+    "species": fields.String(required=True, description='None'),
+    "study": fields.String(required=True, description='None'),
+    "organ": fields.String(required=True, description='None'),
+})
 cluster_solutions_dotplot_model = api.model('marker-dotplot-clusters', {
-    'dataset_name': fields.String(required=True, description='Name of the dataset the cluster solution was computed on.'),
+    'dataset': fields.Nested(dataset_model),
     'cluster_solution_name': fields.String(required=True, description='Name of the cluster solution'),
     'clusters': fields.List(fields.Nested(cluster_dotplot_model))
 })
@@ -73,7 +82,7 @@ all_markers_model = api.model('marker-cluster-solutions',{
 @ns.route('/<string:name>/<string:variable>')
 @ns.param('name', 'Marker gene name, hugo or ensembl')
 @ns.param('variable', 'The variable type one of (X, X, X, X)')
-class Marker(Resource):
+class SingleMarkerVar(Resource):
     @api.marshal_with(all_markers_model, envelope="resource")
     @ns.response(200, 'marker gene')
     def get(self, name, variable):
@@ -90,5 +99,4 @@ class Marker(Resource):
     @ns.response(200, 'dotplot values for marker gene')
     def get(self, name, size, color):
         """A list of dot plot ready clustering solutions for a given marker with a size and color variable."""
-
         return all_for_marker_dotplot(name, size, color)

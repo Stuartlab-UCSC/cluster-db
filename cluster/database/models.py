@@ -4,6 +4,8 @@ Provides access to database through sqlalchemy core objects (sqlalchemy.sql.sche
 from cluster.database import db
 from cluster.database.access import engine
 from sqlalchemy import Table, MetaData, Column, Integer, String, Float, ForeignKey, Float
+from sqlalchemy.orm import relationship
+
 
 # Connection to the database.
 metadata = MetaData()
@@ -68,7 +70,9 @@ class Cluster(db.Model):
     name = Column(String, nullable=False)
     label = Column(String)
     description = Column(String)
+    cell_count = Column(Integer)
     cluster_solution_id = Column(Integer, ForeignKey("cluster_solution.id"), nullable=False)
+    markers = relationship("Marker", backref="Cluster")
 
 
 class CellAssignment(db.Model):
@@ -102,6 +106,7 @@ class Marker(db.Model):
     dataset_id = Column(Integer, ForeignKey("dataset.id"), nullable=False)
     cluster_solution_id = Column(Integer, ForeignKey("cluster_solution.id"), nullable=False)
     cluster_id = Column(Integer, ForeignKey("cluster.id"), nullable=False)
+    #cluster_solution_ids = relationship("cluster_solution", back_ref="cluster_solution")
 
     def __repr__(self):
 
