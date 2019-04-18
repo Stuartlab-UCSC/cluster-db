@@ -8,7 +8,7 @@ from cluster.database_update.dataset_table import dataset
 from cluster.database_update.cluster_solution_table import cluster_solution
 from cluster.database_update.cluster_table import cluster
 from cluster.database_update.cluster_attribute_table import cluster_attribute
-from cluster.database.db import dicts_equal, merge_dicts
+from cluster.database.db_old import dicts_equal, merge_dicts
 
 # We don't duplicate tests aready done for common code
 # in test_dataset.py and test_cluster_solution.py

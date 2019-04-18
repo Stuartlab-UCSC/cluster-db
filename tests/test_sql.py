@@ -9,7 +9,7 @@ from cluster.database_update.cell_of_cluster_table import cell_of_cluster
 from cluster.database_update.cluster_table import cluster
 from cluster.database_update.cluster_solution_table import cluster_solution
 from cluster.database_update.dataset_table import dataset
-from cluster.database.db import dicts_equal, merge_dicts
+from cluster.database.db_old import dicts_equal, merge_dicts
 from cluster.database.query import query
 from cluster.database_update.gene_set_table import gene_set
 from cluster.database_update.gene_of_set_table import gene_of_set

@@ -1,7 +1,5 @@
 import logging
-import traceback
-from flask import request, abort
-from flask_restplus import Api, fields
+from flask_restplus import Api
 
 log = logging.getLogger(__name__)
 api = Api(version='0.1.0', title='Cluster Database API')

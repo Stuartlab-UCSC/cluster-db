@@ -2,7 +2,7 @@
 # TSV database utilites.
 import os, csv, sqlite3
 from flask import current_app
-from cluster.database.db import get_db, lists_equal, merge_dicts
+from cluster.database.db_old import get_db, lists_equal, merge_dicts
 from cluster.database.error import Bad_tsv_header, Not_found
 import cluster.database.util as util
 

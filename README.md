@@ -24,38 +24,32 @@ Create a virtual environment and install the requirements.
 
 `deactivate`
 
-`vi ../venv/bin/activate`
 
-Add configuration environment variables to the bottom of the file, something like:
-`
+Now add configuration environment variables to the script in `./bin/start`. Examples of environmental variable set up are below:
+
+```
 export CLUSTERDB=/data/cdb
 export HOST=hexcalc.ucsc.edu
 export PORT=9000
 export WWW_SOCKET=127.0.0.1:$PORT
-`
-or this:
-`
+```
+
+or using the localhost in a dev environment:
+
+```
 export CLUSTERDB=/Users/swat/dev/cdb
 export HOST=localhost
 export PORT=5555
 export WWW_SOCKET=127.0.0.1:$PORT
-` 
+```
 If you want to use https, also add environment variables something like:
-`
+```
 export HTTPS=1
 export CERTS=/data/certs
 export CERT=$CERTS/server.crt
 export CA=$CERTS/chain.crt
 export KEY=$CERTS/server.key
-`
-
-Set CLUSTERDB_UPDATABLE to '1' if you always want DB updates allowed.
-
-`export CLUSTERDB_UPDATABLE=1`
-
-Or this to never allow any updates to the database:
-
-`export CLUSTERDB_UPDATABLE=0`
+```
 
 Now you're ready to put the app in development mode and start it up.
 
