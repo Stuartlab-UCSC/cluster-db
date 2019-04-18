@@ -7,7 +7,6 @@ from sqlalchemy import or_, func
 
 import pandas as pd
 import os
-import time
 
 
 def one_marker():
@@ -191,21 +190,26 @@ def cluster_similarity2(color=None, cell_type_name="invivo-hand-curated"):
 
     return big_dict
 
-def cluster_similarity(cluster_solution_name, gene_name):
+def cluster_similarity(cluster_solution_name, gene_name="MYL7"):
     dirname = os.path.join(os.path.dirname(os.path.abspath(__file__)), "tmp_data")
-    dataset_name = "fetal combined heart of cells"
+    dataset_name = "Mock heart of cells project"
     cluster_solution_name = "heart cell types"
     size = "similarity"
     color = gene_name
-
-    corrs = pd.read_csv(os.path.join(dirname, "corrs.invivo-celltype.invitro-res-04.csv"), index_col=0)
+    #print("hlleo")
+    #corrs = pd.read_csv(os.path.join(dirname, "corrs.invivo-celltype.invitro-res-04.csv"), index_col=0)
+    corrs = pd.read_csv(os.path.join(dirname, "test.csv"), index_col=0)
+    corrs = corrs.fillna(1)
+    corrs.index = [str(i) for i in corrs.index]
     color_centroids = pd.read_csv(os.path.join(dirname,"invitroCombined.res_0_4.centroids.csv"), index_col=0).loc[color]
     cluster_cell_counts = pd.read_csv(os.path.join(dirname,"invitroCombined.cluster.cellcounts.csv"), index_col=0)
 
-    focus_cell_types = [ct for ct in corrs if ct not in color_centroids.index]
+
+    #focus_cell_types = [ct for ct in corrs if ct not in color_centroids.index]
+    focus_cell_types = corrs.index#[ct for ct in corrs if ct not in color_centroids.index]
     query_cell_types = color_centroids.index
 
-    other_dataset = "in vitro combined heart of cells"
+    other_dataset = "user supplied cluster solution"
     other_species = "human"
     other_study = "in vitro"
     other_organ = "heart"
@@ -217,7 +221,9 @@ def cluster_similarity(cluster_solution_name, gene_name):
         "color_by": color,
         "cluster_similarities": []
     }
-
+    #print(corrs.head())
+    #print(query_cell_types)
+    #print(focus_cell_types)
     for celltype in focus_cell_types:
         cs_dict = {
             "dataset": {
@@ -231,15 +237,20 @@ def cluster_similarity(cluster_solution_name, gene_name):
             "clusters": []
 
         }
-        for cluster in query_cell_types:
+        for cluster in query_cell_types.tolist():
+            #print(cluster)
             cluster_dict = {
                 "name": cluster,
                 "size": corrs.loc[celltype, cluster].item(),
                 "color": color_centroids[cluster].item(),
                 "cell_count": cluster_cell_counts.loc[int(cluster)].item()
             }
+
             cs_dict["clusters"].append(cluster_dict)
 
+        #print(cs_dict)
         big_dict["cluster_similarities"].append(cs_dict)
 
+    #print(len(big_dict["cluster_similarities"]))
+    #print(big_dict)
     return big_dict
