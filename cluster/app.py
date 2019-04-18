@@ -16,6 +16,7 @@ from cluster.api.dataset import ns as dataset_namespace
 from cluster.api.gene_of_set import ns as gene_of_set_namespace
 from cluster.api.gene_set import ns as gene_set_namespace
 from cluster.api.marker import ns as marker_namespace
+from cluster.api.dotplot import ns as dotplot_namespace
 from cluster.database import db
 
 CLUSTERDB_UPDATABLE = 0
@@ -77,6 +78,7 @@ def initialize_blueprint(flask_app):
     api.add_namespace(gene_of_set_namespace)
     api.add_namespace(gene_set_namespace)
     api.add_namespace(marker_namespace)
+    api.add_namespace(dotplot_namespace)
     if CLUSTERDB_UPDATABLE > 0:
         if not flask_app.config['TESTING']:
             logging.warning('!!!!!!  DATABASE UPDATABLE !!!!!!')
