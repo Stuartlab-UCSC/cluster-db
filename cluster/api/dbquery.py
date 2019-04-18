@@ -192,7 +192,7 @@ def cluster_similarity2(color=None, cell_type_name="invivo-hand-curated"):
     return big_dict
 
 def cluster_similarity(cluster_solution_name, gene_name):
-    dirname = os.path.join(os.path.dirname(os.path.abspath(__file__), "tmp_data"))
+    dirname = os.path.join(os.path.dirname(os.path.abspath(__file__)), "tmp_data")
     dataset_name = "fetal combined heart of cells"
     cluster_solution_name = "heart cell types"
     size = "similarity"
