@@ -14,11 +14,11 @@ First clone the repo somewhere on your disk.
 
 Create a virtual environment and install the requirements.
 
-``virtualenv -p `which python3.7` venv``
+``virtualenv -p `which python3.7` env``
 
 `cd clusterDb`
 
-`source ../venv/bin/activate`
+`source ../env/bin/activate`
 
 `pip install -r requirements.txt`
 
