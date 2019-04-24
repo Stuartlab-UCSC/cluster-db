@@ -4,7 +4,7 @@ Supplies an engine to access sql, and common data access functions.
 The tables required by these functions are found in cluster.database.tables
 """
 import os
-from sqlalchemy import create_engine, select
+from sqlalchemy import create_engine, select, and_
 
 # Connection to the database.
 database_path = os.path.join(os.environ.get("CLUSTERDB"), "cluster.db")
@@ -22,6 +22,7 @@ def one_dataset(dataset_table, dataset_table_id, conn):
     select_stm = select([dataset_table]).where(dataset_table.c.id == dataset_table_id)
     result = conn.execute(select_stm).fetchone()
     return result
+
 
 
 def all_datasets(dataset_table, conn):
@@ -73,6 +74,7 @@ def cell_assignments(ca_table, cluster_table, cs_table, cluster_solution_id, con
     return result
 
 
+
 def one_cluster_solution(cs_table, cluster_solution_id, conn):
     """
     Return a clustering solution with a given cluster solution id.
@@ -84,6 +86,26 @@ def one_cluster_solution(cs_table, cluster_solution_id, conn):
     select_stm = select([cs_table.c.dataset_id]).where(cs_table.c.id == cluster_solution_id)
     result = conn.execute(select_stm).fetchall()
     return result
+
+
+def cluster_solution_id(dataset_table, dataset_name, cluster_solution_table, cluster_solution_name, conn):
+    """
+
+    :param dataset_table:
+    :param dataset_name:
+    :param cluster_solution_table:
+    :param cluster_solution_name:
+    :return:
+    """
+    select_stm = select([cluster_solution_table.c.id, dataset_table.c.id]).where(
+        and_(
+            cluster_solution_table.c.name == cluster_solution_name,
+            dataset_table.c.name == dataset_name
+        )
+
+    )
+    cs_id = conn.execute(select_stm).fetchone()[0]
+    return cs_id
 
 
 def clusters(cs_table, cluster_solution_id, cluster_table, conn):
