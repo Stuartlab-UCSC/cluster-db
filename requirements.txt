@@ -11,11 +11,13 @@ Jinja2==2.10
 jsonschema==3.0.1
 MarkupSafe==1.1.1
 more-itertools==6.0.0
-pandas
+numpy==1.16.3
+pandas==0.24.2
 pluggy==0.9.0
 py==1.8.0
 pyrsistent==0.14.11
 pytest==4.0.2
+python-dateutil==2.8.0
 pytz==2018.9
 relativetimebuilder==0.2.0
 six==1.12.0
