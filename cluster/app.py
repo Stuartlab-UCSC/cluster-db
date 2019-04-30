@@ -7,7 +7,6 @@ from flask import Flask, Blueprint
 from flask_cors import CORS
 from cluster.api.sql import ns as sql_namespace
 from cluster.api.restplus import api
-import cluster.database.db_old as db
 from cluster.api.cluster_attribute import ns as cluster_attribute_namespace
 from cluster.api.cluster import ns as cluster_namespace
 from cluster.api.cell_of_cluster import ns as cell_of_cluster_namespace
@@ -18,20 +17,6 @@ from cluster.api.gene_set import ns as gene_set_namespace
 from cluster.api.marker import ns as marker_namespace
 from cluster.api.dotplot import ns as dotplot_namespace
 from cluster.database import db
-
-CLUSTERDB_UPDATABLE = 0
-try:
-    CLUSTERDB_UPDATABLE = int(os.environ['CLUSTERDB_UPDATABLE'])
-except:
-    pass
-if CLUSTERDB_UPDATABLE > 0:
-    from cluster.api_update.cluster_attribute import ns as cluster_attribute_namespace_update
-    from cluster.api_update.cluster import ns as cluster_namespace_update
-    from cluster.api_update.cell_of_cluster import ns as cell_of_cluster_namespace_update
-    from cluster.api_update.cluster_solution import ns as cluster_solution_namespace_update
-    from cluster.api_update.dataset import ns as dataset_namespace_update
-    from cluster.api_update.gene_of_set import ns as gene_of_set_namespace_update
-    from cluster.api_update.gene_set import ns as gene_set_namespace_update
 
 app = Flask(__name__)
 logging_conf_path = os.path.normpath(os.path.join(os.path.dirname(__file__), '../logging.conf'))
@@ -79,16 +64,6 @@ def initialize_blueprint(flask_app):
     api.add_namespace(gene_set_namespace)
     api.add_namespace(marker_namespace)
     api.add_namespace(dotplot_namespace)
-    if CLUSTERDB_UPDATABLE > 0:
-        if not flask_app.config['TESTING']:
-            logging.warning('!!!!!!  DATABASE UPDATABLE !!!!!!')
-        api.add_namespace(cluster_attribute_namespace_update)
-        api.add_namespace(cell_of_cluster_namespace_update)
-        api.add_namespace(cluster_namespace_update)
-        api.add_namespace(cluster_solution_namespace_update)
-        api.add_namespace(dataset_namespace_update)
-        api.add_namespace(gene_of_set_namespace_update)
-        api.add_namespace(gene_set_namespace_update)
     
     flask_app.register_blueprint(blueprint)
 

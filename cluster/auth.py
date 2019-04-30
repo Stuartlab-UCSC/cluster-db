@@ -10,7 +10,7 @@ from flask_babelex import Babel
 from flask_sqlalchemy import SQLAlchemy
 from flask_user import current_user, login_required, roles_required, \
     TokenManager, UserManager, UserMixin
-
+from cluster.database import db
 
 # Class-based application configuration
 class ConfigClass(object):
@@ -49,9 +49,6 @@ def auth_init(app):
     # Initialize Flask-BabelEx
     babel = Babel(app)
 
-    # Initialize Flask-SQLAlchemy
-    db = SQLAlchemy(app)
-
     # Define the User data-model.
     # NB: Make sure to add flask_user UserMixin !!!
     class User(db.Model, UserMixin):
@@ -88,7 +85,6 @@ def auth_init(app):
     token_manager = TokenManager(app)
 
     # Create all database tables
-    db.create_all()
 
     # Create 'member@example.com' user with no roles
     if not User.query.filter(User.email == 'member@example.com').first():
