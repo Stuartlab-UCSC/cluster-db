@@ -1,7 +1,7 @@
 
 # A generic read-only SQL query.
 import sqlite3
-from cluster.database.db_old import get_db
+from cluster.database.pre_sqlAlchemy import get_db
 import cluster.database.error as err
 from cluster.database.error import Not_found, Updates_not_allowed
 import cluster.database.tsv as tsv

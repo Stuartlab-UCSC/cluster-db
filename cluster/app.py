@@ -54,17 +54,17 @@ def configure_app(flask_app, test_config):
 def initialize_blueprint(flask_app):
     blueprint = Blueprint('api', __name__, url_prefix='')
     api.init_app(blueprint)
-    api.add_namespace(sql_namespace)
-    api.add_namespace(cluster_attribute_namespace)
     api.add_namespace(cell_of_cluster_namespace)
+    api.add_namespace(cluster_attribute_namespace)
     api.add_namespace(cluster_namespace)
     api.add_namespace(cluster_solution_namespace)
     api.add_namespace(dataset_namespace)
+    api.add_namespace(dotplot_namespace)
     api.add_namespace(gene_of_set_namespace)
     api.add_namespace(gene_set_namespace)
     api.add_namespace(marker_namespace)
-    api.add_namespace(dotplot_namespace)
-    
+    api.add_namespace(sql_namespace)
+
     flask_app.register_blueprint(blueprint)
 
 

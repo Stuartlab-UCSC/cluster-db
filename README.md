@@ -25,7 +25,8 @@ Create a virtual environment and install the requirements.
 `deactivate`
 
 
-Now add configuration environment variables to the script in `./bin/start`. Examples of environmental variable set up are below:
+Now add configuration environment variables to the script in `./bin/start`. Examples of 
+environmental variable set up are below:
 
 ```
 export CLUSTERDB=/data/cdb
