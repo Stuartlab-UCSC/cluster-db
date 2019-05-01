@@ -29,7 +29,6 @@ def configure_app(flask_app, test_config):
     if test_config is None:
         # load the instance config, if it exists, when not testing
         flask_app.config.from_mapping(
-            SECRET_KEY='dev',
             #SERVER_NAME = settings.FLASK_SERVER_NAME,
             RESTPLUS_VALIDATE= settings.RESTPLUS_VALIDATE,
             RESTPLUS_MASK_SWAGGER= settings.RESTPLUS_MASK_SWAGGER,
@@ -37,6 +36,7 @@ def configure_app(flask_app, test_config):
             DATABASE= settings.DATABASE,
             UPLOADS= settings.UPLOADS,
         )
+        flask_app.config['VIEWER_URL'] = os.environ.get('VIEWER_URL')
         # Doesn't work:
         #flask_app.config.from_pyfile('config.py', silent=True)
     else:
