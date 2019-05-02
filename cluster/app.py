@@ -17,6 +17,7 @@ from cluster.api.gene_set import ns as gene_set_namespace
 from cluster.api.marker import ns as marker_namespace
 from cluster.api.dotplot import ns as dotplot_namespace
 from cluster.database import db
+from cluster.database.admin import init_admin
 
 app = Flask(__name__)
 logging_conf_path = os.path.normpath(os.path.join(os.path.dirname(__file__), '../logging.conf'))
@@ -75,6 +76,7 @@ def initialize_app(flask_app, test_config):
     with flask_app.app_context():
         db.init_app(flask_app)
         db.create_all()
+        init_admin(flask_app)
 
 
 def create_app(test_config=None):
