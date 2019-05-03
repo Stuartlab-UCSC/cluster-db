@@ -5,6 +5,8 @@ import os
 from cluster import settings
 from flask import Flask, Blueprint
 from flask_cors import CORS
+from cluster.admin.admin import admin_init
+from cluster.auth.init import auth_init
 from cluster.api.sql import ns as sql_namespace
 from cluster.api.restplus import api
 from cluster.api.cluster_attribute import ns as cluster_attribute_namespace
@@ -17,7 +19,6 @@ from cluster.api.gene_set import ns as gene_set_namespace
 from cluster.api.marker import ns as marker_namespace
 from cluster.api.dotplot import ns as dotplot_namespace
 from cluster.database import db
-from cluster.database.admin import init_admin
 
 app = Flask(__name__)
 logging_conf_path = os.path.normpath(os.path.join(os.path.dirname(__file__), '../logging.conf'))
@@ -34,7 +35,9 @@ def configure_app(flask_app, test_config):
             RESTPLUS_VALIDATE= settings.RESTPLUS_VALIDATE,
             RESTPLUS_MASK_SWAGGER= settings.RESTPLUS_MASK_SWAGGER,
             SQLALCHEMY_DATABASE_URI= "sqlite:///" + settings.DATABASE,
-            DATABASE= settings.DATABASE,
+            SQLALCHEMY_BINDS = {
+                "users": "sqlite:///" + settings.USER_DATABASE
+            },
             UPLOADS= settings.UPLOADS,
         )
         flask_app.config['VIEWER_URL'] = os.environ.get('VIEWER_URL')
@@ -76,7 +79,8 @@ def initialize_app(flask_app, test_config):
     with flask_app.app_context():
         db.init_app(flask_app)
         db.create_all()
-        init_admin(flask_app)
+        auth_init(flask_app, db)
+        admin_init(flask_app, db)
 
 
 def create_app(test_config=None):
@@ -86,7 +90,7 @@ def create_app(test_config=None):
 
     # Handle the test route.
     @app.route('/test')
-    def testRoute():
+    def test_route():
         return 'Just testing the clusterDb server'
 
     return app

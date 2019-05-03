@@ -2,12 +2,11 @@
 # flask-user templates
 # https://flask-user.readthedocs.io/en/latest/unused.html#customizingformtemplates
 
-import datetime
 from flask_user import UserManager
 from cluster.auth.db_models import Role, User
 
 
-def default_accounts(app, db):
+def default_auth_accounts(app, db):
 
     # Setup Flask-User and specify the User data-model
     user_manager = UserManager(app, db, User)
@@ -21,8 +20,11 @@ def default_accounts(app, db):
             #active
             #last_active
         )
-        db.session.add(user)
-        db.session.commit()
+        try:
+            db.session.add(user)
+            db.session.commit()
+        except:
+            traceback.print_exc()
 
     # Create 'admin@example.com' user with 'Admin' and 'Agent' roles
     if not User.query.filter(User.email == 'admin@example.com').first():

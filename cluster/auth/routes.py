@@ -10,12 +10,12 @@
 from flask import current_app, render_template, redirect
 from flask_user import current_user, login_required, roles_required, \
     TokenManager
-from cluster.auth.accounts import default_accounts
+from cluster.auth.accounts import default_auth_accounts
 
 
 def auth_routes(app, db):
 
-    default_accounts(app, db)
+    #default_auth_accounts(app, db)
 
     viewer_url = current_app.config['VIEWER_URL']
 
@@ -33,11 +33,13 @@ def auth_routes(app, db):
     def member_page():
         return render_template('auth/members.html')
 
+    """
     # The Admin page requires an 'Admin' role.
     @app.route('/admin')
     @roles_required('Admin')    # Use of @roles_required decorator
     def admin_page():
         return render_template('auth/admin.html')
+    """
 
     # Handle redirect after login to the cellAtlas home page.
     @app.route('/cell-help')
