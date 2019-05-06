@@ -34,6 +34,7 @@ def configure_app(flask_app, test_config):
             #SERVER_NAME = settings.FLASK_SERVER_NAME,
             RESTPLUS_VALIDATE= settings.RESTPLUS_VALIDATE,
             RESTPLUS_MASK_SWAGGER= settings.RESTPLUS_MASK_SWAGGER,
+            DATABASE= settings.DATABASE, # for pre_sqlAlchemy.py
             SQLALCHEMY_DATABASE_URI= "sqlite:///" + settings.DATABASE,
             SQLALCHEMY_BINDS = {
                 "users": "sqlite:///" + settings.USER_DATABASE
