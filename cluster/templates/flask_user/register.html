@@ -2,7 +2,7 @@
 
 {% block content %}
 {% from "flask_user/_macros.html" import render_field, render_submit_field %}
-<h1>{%trans%}Register{%endtrans%}</h1>
+<h3>{%trans%}Register{%endtrans%}</h3>
 
 <form action="" method="POST" novalidate formnovalidate class="form" role="form">
     {{ form.hidden_tag() }}
@@ -14,6 +14,12 @@
         <div class="row">
             <div class="col-xs-6">
                 <label for="{{ field.id }}" class="control-label">{{ field.label.text }}</label>
+            </div>
+            <div class="col-xs-6 text-right">
+                {% if user_manager.USER_ENABLE_REGISTER %}
+                    <a href="{{ url_for('user.resend_email_confirmation') }}" tabindex='290'>
+                        {%trans%}Resend registration email.{%endtrans%}</a>
+                {% endif %}
             </div>
             <div class="col-xs-6 text-right">
                 {% if user_manager.USER_ENABLE_REGISTER %}
