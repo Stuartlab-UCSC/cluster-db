@@ -5,12 +5,17 @@
 # - Using string-based templates (instead of file-based templates)
 
 from flask_babelex import Babel
+from flask_user import UserManager
 from cluster import settings
-from cluster.auth.accounts import default_auth_accounts
+#from cluster.auth.accounts import default_auth_accounts
 from cluster.auth.routes import auth_routes
+from cluster.auth.db_models import User
 
 # Class-based application configuration
 class ConfigClass(object):
+
+    # FLASK-USER CONFIG:
+    # https://flask-user.readthedocs.io/en/latest/configuring_settings.html
 
     # Flask settings
     SECRET_KEY = 'This is an INSECURE secret!! DO NOT use this in production!!'
@@ -25,22 +30,31 @@ class ConfigClass(object):
     MAIL_DEFAULT_SENDER = '"UCSC Cell Atlas" <hexmap@ucsc.edu>'
 
     # Features
-    USER_ENABLE_USERNAME = False    # Disable username authentication
+    USER_ENABLE_USERNAME = False # email auth only, no username is used
     
     # Generic
-    USER_APP_NAME = "UCSC Cell Atlas" # Shown in and email templates and page footers
+    USER_APP_NAME = "UCSC Cell Atlas" # in and email templates and page footers
     USER_AUTO_LOGIN = False
+    USER_AUTO_LOGIN_AFTER_REGISTER = False
+    USER_AUTO_LOGIN_AT_LOGIN = False
     USER_EMAIL_SENDER_NAME = USER_APP_NAME
     USER_EMAIL_SENDER_EMAIL = '"UCSC Cell Atlas" <hexmap@ucsc.edu>'
-    USER_SHOW_USERNAME_DOES_NOT_EXIST = True
+    
+    # URLs
+    USER_EDIT_USER_PROFILE_URL = '/user/change-password'
     
     # Endpoints
-    USER_AFTER_LOGIN_ENDPOINT = 'after_login'
-    USER_AFTER_LOGOUT_ENDPOINT = 'after_logout'
-    #USER_AFTER_REGISTER_ENDPOINT = 'after_login'
 
-    # FLASK-USER CONFIG:
-    # https://flask-user.readthedocs.io/en/latest/configuring_settings.html
+    USER_AFTER_CHANGE_PASSWORD_ENDPOINT           = 'home'
+    USER_AFTER_CONFIRM_ENDPOINT                   = 'user.login'
+    USER_AFTER_FORGOT_PASSWORD_ENDPOINT           = 'home'
+    USER_AFTER_LOGIN_ENDPOINT                     = 'after_login'
+    USER_AFTER_LOGOUT_ENDPOINT                    = 'after_logout'
+    USER_AFTER_REGISTER_ENDPOINT                  = 'home'
+    USER_AFTER_RESEND_EMAIL_CONFIRMATION_ENDPOINT = 'home'
+    USER_AFTER_RESET_PASSWORD_ENDPOINT            = 'home'
+    USER_UNAUTHENTICATED_ENDPOINT                 = 'user.login'
+    USER_UNAUTHORIZED_ENDPOINT                    = 'unauthorized'
 
 def auth_init(app, db):
     app.config.from_object(__name__+'.ConfigClass')
@@ -51,5 +65,11 @@ def auth_init(app, db):
     # Create the user database.
     db.create_all(bind='users')
 
-    default_auth_accounts(app, db)
+    # Create the user manager.
+    UserManager(app, db, User)
+
+    # Create the default admin account on initial DB creation.
+    #default_auth_accounts(app, db)  # for initial admin account
+    
+    # Define the auth routes,
     auth_routes(app, db)

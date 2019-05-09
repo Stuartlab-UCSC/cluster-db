@@ -5,7 +5,7 @@ import os
 from cluster import settings
 from flask import Flask, Blueprint
 from flask_cors import CORS
-from cluster.admin.admin import admin_init
+from cluster.auth.admin import admin_init
 from cluster.auth.init import auth_init
 from cluster.api.sql import ns as sql_namespace
 from cluster.api.restplus import api

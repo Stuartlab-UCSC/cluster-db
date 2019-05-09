@@ -33,7 +33,7 @@
     {% block body %}
     <div id="header-div" class="clearfix with-margins">
         <div class="pull-left">
-            <a href="{{ user_manager.USER_UNAUTHORIZED_ENDPOINT }}">{%trans%}UCSC Cell Atlas Home{%endtrans%}</a>
+            <a href="{{ user_manager.USER_UNAUTHORIZED_ENDPOINT }}">{%trans%}UCSC Cell Atlas{%endtrans%}</a>
         </div>
         <div class="pull-right" style="font-style:italic">
             {% if call_or_get(current_user.is_authenticated) %}

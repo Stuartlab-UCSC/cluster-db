@@ -1,26 +1,16 @@
-"""
-Provides access to authorization tables in the database through sqlalchemy core
-objects (sqlalchemy.sql.schema.Table) and SQL alchemy ORMs
-"""
+
+# Provides access to authorization tables in the database.
 
 from cluster.database import db
 from cluster.database.access import engine
 from sqlalchemy import Table, MetaData
 from flask_user import UserMixin
 
-
-# Connection to the database.
-metadata = MetaData()
-role = Table('roles', metadata, autoload=True, autoload_with=engine)
-users = Table('users', metadata, autoload=True, autoload_with=engine)
-user_roles = Table('user_roles', metadata, autoload=True, autoload_with=engine)
-
-
 # Define the User data-model.
-# NB: Make sure to add flask_user UserMixin !!!
 class User(db.Model, UserMixin):
     __tablename__ = 'users'
-    __bind_key__ = 'users' # use user db rather than data db
+    __bind_key__ = 'users' # use user db file rather than data db file
+    
     id = db.Column(db.Integer, primary_key=True)
     active = db.Column('is_active', db.Boolean(), nullable=False, server_default='1')
 
@@ -37,7 +27,8 @@ class User(db.Model, UserMixin):
 # Define the Role data-model
 class Role(db.Model):
     __tablename__ = 'roles'
-    __bind_key__ = 'users' # use user db rather than data db
+    __bind_key__ = 'users' # use user db file rather than data db file
+    
     id = db.Column(db.Integer(), primary_key=True)
     name = db.Column(db.String(50), unique=True)
 
@@ -47,8 +38,8 @@ class Role(db.Model):
 # Define the UserRoles association table
 class UserRoles(db.Model):
     __tablename__ = 'user_roles'
-    __bind_key__ = 'users' # use user db rather than data db
+    __bind_key__ = 'users' # use user db file rather than data db file
+    
     id = db.Column(db.Integer(), primary_key=True)
     user_id = db.Column(db.Integer(), db.ForeignKey('users.id', ondelete='CASCADE'))
     role_id = db.Column(db.Integer(), db.ForeignKey('roles.id', ondelete='CASCADE'))
-
