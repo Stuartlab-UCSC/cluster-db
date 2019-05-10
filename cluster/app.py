@@ -5,8 +5,14 @@ import os
 from cluster import settings
 from flask import Flask, Blueprint
 from flask_cors import CORS
+from flask_sqlalchemy import SQLAlchemy
+from cluster.auth.init import AuthConfigClass
+from flask_babelex import Babel
+from flask_user import UserManager
+from cluster.auth.db_models import User
+from cluster.auth.accounts import auth_temporary_account
+from cluster.auth.routes import auth_routes
 from cluster.auth.admin import admin_init
-from cluster.auth.init import auth_init
 from cluster.api.sql import ns as sql_namespace
 from cluster.api.restplus import api
 from cluster.api.cluster_attribute import ns as cluster_attribute_namespace
@@ -24,10 +30,11 @@ app = Flask(__name__)
 logging_conf_path = os.path.normpath(os.path.join(os.path.dirname(__file__), '../logging.conf'))
 logging.config.fileConfig(logging_conf_path)
 log = logging.getLogger(__name__)
+apiBlueprint = 0
+userManager = 0
 
 
 def configure_app(flask_app, test_config):
-
     if test_config is None:
         # load the instance config, if it exists, when not testing
         flask_app.config.from_mapping(
@@ -42,6 +49,7 @@ def configure_app(flask_app, test_config):
             UPLOADS= settings.UPLOADS,
         )
         flask_app.config['VIEWER_URL'] = os.environ.get('VIEWER_URL')
+        app.config.from_object(AuthConfigClass)
         # Doesn't work:
         #flask_app.config.from_pyfile('config.py', silent=True)
     else:
@@ -57,8 +65,11 @@ def configure_app(flask_app, test_config):
 
 
 def initialize_blueprint(flask_app):
-    blueprint = Blueprint('api', __name__, url_prefix='')
-    api.init_app(blueprint)
+    global apiBlueprint
+    if (apiBlueprint):
+        return
+    apiBlueprint = Blueprint('api', __name__, url_prefix='')
+    api.init_app(apiBlueprint)
     api.add_namespace(cell_of_cluster_namespace)
     api.add_namespace(cluster_attribute_namespace)
     api.add_namespace(cluster_namespace)
@@ -70,17 +81,22 @@ def initialize_blueprint(flask_app):
     api.add_namespace(marker_namespace)
     api.add_namespace(sql_namespace)
 
-    flask_app.register_blueprint(blueprint)
+    apiBlueprint = flask_app.register_blueprint(apiBlueprint)
 
 
 def initialize_app(flask_app, test_config):
     configure_app(flask_app, test_config)
+    db.init_app(flask_app)
+    Babel(flask_app) # for auth at least
     initialize_blueprint(flask_app)
 
     with flask_app.app_context():
-        db.init_app(flask_app)
         db.create_all()
-        auth_init(flask_app, db)
+        global userManager
+        if (not userManager):
+            userManager = UserManager(flask_app, db, User)
+        auth_temporary_account(app, db, userManager)
+        auth_routes(app, db)
         admin_init(flask_app, db)
 
 

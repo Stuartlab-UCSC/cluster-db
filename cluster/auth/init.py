@@ -1,18 +1,5 @@
-# This file contains an example Flask-User application.
-# To keep the example simple, we are applying some unusual techniques:
-# - Placing everything in one file
-# - Using class-based configuration (instead of file-based configuration)
-# - Using string-based templates (instead of file-based templates)
 
-from flask_babelex import Babel
-from flask_user import UserManager
-from cluster import settings
-#from cluster.auth.accounts import default_auth_accounts
-from cluster.auth.routes import auth_routes
-from cluster.auth.db_models import User
-
-# Class-based application configuration
-class ConfigClass(object):
+class AuthConfigClass(object):
 
     # FLASK-USER CONFIG:
     # https://flask-user.readthedocs.io/en/latest/configuring_settings.html
@@ -55,21 +42,3 @@ class ConfigClass(object):
     USER_AFTER_RESET_PASSWORD_ENDPOINT            = 'home'
     USER_UNAUTHENTICATED_ENDPOINT                 = 'user.login'
     USER_UNAUTHORIZED_ENDPOINT                    = 'unauthorized'
-
-def auth_init(app, db):
-    app.config.from_object(__name__+'.ConfigClass')
-    
-    # Initialize Flask-BabelEx
-    Babel(app)
-
-    # Create the user database.
-    db.create_all(bind='users')
-
-    # Create the user manager.
-    UserManager(app, db, User)
-
-    # Create the default admin account on initial DB creation.
-    #default_auth_accounts(app, db)  # for initial admin account
-    
-    # Define the auth routes,
-    auth_routes(app, db)
