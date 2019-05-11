@@ -7,6 +7,7 @@ from flask import Flask, Blueprint
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from cluster.auth.init import AuthConfigClass
+from flask_admin import Admin
 from flask_babelex import Babel
 from flask_user import UserManager
 from cluster.auth.db_models import User
@@ -43,13 +44,11 @@ def configure_app(flask_app, test_config):
             RESTPLUS_MASK_SWAGGER= settings.RESTPLUS_MASK_SWAGGER,
             DATABASE= settings.DATABASE, # for pre_sqlAlchemy.py
             SQLALCHEMY_DATABASE_URI= "sqlite:///" + settings.DATABASE,
-            SQLALCHEMY_BINDS = {
-                "users": "sqlite:///" + settings.USER_DATABASE
-            },
+            SQLALCHEMY_BINDS = {"users": "sqlite:///" + settings.USER_DATABASE},
             UPLOADS= settings.UPLOADS,
         )
         flask_app.config['VIEWER_URL'] = os.environ.get('VIEWER_URL')
-        app.config.from_object(AuthConfigClass)
+        flask_app.config.from_object(AuthConfigClass)
         # Doesn't work:
         #flask_app.config.from_pyfile('config.py', silent=True)
     else:
@@ -89,15 +88,16 @@ def initialize_app(flask_app, test_config):
     db.init_app(flask_app)
     Babel(flask_app) # for auth at least
     initialize_blueprint(flask_app)
+    admin = Admin(flask_app, name='CellAtlas Admin', template_mode='bootstrap3')
+    admin_init(db, admin)
 
     with flask_app.app_context():
         db.create_all()
         global userManager
         if (not userManager):
             userManager = UserManager(flask_app, db, User)
-        auth_temporary_account(app, db, userManager)
-        auth_routes(app, db)
-        admin_init(flask_app, db)
+            auth_temporary_account(flask_app, db, userManager)
+            auth_routes(flask_app, db)
 
 
 def create_app(test_config=None):

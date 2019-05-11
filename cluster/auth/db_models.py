@@ -2,8 +2,6 @@
 # Provides access to authorization tables in the database.
 
 from cluster.database import db
-from cluster.database.access import engine
-from sqlalchemy import Table, MetaData
 from flask_user import UserMixin
 
 # Define the User data-model.
@@ -32,6 +30,16 @@ class Role(db.Model):
     id = db.Column(db.Integer(), primary_key=True)
     name = db.Column(db.String(50), unique=True)
 
+    # Define the relationship to User via UserRoles.
+    members = db.relationship('User', secondary='user_roles',
+        )
+        # None of these allow the user emails to appear in the roles admin page.
+        #backref=db.backref(this.__tablename__, lazy='dynamic'))
+        #backref=db.backref(this, lazy='dynamic'))
+        #lazy='dynamic')
+        #backref='roles', lazy='dynamic')
+        #backref=db.backref(this.roles, lazy='dynamic'))
+        #backref=db.backref(this.roles, extend_existing=True, lazy='dynamic'))
     def __str__(self):
         return self.name
         
