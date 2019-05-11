@@ -10,6 +10,7 @@ from cluster.auth.db_models import User, Role
 # https://flask-admin.readthedocs.io/en/latest/advanced/
 
 class BaseView(ModelView):
+    can_export = True
     column_default_sort = 'id'
     column_display_pk = True # display the primary key
     column_hide_backrefs = False
@@ -20,22 +21,32 @@ class BaseView(ModelView):
         return current_user.has_roles('admin')
 
 class ClusterSolutionView(BaseView):
-    column_searchable_list = ('id', 'name', 'description', 'method',
+    list = ('id', 'name', 'description', 'method',
         'method_implementation', 'method_url', 'method_parameters', 'scores',
         'analyst', 'likes', 'dataset_id')
+    column_filters = list
+    column_list = list
+    column_searchable_list = list
 
 class DatasetView(BaseView):
-    column_searchable_list = ('id', 'name', 'uuid', 'species', 'organ',
+    list = ('id', 'name', 'uuid', 'species', 'organ',
         'cell_count', 'disease', 'platform', 'description', 'data_source_url',
          'publication_url')
+    column_filters = list
+    column_list = list
+    column_searchable_list = list
 
 class RoleView(BaseView):
-    column_list = ('id', 'name', 'members')
+    list = ('id', 'name', 'members')
+    column_filters = list
+    column_list = list
     column_searchable_list = ('id', 'name')
 
 class UserView(BaseView):
+    list = ('id', 'email', 'roles', 'active', 'email_confirmed_at')
     can_create = False
-    column_list = ('id', 'email', 'roles', 'active', 'email_confirmed_at')
+    column_filters = list
+    column_list = list
     column_searchable_list = ('id', 'email') #, 'roles')
     form_excluded_columns = ('email_confirmed_at', 'password')
     # form_widget_args to make username uneditable?
