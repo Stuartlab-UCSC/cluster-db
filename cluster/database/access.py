@@ -4,11 +4,8 @@ Supplies an engine to access sql, and common data access functions.
 The tables required by these functions are found in cluster.database.tables
 """
 import os
-from sqlalchemy import create_engine, select, and_
+from sqlalchemy import select, and_
 
-# Connection to the database.
-database_path = os.path.join(os.environ.get("CLUSTERDB"), "cluster.db")
-engine = create_engine("sqlite:///%s" % database_path, echo=False)
 
 
 def one_dataset(dataset_table, dataset_table_id, conn):

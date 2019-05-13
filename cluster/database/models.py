@@ -2,7 +2,7 @@
 Provides access to database through sqlalchemy core objects (sqlalchemy.sql.schema.Table) and SQL alchemy ORMs
 """
 from cluster.database import db
-from cluster.database.access import engine
+from cluster.database.engine import engine
 from sqlalchemy import Table, MetaData, Column, Integer, String, Float, ForeignKey, Float
 from sqlalchemy.orm import relationship
 
