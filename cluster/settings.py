@@ -1,16 +1,20 @@
 
 import os
 
-# Flask settings
-FLASK_SERVER_NAME = 'localhost:5555'
-FLASK_DEBUG = True  # Do not use debug mode in production
+CLUSTERDB = os.environ.get("CLUSTERDB")
 
-# Flask-Restplus settings
-RESTPLUS_SWAGGER_UI_DOC_EXPANSION = 'list'
-RESTPLUS_VALIDATE = True
-RESTPLUS_MASK_SWAGGER = False
+class Settings(object):
+    # Flask:
+    FLASK_SERVER_NAME = 'localhost:5555'
+    FLASK_DEBUG = True  # Do not use debug mode in production
 
-# Application settings
-DATABASE = os.path.join(os.environ.get("CLUSTERDB"), 'cluster.db')
-USER_DATABASE = os.path.join(os.environ.get("CLUSTERDB"), 'cluster_user.db')
-UPLOADS = os.path.join(os.environ.get("CLUSTERDB"), 'uploads')
+    # Flask-Restplus settings
+    RESTPLUS_VALIDATE = True
+    RESTPLUS_MASK_SWAGGER = False
+    
+    # Application:
+    DATABASE = os.path.join(CLUSTERDB, 'cluster.db')
+    USER_DATABASE = os.path.join(CLUSTERDB, 'cluster_user.db')
+    UPLOADS = os.path.join(CLUSTERDB, 'uploads')
+    VIEWER_URL = 'http://localhost:3000/'
+

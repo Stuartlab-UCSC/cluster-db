@@ -2,7 +2,7 @@
 
 import logging.config
 import os
-from cluster import settings
+from cluster.settings import Settings
 from flask import Flask, Blueprint
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
@@ -37,20 +37,12 @@ userManager = 0
 
 def configure_app(flask_app, test_config):
     if test_config is None:
-        # load the instance config, if it exists, when not testing
-        flask_app.config.from_mapping(
-            #SERVER_NAME = settings.FLASK_SERVER_NAME,
-            RESTPLUS_VALIDATE= settings.RESTPLUS_VALIDATE,
-            RESTPLUS_MASK_SWAGGER= settings.RESTPLUS_MASK_SWAGGER,
-            DATABASE= settings.DATABASE, # for pre_sqlAlchemy.py
-            SQLALCHEMY_DATABASE_URI= "sqlite:///" + settings.DATABASE,
-            SQLALCHEMY_BINDS = {"users": "sqlite:///" + settings.USER_DATABASE},
-            UPLOADS= settings.UPLOADS,
-        )
-        flask_app.config['VIEWER_URL'] = os.environ.get('VIEWER_URL')
+        flask_app.config.from_object(Settings)
         flask_app.config.from_object(AuthConfigClass)
-        # Doesn't work:
-        #flask_app.config.from_pyfile('config.py', silent=True)
+        flask_app.config['SQLALCHEMY_DATABASE_URI'] = \
+            "sqlite:///" + flask_app.config['DATABASE']
+        flask_app.config['SQLALCHEMY_BINDS'] = \
+            {"users": "sqlite:///" + flask_app.config['USER_DATABASE']}
     else:
         # load the test config if passed in
         flask_app.config.from_mapping(test_config)
