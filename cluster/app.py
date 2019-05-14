@@ -31,6 +31,7 @@ app = Flask(__name__)
 logging_conf_path = os.path.normpath(os.path.join(os.path.dirname(__file__), '../logging.conf'))
 logging.config.fileConfig(logging_conf_path)
 log = logging.getLogger(__name__)
+adminManager = 0
 apiBlueprint = 0
 userManager = 0
 
@@ -80,9 +81,11 @@ def initialize_app(flask_app, test_config):
     db.init_app(flask_app)
     Babel(flask_app) # for auth at least
     initialize_blueprint(flask_app)
-    admin = Admin(flask_app, name='CellAtlas Admin', template_mode='bootstrap3')
-    admin_init(db, admin)
-
+    global adminManager
+    if (not adminManager):
+        adminManager = Admin(flask_app, name='CellAtlas Admin', template_mode='bootstrap3')
+        admin_init(db, adminManager)
+    
     with flask_app.app_context():
         db.create_all()
         global userManager

@@ -4,9 +4,6 @@ class AuthConfigClass(object):
     # FLASK-USER CONFIG:
     # https://flask-user.readthedocs.io/en/latest/configuring_settings.html
 
-    # Flask settings
-    SECRET_KEY = 'This is an INSECURE secret!! DO NOT use this in production!!'
-
     # Flask-Mail SMTP server settings
     MAIL_SERVER = 'smtp.com'
     MAIL_PORT = 465
