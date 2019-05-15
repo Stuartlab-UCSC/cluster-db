@@ -5,7 +5,7 @@
 from flask import Response
 from flask_restplus import Resource
 from cluster.api.restplus import api, mimetype
-from cluster.database.query import query as database_query
+from cluster.database.sqlQuery import query
 
 ns = api.namespace('sql')
 
@@ -16,5 +16,5 @@ class List(Resource):
     @ns.response(200, 'Result of query')
     def get(self, sql):
         '''Generic read-only queries using raw sql.'''
-        resp = database_query(sql)
+        resp = query(sql)
         return Response(str(resp), mimetype=mimetype)

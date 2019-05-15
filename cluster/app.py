@@ -19,7 +19,7 @@ from cluster.api.restplus import api
 from cluster.api.cluster_attribute import ns as cluster_attribute_namespace
 from cluster.api.cluster import ns as cluster_namespace
 from cluster.api.cell_of_cluster import ns as cell_of_cluster_namespace
-from cluster.api.cluster_solution import ns as cluster_solution_namespace
+#from cluster.api.cluster_solution import ns as cluster_solution_namespace
 from cluster.api.dataset import ns as dataset_namespace
 from cluster.api.gene_of_set import ns as gene_of_set_namespace
 from cluster.api.gene_set import ns as gene_set_namespace
@@ -65,7 +65,7 @@ def initialize_blueprint(flask_app):
     api.add_namespace(cell_of_cluster_namespace)
     api.add_namespace(cluster_attribute_namespace)
     api.add_namespace(cluster_namespace)
-    api.add_namespace(cluster_solution_namespace)
+    #api.add_namespace(cluster_solution_namespace)
     api.add_namespace(dataset_namespace)
     api.add_namespace(dotplot_namespace)
     api.add_namespace(gene_of_set_namespace)
