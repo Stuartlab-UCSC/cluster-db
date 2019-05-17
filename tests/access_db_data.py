@@ -13,7 +13,8 @@ add_one_dataset = {
     "platform": "platform1",
     "description": "description1",
     "data_source_url": "data_source_url1",
-    "publication_url": "publication_url1"
+    "publication_url": "publication_url1",
+    "role": "public"
 }
 add_second_dataset = {
     "name": "dataset2",
@@ -25,7 +26,8 @@ add_second_dataset = {
     "platform": "platform2",
     "description": "description2",
     "data_source_url": "data_source_url2",
-    "publication_url": "publication_url2"
+    "publication_url": "publication_url2",
+    "role": ""
 }
 add_third_dataset = {
     "name": "dataset3",
@@ -37,8 +39,10 @@ add_third_dataset = {
     "platform": "platform3",
     "description": "description3",
     "data_source_url": "data_source_url3",
-    "publication_url": "publication_url3"
+    "publication_url": "publication_url3",
+    "role": "hoc"
 }
+"""
 add_one_cluster_solution = {
     "name": "cluster_solution1",
     "description": "description1",
@@ -99,9 +103,9 @@ add_third_gene_set = {
     "method": "method2",
     "cluster_solution": "cluster_solution2"
 }
-
+"""
 
 def post_json(client, url, json_dict):
-    """Send dictionary json_dict as a json to the specified url """
+    """Send dictionary json_dict as a json string to the specified url """
     return client.post(url, data=json.dumps(json_dict), content_type='application/json')
 

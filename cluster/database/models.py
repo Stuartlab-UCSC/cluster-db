@@ -2,28 +2,14 @@
 Provides access to database through sqlalchemy core objects (sqlalchemy.sql.schema.Table) and SQL alchemy ORMs
 """
 from cluster.database import db
-from cluster.database.engine import engine
-from sqlalchemy import Table, MetaData, Column, Integer, String, Float, ForeignKey, Float
+from sqlalchemy import Column, Integer, String, Float, ForeignKey
 from sqlalchemy.orm import relationship
 
-'''
-# Connection to the database.
-metadata = MetaData()
+from sqlalchemy.ext.declarative import declarative_base
+from cluster.auth.query import HasRole
 
 
-dataset = Table('dataset', metadata, autoload=True, autoload_with=engine)
-
-
-cluster_solution = Table('cluster_solution', metadata, autoload=True, autoload_with=engine)
-
-
-cluster = Table('cluster', metadata, autoload=True, autoload_with=engine)
-
-
-cell_assignment = Table('cell_of_cluster', metadata, autoload=True, autoload_with=engine)
-'''
-
-class Dataset(db.Model):
+class Dataset(HasRole, db.Model):
 
     __tablename__ = "dataset"
 
@@ -32,12 +18,13 @@ class Dataset(db.Model):
     uuid = Column(String)
     species = Column(String)
     organ = Column(String)
-    cell_count = Column(Integer)
+    cell_count = Column(Integer), default=0
     disease = Column(String)
     platform = Column(String)
     description = Column(String)
     data_source_url = Column(String)
     publication_url = Column(String)
+    cluster_solutions = relationship("ClusterSolution", backref="dataset")
 
     def __repr__(self):
      return "<User(name=%s, species=%s, organ=%s, cell count=%d, data source url=%s )>" % \

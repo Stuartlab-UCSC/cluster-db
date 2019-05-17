@@ -37,19 +37,21 @@ userManager = 0
 
 
 def configure_app(flask_app, test_config):
-    if test_config is None:
-        flask_app.config.from_object(Settings)
-        flask_app.config.from_object(AuthConfigClass)
-        flask_app.config['SQLALCHEMY_DATABASE_URI'] = \
-            "sqlite:///" + flask_app.config['DATABASE']
-        flask_app.config['SQLALCHEMY_BINDS'] = \
-            {"users": "sqlite:///" + flask_app.config['USER_DATABASE']}
-    else:
-        # load the test config if passed in
+    # The basics:
+    flask_app.config.from_object(Settings)
+    if test_config is not None:
+        # The test config, some of which overrides the basics:
+        #flask_app.config.from_object(test_config)
         flask_app.config.from_mapping(test_config)
-        flask_app.config['DEBUG'] = False
+    # The authentication/authorization config:
+    flask_app.config.from_object(AuthConfigClass)
+    # SqlAlchemy derived variables:
+    flask_app.config['SQLALCHEMY_DATABASE_URI'] = \
+        "sqlite:///" + flask_app.config['DATABASE']
+    flask_app.config['SQLALCHEMY_BINDS'] = \
+        {"users": "sqlite:///" + flask_app.config['USER_DATABASE']}
 
-    # Ensure the instance folder exists, if we are using one.
+    # Insure the instance folder exists, if we are using one.
     try:
         os.makedirs(flask_app.instance_path)
     except OSError:

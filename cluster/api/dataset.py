@@ -1,10 +1,10 @@
 from flask_restplus import fields, Resource
+from flask_user import current_user
 from cluster.api.restplus import api
-import cluster.database.models as tables
-from cluster.api.cluster_solution import ca_model
-from cluster.database.engine import engine
-from cluster.database.access import all_datasets, cluster_solutions, \
-    cell_assignments, cluster_solution_id
+#from cluster.api.cluster_solution import ca_model
+#from cluster.database.access import all_datasets, cluster_solutions, \
+#    cell_assignments, cluster_solution_id
+from cluster.database.dataset import all_datasets
 
 ns = api.namespace('dataset')
 
@@ -27,13 +27,9 @@ class DataSetList(Resource):
     @ns.response(200, 'datasets')
     def get(self):
         """A list of data sets: name, description, and id."""
+        return all_datasets()
 
-        return all_datasets(
-            tables.dataset,
-            engine.connect()
-        )
-
-
+'''
 @ns.route('/<int:id>/cluster-solutions')
 @ns.param('id', 'Data set identifier')
 class ClusterSolsForDataSet(Resource):
@@ -74,4 +70,4 @@ class CellAssignmentsForAClusterSolution(Resource):
             cs_id,
             engine.connect()
         )
-
+'''

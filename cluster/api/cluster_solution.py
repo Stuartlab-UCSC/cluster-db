@@ -1,3 +1,4 @@
+'''
 from flask_restplus import fields, Resource
 from cluster.api.restplus import api
 import cluster.database.models as tables
@@ -28,3 +29,4 @@ class CellAssignment(Resource):
             id,
             engine.connect()
         )
+'''

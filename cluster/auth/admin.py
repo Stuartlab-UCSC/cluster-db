@@ -29,7 +29,7 @@ class ClusterSolutionView(BaseView):
     column_searchable_list = list
 
 class DatasetView(BaseView):
-    list = ('id', 'name', 'uuid', 'species', 'organ',
+    list = ('id', 'role', 'name', 'uuid', 'species', 'organ',
         'cell_count', 'disease', 'platform', 'description', 'data_source_url',
          'publication_url')
     column_filters = list

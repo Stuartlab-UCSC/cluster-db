@@ -4,15 +4,9 @@
 
 import pytest
 import tests.access_db_data as ad
-from cluster.database_update.cluster_attribute_table import cluster_attribute
-from cluster.database_update.cell_of_cluster_table import cell_of_cluster
-from cluster.database_update.cluster_table import cluster
-from cluster.database_update.cluster_solution_table import cluster_solution
-from cluster.database_update.dataset_table import dataset
-from cluster.database.db_old import dicts_equal, merge_dicts
+from cluster.database.models import cluster
+#from cluster.database.pre_sqlAlchemy import dicts_equal, merge_dicts
 from cluster.database.query import query
-from cluster.database_update.gene_set_table import gene_set
-from cluster.database_update.gene_of_set_table import gene_of_set
 
 
 def add_data():
