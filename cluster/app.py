@@ -25,6 +25,7 @@ from cluster.api.gene_of_set import ns as gene_of_set_namespace
 from cluster.api.gene_set import ns as gene_set_namespace
 from cluster.api.marker import ns as marker_namespace
 from cluster.api.dotplot import ns as dotplot_namespace
+from cluster.api.user import ns as user_namespace
 from cluster.database import db
 
 app = Flask(__name__)
@@ -79,6 +80,8 @@ def initialize_blueprint(flask_app):
     api.add_namespace(gene_set_namespace)
     api.add_namespace(marker_namespace)
     api.add_namespace(sql_namespace)
+    api.add_namespace(user_namespace)
+
 
     apiBlueprint = flask_app.register_blueprint(apiBlueprint)
 
