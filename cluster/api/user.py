@@ -78,29 +78,15 @@ class GeneTable(Resource):
 @ns.param('gene', 'A gene name present in the expression matrix')
 class GeneScatterplot(Resource):
     @ns.response(200, 'png scatterplot image')
-    def post(self, user, worksheet, type, gene):
-        """A png pf a scatter [;pt"""
-
+    def get(self, user, worksheet, type, gene):
+        """A png of a scatter plot colored by a genes value"""
         cluster = read_cluster(user, worksheet)
         xys = read_xys(user, worksheet)
+
         centers = centroids(xys, cluster)
 
-        #colormap = {"0": "#FF12FF", "1": "#775656", "2": "#59ad2d", "3": "#FFFF12", "4": "#FFF11F", "5": "#1FFFF1" }
-
-        color_by_cluster = request.is_json
-        if color_by_cluster:
-            colors = request.get_json()
-            color_map = dict(
-                zip(
-                    colors["cluster-name"],
-                    colors["colors"]
-                )
-            )
-            png = scatter_categorical(xys, centers, color_map, cluster)
-
-        else: # Color the scatter plot with an individual gene.
-            gene = read_gene_expression(user, worksheet, gene)
-            png = scatter_continuous(xys, centers, gene)
+        gene = read_gene_expression(user, worksheet, gene)
+        png = scatter_continuous(xys, centers, gene)
 
         return send_file(
             png,
@@ -112,7 +98,7 @@ class GeneScatterplot(Resource):
 @ns.param('user', 'user id')
 @ns.param('worksheet', 'The name of the worksheet.')
 @ns.param('type', 'tsne, umap, or pca.')
-class GeneScatterplot(Resource):
+class ClusterScatterplot(Resource):
     @ns.response(200, 'png scatterplot image')
     def post(self, user, worksheet, type, gene):
         """A png pf a scatter colored by the requested json."""
@@ -304,6 +290,7 @@ def find_genes(marker_dicts, cluster_solution_name, size="sensitivity", color="z
 
     # This sets the order of the genes on the client as arbitrary.
     genes.index = pd.RangeIndex(0, len(genes.index))
+    genes.index.name = "row"
     return genes
 
 
@@ -332,6 +319,6 @@ def read_json_gzipd(filename):
 
 def dataframe_to_str(df):
     buffer = io.StringIO()
-    df.to_csv(buffer, sep="\t")
+    df.to_csv(buffer, sep="\t", header=True)
     buffer.seek(0)
     return buffer.getvalue()
