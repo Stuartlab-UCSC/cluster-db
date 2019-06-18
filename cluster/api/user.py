@@ -55,7 +55,7 @@ class GeneTable(Resource):
     # @api.marshal_with(all_markers_model, envelope="resource")
     @ns.response(200, 'tab delimited genes per cluster file', )
     def get(self, user, worksheet, cluster_name):
-        """Gene metric value tab separated file for a single metric."""
+        """Grab gene metrics for a specified cluster."""
 
         # Make the table and then throw it in a byte buffer to pass over.
         markers_file_name=TEST_MARKERS_DICT_PATH
@@ -66,13 +66,42 @@ class GeneTable(Resource):
         gt.to_csv(buffer, index=False, sep="\t")
         buffer.seek(0)
 
+        resp = {
+            "cluster_name": cluster_name,
+            "gene_table": buffer.getvalue()
+        }
+
+        return resp
+
+
+@ns.route('/<string:user>/worksheet/<string:worksheet>/gene/<string:gene_name>/color/<string:color_by>/size/<string:size_by>')
+@ns.param('user', 'user id')
+@ns.param('worksheet', 'The name of the worksheet.')
+@ns.param('color_by', 'A metric on the gene that can be used as a color variable')
+@ns.param('size_by', 'A metric on the gene that can be used as a size variable')
+@ns.param('gene_name', 'A valid gene name')
+class AddGene(Resource):
+    # @api.marshal_with(all_markers_model, envelope="resource")
+    @ns.response(200, 'Color by and size by as rows and columns as clusters', )
+    def get(self, user, worksheet, color_by, size_by, gene_name):
+        """Grab color and size gene metrics for a specified gene."""
+
+        # Make the table and then throw it in a byte buffer to pass over.
+        markers_file_name = TEST_MARKERS_DICT_PATH
+        marker_dicts = read_json_gzipd(markers_file_name)["markers"]
+
+        buffer = io.StringIO()
+        gt = single_gene_table(marker_dicts, gene=gene_name)
+        gt.to_csv(buffer, sep="\t")
+        buffer.seek(0)
+
         mem = io.BytesIO()
-        mem.write(buffer.getvalue().encode('utf-8'))
+        mem.write(buffer.getvalue().encode("utf-8"))
         mem.seek(0)
 
         return send_file(
             mem,
-            mimetype='text/tsv',
+            mimetype="text/tsv"
         )
 
 
@@ -267,14 +296,31 @@ def centroids(xys, cluster):
     return cluster_centers
 
 
+def single_gene_table(marker_dicts, gene, color_by="mean_expression", size_by="sensitivity", cluster_solution_name=CLUSTER_SOLUTION_NAME):
+    filtered_markers = [d for d in marker_dicts if
+                        cluster_solution_name == d["cluster_solution_name"] and gene == d["gene_name"]]
+
+    gene_not_found = not len(filtered_markers)
+    if gene_not_found:
+        raise ValueError("'%s' gene was not found in the markers table" % gene)
+    bubble_values = [{"cluster": d["cluster_name"], "size_by": d[size_by], "color_by": d[color_by]}
+                     for d in filtered_markers]
+
+    df = pd.DataFrame(bubble_values).transpose()
+    print(df.head(), len(filtered_markers))
+    df.columns = df.loc["cluster"]
+    df.drop("cluster", axis=0, inplace=True)
+    return df
+
+
 def gene_table(marker_dicts, cluster_name, cluster_solution_name=CLUSTER_SOLUTION_NAME):
     """Creates a gene table on the fly for a particulat cluster and clustersolution from marker dictionaries."""
     filtered_markers = [d for d in marker_dicts if cluster_solution_name == d["cluster_solution_name"] and cluster_name == d["cluster_name"]]
     genes = [d["gene_name"] for d in filtered_markers]
-    t_statistics = [d["mean_expression"] for d in filtered_markers]
+    mean_expression = [d["mean_expression"] for d in filtered_markers]
     pcent_expressed = [d["sensitivity"] for d in filtered_markers]
 
-    df = pd.DataFrame([genes, t_statistics, pcent_expressed], index=["gene", "mean expression", "percent expressed"]).transpose()
+    df = pd.DataFrame([genes, mean_expression, pcent_expressed], index=["gene", "mean expression", "percent expressed"]).transpose()
     return df
 
 
