@@ -1,7 +1,7 @@
 """
 A mock up of future user protected endpoints.
 """
-from flask import send_file, request
+from flask import send_file, request, url_for
 from flask_restplus import Resource
 from cluster.api.restplus import api
 import matplotlib.pyplot as plt
@@ -13,13 +13,14 @@ import json
 
 
 # These are all the global variables that will need access functions once the data serves more than worksheet.
-TEST_STATE_PATH = "./users/tests/test_state.json"
+TEST_STATE_PATH = "./users/test/test_state.json.gzip"
 TEST_CLUSTER_TABLE_PATH = "./users/test/clusters_table.tab"
 TEST_MARKERS_DICT_PATH = "./users/test/krigstien6000k_markers.json.gzip"
 TEST_EXPRESSION_PICKLE_PATH = "./users/test/exp.pi"
 TEST_CLUSTER_ID_PATH = "./users/test/louvain:res:1.50.pi"
 TEST_XY_PATH = "./users/test/X_umap.pi"
-
+DEFAULT_CLUSTER_SOLUTION="1"
+DEFAULT_SCATTER_TYPE="umap"
 # The cluster solution name matches what is int the cluster-id file and a key inside the markers.json.gzip
 CLUSTER_SOLUTION_NAME = "louvain:res:1.50"
 
@@ -36,9 +37,13 @@ class Worksheet(Resource):
         resp = grab_saved_worksheet(user, worksheet) or generate_worksheet(user, worksheet)
         return resp
 
-    @ns.response(200, 'worksheet recieved')
+    @ns.response(200, 'worksheet received')
     def post(self, user, worksheet):
         """Save a worksheet"""
+
+        if request.get_json() is None:
+            raise ValueError("json state representation required in body of request")
+
         save_worksheet(user, worksheet, request.get_json())
 
 
@@ -100,15 +105,15 @@ class GeneScatterplot(Resource):
 @ns.param('type', 'tsne, umap, or pca.')
 class ClusterScatterplot(Resource):
     @ns.response(200, 'png scatterplot image')
-    def post(self, user, worksheet, type, gene):
-        """A png pf a scatter colored by the requested json."""
+    def post(self, user, worksheet, type):
+        """A png scatterplot with clusters colored by json color map."""
 
         # Generate the scatter plot on the fly.
         cluster = read_cluster(user, worksheet)
         xys = read_xys(user, worksheet)
         centers = centroids(xys, cluster)
 
-        if not request.isjson:
+        if not request.is_json:
             raise ValueError("endpoint requires json")
 
         colors = request.get_json()
@@ -139,13 +144,33 @@ def generate_worksheet(user, worksheet):
     sizes = bubble_table(marker_dicts, genes.tolist(), cluster_solution_name=cluster_solution_name,
                          attr_name="specificity")
 
+    gene_table_url = url_for(
+        'api.user_gene_table',
+        user=user,
+        worksheet=worksheet,
+        cluster_name=DEFAULT_CLUSTER_SOLUTION,
+        _external=True
+    )
+
+    scatterplot_url = url_for(
+        'api.user_cluster_scatterplot',
+        user=user, worksheet=worksheet,
+        type=DEFAULT_SCATTER_TYPE,
+        _external=True
+    )
+
     resp = {
-        "user": "tester", "worksheet": "test", "dataset_name": "krigstien6K-fastfood",
-        "size_by": "percent expressed", "color_by": "z statistic",
+        "user": "tester", "worksheet": "test",
+        "dataset_name": "krigstien6K-fastfood",
+        "size_by": "percent expressed",
+        "color_by": "z statistic",
         "clusters": dataframe_to_str(pd.read_csv(TEST_CLUSTER_TABLE_PATH, sep="\t")),
         "genes": dataframe_to_str(genes),
         "colors": dataframe_to_str(colors),
-        "sizes": dataframe_to_str(sizes)
+        "sizes": dataframe_to_str(sizes),
+        "gene_table_url": gene_table_url,
+        "scatterplot_url": scatterplot_url
+
     }
     return resp
 
