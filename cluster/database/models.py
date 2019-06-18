@@ -2,31 +2,12 @@
 Provides access to database through sqlalchemy core objects (sqlalchemy.sql.schema.Table) and SQL alchemy ORMs
 """
 from cluster.database import db
-from cluster.database.access import engine
-from sqlalchemy import Table, MetaData, Column, Integer, String, Float, ForeignKey, Float
+from sqlalchemy import Column, Integer, String, ForeignKey, Float
 from sqlalchemy.orm import relationship
 
 
-# Connection to the database.
-metadata = MetaData()
-
-
-dataset = Table('dataset', metadata, autoload=True, autoload_with=engine)
-
-
-cluster_solution = Table('cluster_solution', metadata, autoload=True, autoload_with=engine)
-
-
-cluster = Table('cluster', metadata, autoload=True, autoload_with=engine)
-
-
-cell_assignment = Table('cell_of_cluster', metadata, autoload=True, autoload_with=engine)
-
-
 class Dataset(db.Model):
-
     __tablename__ = "dataset"
-
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String, nullable=False, unique=True)
     uuid = Column(String)
@@ -40,7 +21,7 @@ class Dataset(db.Model):
     publication_url = Column(String)
 
     def __repr__(self):
-     return "<User(name=%s, species=%s, organ=%s, cell count=%d, data source url=%s )>" % \
+     return "<Dataset(name=%s, species=%s, organ=%s, cell count=%d, data source url=%s )>" % \
             (self.name, self.species, self.organ, self.cell_count, self.data_source_url)
 
 
@@ -56,7 +37,7 @@ class ClusterSolution(db.Model):
     method_url = Column(String)
     method_parameters = Column(String)
     scores = Column(String)
-    analyst  = Column(String)
+    analyst = Column(String)
     likes = Column(Integer)
     expression_hash = Column(String)
     dataset_id = Column(Integer, ForeignKey("dataset.id"), nullable=False)

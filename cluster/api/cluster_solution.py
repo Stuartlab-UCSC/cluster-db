@@ -1,7 +1,6 @@
 from flask_restplus import fields, Resource
 from cluster.api.restplus import api
-import cluster.database.models as tables
-from cluster.database.access import cell_assignments, engine
+from cluster.api.dbquery import cell_assignments
 
 ns = api.namespace('cluster-solution')
 
@@ -20,10 +19,4 @@ class CellAssignment(Resource):
     def get(self, id):
         """A list of cell assignments for a clustering solution."""
 
-        return cell_assignments(
-            tables.cell_assignment,
-            tables.cluster,
-            tables.cluster_solution,
-            id,
-            engine.connect()
-        )
+        return cell_assignments(id)
