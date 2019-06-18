@@ -224,6 +224,7 @@ def scatter_categorical(xys, centers, color_map, clusters):
     img_bytes = io.BytesIO()
     plt.savefig(img_bytes)
     img_bytes.seek(0)
+    plt.close()
     return img_bytes
 
 
@@ -254,6 +255,7 @@ def scatter_continuous(xys, centers, gene):
     img_bytes = io.BytesIO()
     plt.savefig(img_bytes, format="png")
     img_bytes.seek(0)
+    plt.close()
     return img_bytes
 
 
