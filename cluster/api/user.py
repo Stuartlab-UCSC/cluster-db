@@ -161,17 +161,26 @@ class ClusterScatterplot(Resource):
 
 def generate_worksheet(user, worksheet):
     """Generates a worksheet on the fly."""
+
     marker_dicts = read_json_gzipd(TEST_MARKERS_DICT_PATH)['markers']
+
     cluster_solution_name = CLUSTER_SOLUTION_NAME
+
     genes = find_genes(marker_dicts, cluster_solution_name=cluster_solution_name)
+
     colors = bubble_table(
         marker_dicts,
         genes.tolist(),
         cluster_solution_name=cluster_solution_name,
         attr_name="z_stat"
     )
-    sizes = bubble_table(marker_dicts, genes.tolist(), cluster_solution_name=cluster_solution_name,
-                         attr_name="specificity")
+
+    sizes = bubble_table(
+        marker_dicts,
+        genes.tolist(),
+        cluster_solution_name=cluster_solution_name,
+        attr_name="specificity"
+    )
 
     gene_table_url = url_for(
         'api.user_gene_table',
@@ -193,7 +202,7 @@ def generate_worksheet(user, worksheet):
         "dataset_name": "krigstien6K-fastfood",
         "size_by": "percent expressed",
         "color_by": "z statistic",
-        "clusters": dataframe_to_str(pd.read_csv(TEST_CLUSTER_TABLE_PATH, sep="\t")),
+        "clusters": dataframe_to_str(pd.read_csv(TEST_CLUSTER_TABLE_PATH, sep="\t"), index=False),
         "genes": dataframe_to_str(genes),
         "colors": dataframe_to_str(colors),
         "sizes": dataframe_to_str(sizes),
@@ -390,8 +399,8 @@ def read_json_gzipd(filename):
     return data
 
 
-def dataframe_to_str(df):
+def dataframe_to_str(df, index=True):
     buffer = io.StringIO()
-    df.to_csv(buffer, sep="\t", header=True)
+    df.to_csv(buffer, sep="\t", header=True, index=index)
     buffer.seek(0)
     return buffer.getvalue()
