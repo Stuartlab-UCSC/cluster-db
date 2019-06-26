@@ -3,36 +3,20 @@
 # Starting with an existing cluster assignments tsv file,
 # find the unique cluster names.
 
-import sys, argparse, csv, traceback
+import sys
+import pandas as pd
 
 input_file = 'clustAssign.tsv'
 output_file = 'cluster.tsv'
 
+
 def main():
     print('processing:', input_file)
+    df = pd.read_table(input_file, index_col=0)
+    cluster_names = pd.Series(df[df.columns[0]].unique())
+    cluster_names.to_csv(output_file, sep="\t", header=True, index=False)
 
-    with open(input_file, 'r') as fin:
-        fin = csv.reader(fin, delimiter='\t')
-        unique = []
-        next(fin) # skip the header
-        for row in fin:
-            if row[1] not in unique:
-                unique.append(row[1])
 
-    with open(output_file, 'w') as fout:
-        fout = csv.writer(fout, delimiter='\t')
-        fout.writerow(['cluster name'])
-        for one in unique:
-            fout.writerow(one)
-
-    print('done')
-    return 0
-
-if __name__ == "__main__" :
-    try:
-        return_code = main()
-    except:
-        traceback.print_exc()
-        return_code = 1
-    sys.exit(return_code)
+if __name__ == "__main__":
+    sys.exit(main())
 
