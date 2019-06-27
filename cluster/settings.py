@@ -12,5 +12,4 @@ RESTPLUS_MASK_SWAGGER = False
 
 # Application settings
 DATABASE = os.path.join(os.environ.get("CLUSTERDB"), 'cluster.db')
-USER_DATABASE = os.path.join(os.environ.get("CLUSTERDB"), 'cluster_user.db')
 UPLOADS = os.path.join(os.environ.get("CLUSTERDB"), 'uploads')

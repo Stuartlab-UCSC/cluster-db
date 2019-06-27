@@ -87,7 +87,6 @@ class Marker(db.Model):
     dataset_id = Column(Integer, ForeignKey("dataset.id"), nullable=False)
     cluster_solution_id = Column(Integer, ForeignKey("cluster_solution.id"), nullable=False)
     cluster_id = Column(Integer, ForeignKey("cluster.id"), nullable=False)
-    #cluster_solution_ids = relationship("cluster_solution", back_ref="cluster_solution")
 
     def __repr__(self):
 
