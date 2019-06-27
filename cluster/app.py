@@ -16,16 +16,13 @@ from cluster.auth.routes import auth_routes
 from cluster.auth.admin import admin_init
 from cluster.api.sql import ns as sql_namespace
 from cluster.api.restplus import api
-from cluster.api.cluster_attribute import ns as cluster_attribute_namespace
+from cluster.api.user import ns as user_namespace
 from cluster.api.cluster import ns as cluster_namespace
 from cluster.api.cell_of_cluster import ns as cell_of_cluster_namespace
 from cluster.api.cluster_solution import ns as cluster_solution_namespace
 from cluster.api.dataset import ns as dataset_namespace
-from cluster.api.gene_of_set import ns as gene_of_set_namespace
-from cluster.api.gene_set import ns as gene_set_namespace
 from cluster.api.marker import ns as marker_namespace
 from cluster.api.dotplot import ns as dotplot_namespace
-from cluster.api.user import ns as user_namespace
 from cluster.database import db
 
 app = Flask(__name__)
@@ -70,20 +67,16 @@ def initialize_blueprint(flask_app):
         return
     apiBlueprint = Blueprint('api', __name__, url_prefix='')
     api.init_app(apiBlueprint)
-    api.add_namespace(cell_of_cluster_namespace)
-    api.add_namespace(cluster_attribute_namespace)
-    api.add_namespace(cluster_namespace)
+
     api.add_namespace(cluster_solution_namespace)
     api.add_namespace(dataset_namespace)
     api.add_namespace(dotplot_namespace)
-    api.add_namespace(gene_of_set_namespace)
-    api.add_namespace(gene_set_namespace)
     api.add_namespace(marker_namespace)
     api.add_namespace(sql_namespace)
     api.add_namespace(user_namespace)
 
+    flask_app.register_blueprint(apiBlueprint)
 
-    apiBlueprint = flask_app.register_blueprint(apiBlueprint)
 
 
 def initialize_app(flask_app, test_config):
