@@ -41,7 +41,7 @@ class ClusterSolsForDataSet(Resource):
 @ns.param('dataset_name', 'Data set name')
 @ns.param('cluster_solution_name', 'Cluster solution name')
 class ClusterSolsForDataSet(Resource):
-    @api.marshal_with(ca_model, envelope="resource")
+    @api.marshal_with(ca_model, envelope=None)
     @ns.response(200, 'cluster solutions')
     def get(self, dataset_name, cluster_solution_name):
         """The dataset cell assignments for a cluster solution"""
