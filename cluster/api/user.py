@@ -1,8 +1,9 @@
 """
 A mock up of future user protected endpoints.
 """
-from flask import send_file, request, url_for
+from flask import send_file, request, url_for, abort
 from flask_restplus import Resource
+from flask_user import login_required, current_user
 from cluster.api.restplus import api
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -10,7 +11,6 @@ import numpy as np
 import io
 import gzip
 import json
-
 
 # These are all the global variables that will need access functions once the data serves more than worksheet.
 TEST_STATE_PATH = "./users/test/test_state.json.gzip"
@@ -26,16 +26,24 @@ CLUSTER_SOLUTION_NAME = "louvain:res:1.50"
 
 
 ns = api.namespace('user')
+
+
 @ns.route('/<string:user>/worksheet/<string:worksheet>')
 @ns.param('user', 'user id')
 @ns.param('worksheet', 'The name of the worksheet.')
 class Worksheet(Resource):
     # @api.marshal_with(all_markers_model, envelope="resource")
-    @ns.response(200, 'worksheet retrieved', )
+    @ns.response(200, 'worksheet retrieved')
+    @login_required
     def get(self, user, worksheet):
         """Retrieve a saved worksheet."""
-        resp = grab_saved_worksheet(user, worksheet) or generate_worksheet(user, worksheet)
-        return resp
+        owns_data = current_user.email == user
+
+        if owns_data:
+            return grab_saved_worksheet(user, worksheet) or generate_worksheet(user, worksheet)
+
+        return abort(401, "User emails did not match, currently users may only access their own data.")
+
 
     @ns.response(200, 'worksheet received')
     def post(self, user, worksheet):
@@ -92,6 +100,7 @@ class AddGene(Resource):
 
         buffer = io.StringIO()
         gt = single_gene_table(marker_dicts, gene=gene_name)
+
         gt.to_csv(buffer, sep="\t")
         buffer.seek(0)
 
@@ -404,3 +413,4 @@ def dataframe_to_str(df, index=True):
     df.to_csv(buffer, sep="\t", header=True, index=index)
     buffer.seek(0)
     return buffer.getvalue()
+
