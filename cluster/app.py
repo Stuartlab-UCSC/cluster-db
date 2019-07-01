@@ -1,55 +1,25 @@
-# app.py
-
+import datetime
 import logging.config
 import os
-from cluster import settings
-from flask import Flask, Blueprint
-from flask_cors import CORS
-from cluster.api.sql import ns as sql_namespace
-from cluster.api.restplus import api
-from cluster.api.user import ns as user_namespace
-from cluster.database import db
-from flask_security import SQLAlchemyUserDatastore
-from cluster.database.user_models import User, Role
-from flask_security import Security
 
+from flask import Flask, Blueprint
+from flask_babelex import Babel
+from flask_cors import CORS
+from flask_user import UserManager
+
+from cluster.api.restplus import api
+from cluster.database import db
+from cluster.database.user_models import User
+
+from cluster.api.user import ns as user_namespace
+from cluster.api.sql import ns as sql_namespace
 from cluster.api.cluster_solution import ns as cluster_solution_namespace
 from cluster.api.dataset import ns as dataset_namespace
 from cluster.api.marker import ns as marker_namespace
 from cluster.api.dotplot import ns as dotplot_namespace
 
 
-app = Flask(__name__)
-
-
-logging_conf_path = os.path.normpath(os.path.join(os.path.dirname(__file__), '../logging.conf'))
-logging.config.fileConfig(logging_conf_path)
-log = logging.getLogger(__name__)
-apiBlueprint = 0
-
-
-def configure_app(flask_app, test_config):
-
-    if test_config is None:
-        # load the instance config, if it exists, when not testing
-        flask_app.config.from_mapping(
-            RESTPLUS_VALIDATE= settings.RESTPLUS_VALIDATE,
-            RESTPLUS_MASK_SWAGGER= settings.RESTPLUS_MASK_SWAGGER,
-            DATABASE= settings.DATABASE, # for pre_sqlAlchemy.py
-            SQLALCHEMY_DATABASE_URI="sqlite:///" + settings.DATABASE,
-            SQLALCHEMY_BINDS={"users": "sqlite:///" + settings.USER_DATABASE},
-            UPLOADS=settings.UPLOADS,
-        )
-        flask_app.config['SECRET_KEY'] = 'super-secret'
-        flask_app.config['SECURITY_PASSWORD_SALT'] = 'super-secret'
-
-    else:
-        # load the test config if passed in
-        flask_app.config.from_mapping(test_config)
-        flask_app.config['DEBUG'] = False
-
-
-def initialize_blueprint(flask_app):
+def initialize_blueprint(app):
 
     apiBlueprint = Blueprint('api', __name__, url_prefix='')
     api.init_app(apiBlueprint)
@@ -61,30 +31,51 @@ def initialize_blueprint(flask_app):
     api.add_namespace(sql_namespace)
     api.add_namespace(user_namespace)
 
-    flask_app.register_blueprint(apiBlueprint)
+    app.register_blueprint(apiBlueprint)
 
 
-def initialize_app(flask_app, test_config):
+def add_test_user(user_manager):
+    if not User.query.filter(User.email == 'test@test.com').first():
+        user = User(
+            email='test@test.com',
+            email_confirmed_at=datetime.datetime.utcnow(),
+            password=user_manager.hash_password('testT1234'),
+        )
+        db.session.add(user)
+        db.session.commit()
 
-    configure_app(flask_app, test_config)
-    db.init_app(flask_app)
-    initialize_blueprint(flask_app)
 
-    with flask_app.app_context():
-        db.create_all()
-        user_datastore = SQLAlchemyUserDatastore(db, User, Role)
-        Security(app, user_datastore)
+def setup_logger(logfile='../logging.conf'):
+    logging_conf_path = os.path.normpath(os.path.join(os.path.dirname(__file__), logfile))
+    logging.config.fileConfig(logging_conf_path)
+    logging.getLogger(__name__)
 
 
-def create_app(test_config=None):
+def create_app(config=None):
+
+    app = Flask(__name__)
+
+    app.config.from_pyfile('settings.py')
+
+    app.config.update(config)
+
+    testing = app.config["TESTING"]
+
+    if not testing:
+        setup_logger()
+
     CORS(app)
-    app.url_map.strict_slashes = False
-    initialize_app(app, test_config)
+    Babel(app)
 
-    # Handle the test route.
-    @app.route('/test')
-    def test_route():
-        return 'Just testing the clusterDb server'
+    app.url_map.strict_slashes = False
+    initialize_blueprint(app)
+
+    db.init_app(app)
+
+    with app.app_context():
+        db.create_all()
+        user_manager = UserManager(app, db, User)
+        add_test_user(user_manager)
 
     return app
 
