@@ -6,17 +6,14 @@ from flask_restplus import Resource
 from cluster.api.restplus import api, mimetype
 import sqlite3
 from cluster.database import db
-import cluster.database.error as err
-from cluster.database.error import Not_found, Updates_not_allowed
-import cluster.database.tsv as tsv
-
+from flask_user import login_required
 ns = api.namespace('sql')
-
 
 @ns.route('/<string:sql>')
 @ns.param('sql', 'SQL read-only query string')
 class List(Resource):
     @ns.response(200, 'Result of query')
+    @login_required
     def get(self, sql):
         '''Generic read-only queries using raw sql.'''
         resp = database_query(sql)
@@ -39,19 +36,20 @@ def database_query(query):
             or 'update' in lq \
             or 'upsert' in lq \
             :
-            raise Updates_not_allowed
+            raise UpdatesNotAllowed
         cursor = db.get_engine().execute(query)
-        return tsv.from_rows(cursor.fetchall())
-    except Updates_not_allowed as e:
-        return err.updates_not_allowed(e)
-    except Not_found as e:
-        return err.abort_not_found(e)
+        return from_rows(cursor.fetchall())
+
+    except UpdatesNotAllowed as e:
+        return updates_not_allowed(e)
+    except NotFound as e:
+        return abort_not_found(e)
     except sqlite3.IntegrityError as e:
-        return err.abort_database(e)
+        return abort_database(e)
     except sqlite3.ProgrammingError as e:
-        return err.abort_database(e)
+        return abort_database(e)
     except sqlite3.OperationalError as e:
-        return err.abort_database(e)
+        return abort_database(e)
 
 
 def from_rows(rows):
@@ -67,11 +65,16 @@ def from_rows(rows):
     return tsv
 
 
-def abort_database(e):
-    message = str(e)
-    if 'Incorrect number of bindings supplied' in message:
-        message = 'Wrong number of columns supplied for add: ' + message
-    return abort_query(400, 'Database: ' + message)
+class BadTsvHeader(Exception):
+    pass
+
+
+class NotFound(Exception):
+    pass
+
+
+class UpdatesNotAllowed(Exception):
+    pass
 
 
 def abort_query(code, message):
@@ -84,3 +87,30 @@ def abort_query(code, message):
         abort(code, message)
 
 
+def abort_bad_tsv_header(e):
+    return abort_query(400, 'Bad TSV header:\n' + str(e))
+
+
+def abort_database(e):
+    message = str(e)
+    if 'Incorrect number of bindings supplied' in message:
+        message = 'Wrong number of columns supplied for add: ' + message
+    return abort_query(400, 'Database: ' + message)
+
+
+def abort_has_children():
+    return abort_query(
+        400, 'There are children that would be orphaned, delete those first')
+
+
+def abort_keyError(e):
+    return abort_query(400, 'Database: invalid field: ' + str(e))
+
+
+def abort_not_found(e):
+    return abort_query(404, 'Not found: ' + str(e))
+
+
+def updates_not_allowed(e):
+    return abort_query(400,
+        'Updates to the database are not allowed, only read queries.')
