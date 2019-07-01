@@ -60,7 +60,7 @@ class CellAssignment(db.Model):
 
     __tablename__ = "cell_of_cluster"
 
-    id = Column(String, primary_key=True, autoincrement=True)
+    id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String, nullable=False)
     cluster_id = Column(Integer, ForeignKey("cluster.id"), nullable=False)
 
