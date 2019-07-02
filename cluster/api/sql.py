@@ -1,19 +1,17 @@
 
 # api/query.py
-# Generic read query in SGL
 from flask import Response, current_app, abort
 from flask_restplus import Resource
 from cluster.api.restplus import api, mimetype
 import sqlite3
 from cluster.database import db
-from flask_user import login_required
+
 ns = api.namespace('sql')
 
 @ns.route('/<string:sql>')
 @ns.param('sql', 'SQL read-only query string')
 class List(Resource):
     @ns.response(200, 'Result of query')
-    @login_required
     def get(self, sql):
         '''Generic read-only queries using raw sql.'''
         resp = database_query(sql)
@@ -35,6 +33,9 @@ def database_query(query):
             or 'rollback' in lq \
             or 'update' in lq \
             or 'upsert' in lq \
+            or 'user' in lq \
+            or 'role' in lq \
+            or 'worksheet' in lq \
             :
             raise UpdatesNotAllowed
         cursor = db.get_engine().execute(query)
