@@ -53,3 +53,15 @@ class ClusterSolsForDataSet(Resource):
 
         return cell_assignments(cs_id)
 
+
+@ns.route('/<string:dataset_name>/cluster-solution/<string:cluster_solution_name>/marker/<string:marker_type>')
+@ns.param('dataset_name', 'Data set name')
+@ns.param('cluster_solution_name', 'Cluster solution name')
+@ns.param('marker_type', 'The name of the marker value, e.g. log2_fold_change')
+class MakerValues(Resource):
+    @api.marshal_with(ca_model, envelope="resource")
+    @ns.response(200, 'cluster solutions')
+    def get(self, dataset_name, cluster_solution_name):
+        """"""
+
+        raise NotImplementedError
