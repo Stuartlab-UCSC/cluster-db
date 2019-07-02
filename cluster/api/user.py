@@ -11,6 +11,7 @@ import numpy as np
 import io
 import gzip
 import json
+from cluster.database.user_models import User, WorksheetUser, CellTypeWorksheet
 
 # These are all the global variables that will need access functions once the data serves more than worksheet.
 TEST_STATE_PATH = "./users/test/test_state.json.gzip"
@@ -38,9 +39,9 @@ class Worksheet(Resource):
     def get(self, user, worksheet):
         """Retrieve a saved worksheet."""
         owns_data = current_user.email == user
-
+        user_id = User.get_by_email(user).id
         if owns_data:
-            return grab_saved_worksheet(user, worksheet) or generate_worksheet(user, worksheet)
+            return grab_saved_worksheet(user_id, worksheet) or generate_worksheet(user, worksheet)
 
         return abort(401, "User emails did not match, currently users may only access their own data.")
 
@@ -229,9 +230,12 @@ def save_worksheet(user, worksheet, pydict):
        ).encode('utf-8'))
 
 
-def grab_saved_worksheet(user, worksheet):
+def grab_saved_worksheet(user_id, worksheet):
+    print("userid", user_id)
+    user_work = WorksheetUser.get_user_worksheets(user_id).filter(CellTypeWorksheet.name == worksheet).first()
+    path = CellTypeWorksheet.get_by_id(user_work.worksheet_id).place
     try:
-        resp = read_json_gzipd(TEST_STATE_PATH)
+        resp = read_json_gzipd(path)
     except FileNotFoundError:
         resp = None
 
