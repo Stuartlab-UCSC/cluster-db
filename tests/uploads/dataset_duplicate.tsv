@@ -1,3 +1,0 @@
-name	uuid	species	organ	cell_count	disease	platform	description	data_source_url	publication_url
-dataset1	uuid1	dog	organ1	1	disease1	platform1	description1	data_source_url1	publication_url1
-dataset1	uuid2	cat	organ2	2	disease2	platform2	description2	data_source_url2	publication_url2
