@@ -5,7 +5,6 @@ import os
 from cluster.settings import Settings
 from flask import Flask, Blueprint
 from flask_cors import CORS
-from flask_sqlalchemy import SQLAlchemy
 from cluster.auth.init import AuthConfigClass
 from flask_admin import Admin
 from flask_babelex import Babel
@@ -19,12 +18,12 @@ from cluster.api.restplus import api
 from cluster.api.cluster_attribute import ns as cluster_attribute_namespace
 from cluster.api.cluster import ns as cluster_namespace
 from cluster.api.cell_of_cluster import ns as cell_of_cluster_namespace
-#from cluster.api.cluster_solution import ns as cluster_solution_namespace
 from cluster.api.dataset import ns as dataset_namespace
 from cluster.api.gene_of_set import ns as gene_of_set_namespace
 from cluster.api.gene_set import ns as gene_set_namespace
 from cluster.api.marker import ns as marker_namespace
 from cluster.api.dotplot import ns as dotplot_namespace
+from cluster.api.user import ns as user_namespace
 from cluster.database import db
 
 app = Flask(__name__)
@@ -74,6 +73,8 @@ def initialize_blueprint(flask_app):
     api.add_namespace(gene_set_namespace)
     api.add_namespace(marker_namespace)
     api.add_namespace(sql_namespace)
+    api.add_namespace(user_namespace)
+
 
     apiBlueprint = flask_app.register_blueprint(apiBlueprint)
 
