@@ -49,10 +49,12 @@ def add_default_user(user_manager):
         db.session.add(user)
         db.session.commit()
 
+    """
     user = user_already_there or user
     user_id = user.id
 
     ws_already_there = WorksheetUser.query.filter(WorksheetUser.user_id == user_id).first()
+    
     if not ws_already_there:
 
         db.session.add(
@@ -81,7 +83,7 @@ def add_default_user(user_manager):
                 place=TEST_EXPRESSION_PICKLE_PATH
             )
         )
-
+        
         db.session.add(
             ExpDimReduct(
                 name= "umap",
@@ -89,7 +91,7 @@ def add_default_user(user_manager):
                 expression_id=1
             )
         )
-
+        
         db.session.add(
             ExpCluster(
                 id=1,
@@ -98,17 +100,17 @@ def add_default_user(user_manager):
                 expression_id=1
             )
         )
-
+        
         db.session.add(
             ClusterGeneTable(
                 cluster_id=1,
                 place=TEST_MARKERS_DICT_PATH
             )
         )
-
+       
         db.session.commit()
 
-
+        """
 
 
 def setup_logger(logfile='../logging.conf'):

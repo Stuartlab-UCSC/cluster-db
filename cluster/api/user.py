@@ -41,7 +41,7 @@ class Worksheet(Resource):
         owns_data = current_user.email == user
         user_id = User.get_by_email(user).id
         if owns_data:
-            return grab_saved_worksheet(user_id, worksheet) or generate_worksheet(user, worksheet)
+            return grab_saved_worksheet(user, worksheet) or generate_worksheet(user, worksheet)
 
         return abort(401, "User emails did not match, currently users may only access their own data.")
 
@@ -230,12 +230,10 @@ def save_worksheet(user, worksheet, pydict):
        ).encode('utf-8'))
 
 
-def grab_saved_worksheet(user_id, worksheet):
-    print("userid", user_id)
-    user_work = WorksheetUser.get_user_worksheets(user_id).filter(CellTypeWorksheet.name == worksheet).first()
-    path = CellTypeWorksheet.get_by_id(user_work.worksheet_id).place
+def grab_saved_worksheet(user, worksheet):
+
     try:
-        resp = read_json_gzipd(path)
+        resp = read_json_gzipd(TEST_STATE_PATH)
     except FileNotFoundError:
         resp = None
 
