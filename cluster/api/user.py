@@ -10,6 +10,8 @@ import numpy as np
 import io
 import gzip
 import json
+import matplotlib
+matplotlib.use("Agg")
 
 
 # These are all the global variables that will need access functions once the data serves more than worksheet.
