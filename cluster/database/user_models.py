@@ -29,6 +29,9 @@ class User(db.Model, UserMixin):
     roles = db.relationship('Role', secondary="user_roles",
                             backref=db.backref('users', lazy='dynamic'))
 
+    @classmethod
+    def get_by_email(cls, email):
+        return cls.query.filter(cls.email == email).first()
 
 class UserRoles(db.Model):
     __tablename__ = 'user_roles'
@@ -41,6 +44,11 @@ class CellTypeWorksheet(SurrogatePK, db.Model):
     __tablename__ = "worksheet"
     name = Column(String, nullable=True)
     place = Column(String, nullable=True)
+    @classmethod
+    def get_by_name(cls, record_name):
+        """Get record by ID."""
+        if isinstance(record_name, str)   :
+            return cls.query.filter(cls.name == record_name).first()
 
 
 class WorksheetUser(SurrogatePK, db.Model):
@@ -48,37 +56,44 @@ class WorksheetUser(SurrogatePK, db.Model):
     user_id = db.Column(db.Integer(), db.ForeignKey('user.id'))
     worksheet_id = db.Column(db.Integer(), db.ForeignKey('worksheet.id'))
 
+    @classmethod
+    def get_user_worksheets(cls, user_id):
 
-class WorksheetRole(SurrogatePK):
+        return cls.query.filter(cls.user_id == user_id)
+
+
+class UserExpression(SurrogatePK, db.Model):
+    __tablename__ = "userexpression"
+    species = Column(String, nullable=True)
+    organ = Column(String, nullable=True)
+    name = Column(String, nullable=True)
+    place = Column(String, nullable=True)
+
+
+class WorksheetRole(SurrogatePK, db.Model):
     __tablename__ = "worksheetrole"
     role_id = db.Column(db.Integer(), db.ForeignKey('role.id'))
     worksheet_id = db.Column(db.Integer(), db.ForeignKey('worksheet.id'))
 
 
-class DsDimReduct(SurrogatePK, db.Model):
+class ExpDimReduct(SurrogatePK, db.Model):
     # Multiple dim reducts per dataset.
     __tablename__ = "dsdimreduct"
     name = Column(String, nullable=False)
     place = Column(String, nullable=False)
-    dataset_id = Column(Integer, ForeignKey("dataset.id"), nullable=False)
+    expression_id = Column(Integer, ForeignKey("userexpression.id"), nullable=False)
 
 
-class DsCluster(SurrogatePK, db.Model):
-    __tablename__ = "dscluster"
+class ExpCluster(SurrogatePK, db.Model):
+    __tablename__ = "expcluster"
     name = Column(String, nullable=False)
     place = Column(String, nullable=False)
-    dataset_id = Column(Integer, ForeignKey("dataset.id"), nullable=False)
+    expression_id = Column(Integer, ForeignKey("userexpression.id"), nullable=False)
 
 
 class ClusterGeneTable(SurrogatePK, db.Model):
     __table_name__= "clustergenetable"
     place = Column(String, nullable=False)
-    cluster_id = Column(Integer, ForeignKey("dscluster.id"), nullable=False)
+    cluster_id = Column(Integer, ForeignKey("expcluster.id"), nullable=False)
 
 
-class UserDataset(SurrogatePK):
-    __tablename__ = "userdataset"
-    species = Column(String, nullable=True)
-    organ = Column(String, nullable=True)
-    name = Column(String, nullable=True)
-    place = Column(String, nullable=True)
