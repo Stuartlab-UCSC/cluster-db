@@ -4,12 +4,12 @@ import os
 # Used for default location of database
 CLUSTERDB = os.path.split(
         os.path.split(os.path.abspath(__file__))[0]
-    )[0]
+    )[0] + "cluster.db"
 
 # Flask settings
 FLASK_DEBUG = True
 SECRET_KEY = "super secret key"
-SQLALCHEMY_DATABASE_URI="sqlite://" / CLUSTERDB
+SQLALCHEMY_DATABASE_URI="sqlite:///" + CLUSTERDB
 SQLALCHEMY_TRACK_MODIFICATIONS = False
 # Flask-Restplus settings
 RESTPLUS_SWAGGER_UI_DOC_EXPANSION = 'list'
@@ -29,7 +29,7 @@ MAIL_DEFAULT_SENDER = '"UCSC Cell Atlas" <hexmap@ucsc.edu>'
 USER_ENABLE_USERNAME = False # email auth only, no username is used
 
 # Generic
-USER_APP_NAME = "UCSC Cell Atlas" # in and email templates and page footers
+USER_APP_NAME = "UCSC Cell Atlas"
 USER_AUTO_LOGIN = False
 USER_AUTO_LOGIN_AFTER_REGISTER = False
 USER_AUTO_LOGIN_AT_LOGIN = False
