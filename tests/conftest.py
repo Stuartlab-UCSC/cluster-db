@@ -1,41 +1,101 @@
+# content of conftest.py
 
-import os
-import tempfile
+
+
 import pytest
+import os
+
+TEST_USER="test@test.com"
+
+from tests.settings import TMPDIR
+
+url_genss = [
+        ("api.user_worksheet", {"user": "test@test.com", "worksheet": "test"}),
+        ("api.user_gene_table", {"user": "test@test.com", "worksheet": "test", "cluster_name": "4"}),
+        ("api.user_cluster_scatterplot", {"user": "test@test.com", "worksheet": "test", "type": "umap"}),
+        ("api.user_gene_scatterplot", {"user": "test@test.com", "worksheet": "test", "type": "umap", "gene":"CC14"}),
+    ]
+
+@pytest.fixture(params=url_genss)
+def url_gens(request):
+    yield request.param
+
+
+
 from cluster.app import create_app
-from cluster.database.db_old import get_db, init_db
+from cluster.database import db as the_db
 
-with open(os.path.join(os.path.dirname(__file__), 'data.sql'), 'rb') as f:
-    _data_sql = f.read().decode('utf8')
+# Initialize the Flask-App with test-specific settings
+the_app = create_app(dict(
+    SQLALCHEMY_DATABASE_URI="sqlite://",
+    TESTING=True,
+    SQLALCHEMY_TRACK_MODIFICATIONS=False,
+    USER_EMAIL_SENDER_EMAIL="test@tests.com",
+    USER_ENABLE_USERNAME=False,  # email auth only, no username is used
+    USER_APP_NAME="UCSC Cell Atlas",  # in and email templates and page footers
+    USER_AUTO_LOGIN=False,
+    USER_AUTO_LOGIN_AFTER_REGISTER=False,
+    USER_AUTO_LOGIN_AT_LOGIN=False,
+    SECRET_KEY="*** super duper secret test password ***",
+    WTF_CSRF_ENABLED=False,
+    LOGIN_DISABLED=False,
+    MAIL_SUPPRESS_SEND=True,
+    SERVER_NAME="localhost.localdomain"
 
+))
 
-@pytest.fixture(scope="function")
+# Setup an application context (since the tests run outside of the webserver context)
+the_app.app_context().push()
+
+@pytest.fixture(scope='session')
 def app():
-    CLUSTERDB = os.environ.get("CLUSTERDB")
-    db_fd, db_path = tempfile.mkstemp()
-    uploads = os.path.join(CLUSTERDB, 'clusterDb/tests/uploads')
-
-    app = create_app({
-        'TESTING': True,
-        'DATABASE': db_path,
-        'UPLOADS': uploads
-    })
-
-    with app.app_context():
-        init_db()
-        get_db().executescript(_data_sql)
-    yield app
-
-    os.close(db_fd)
-    os.unlink(db_path)
+    """ Makes the 'app' parameter available to test functions. """
+    return the_app
 
 
-@pytest.fixture
+@pytest.fixture(scope='session')
+def db():
+    """ Makes the 'db' parameter available to test functions. """
+    return the_db
+
+@pytest.fixture(scope='function')
+def session(db, request):
+    """Creates a new database session for a test."""
+    connection = db.engine.connect()
+    transaction = connection.begin()
+
+    options = dict(bind=connection, binds={})
+    session = db.create_scoped_session(options=options)
+
+    db.session = session
+
+    def teardown():
+        transaction.rollback()
+        connection.close()
+        session.remove()
+
+    request.addfinalizer(teardown)
+    return session
+
+@pytest.fixture(scope='session')
 def client(app):
     return app.test_client()
 
+import shutil
+import os
+from tests.gen_data import write_all
+@pytest.fixture(scope='session')
+def user_worksheet_data(request, tmpdir=TMPDIR):
+    os.mkdir(tmpdir)
+    filepaths = write_all(tmpdir)
+    def teardown():
+        shutil.rmtree(tmpdir)
 
-@pytest.fixture
-def runner(app):
-    return app.test_cli_runner()
+    request.addfinalizer(teardown)
+    return filepaths
+
+
+@pytest.fixture(scope='function')
+def this_runs(tmp_path):
+    print(tmp_path)
 
