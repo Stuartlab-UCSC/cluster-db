@@ -29,8 +29,3 @@ class SurrogatePK(object):
         ):
             return cls.query.get(int(record_id))
 
-    @classmethod
-    def get_by_name(cls, record_name):
-        """Get record by ID."""
-        if isinstance(record_name, str):
-            return cls.query.get(record_name)
