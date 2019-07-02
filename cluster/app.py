@@ -18,6 +18,7 @@ from cluster.api.dataset import ns as dataset_namespace
 from cluster.api.marker import ns as marker_namespace
 from cluster.api.dotplot import ns as dotplot_namespace
 
+from cluster.database.user_models import CellTypeWorksheet, ExpCluster, ExpDimReduct, WorksheetUser, ClusterGeneTable, UserExpression
 
 def initialize_blueprint(app):
 
@@ -34,15 +35,80 @@ def initialize_blueprint(app):
     app.register_blueprint(apiBlueprint)
 
 
-def add_test_user(user_manager):
-    if not User.query.filter(User.email == 'test@test.com').first():
+def add_default_user(user_manager):
+
+    user_already_there = User.query.filter(User.email == 'tester@test.com').first()
+    if not user_already_there:
         user = User(
-            email='test@test.com',
+            id=1,
+            email='tester@test.com',
             email_confirmed_at=datetime.datetime.utcnow(),
             password=user_manager.hash_password('testT1234'),
         )
+
         db.session.add(user)
         db.session.commit()
+
+    user = user_already_there or user
+    user_id = user.id
+
+    ws_already_there = WorksheetUser.query.filter(WorksheetUser.user_id == user_id).first()
+    if not ws_already_there:
+
+        db.session.add(
+            CellTypeWorksheet(
+                id=1,
+                name="test",
+                place="cantfind"
+            )
+        )
+
+        db.session.add(
+            WorksheetUser(
+                user_id=1,
+                worksheet_id= 1
+            )
+        )
+
+        from cluster.api.user import TEST_EXPRESSION_PICKLE_PATH, TEST_XY_PATH, TEST_CLUSTER_ID_PATH, TEST_MARKERS_DICT_PATH
+
+        db.session.add(
+            UserExpression(
+                id=1,
+                name="test",
+                species="test",
+                organ="test",
+                place=TEST_EXPRESSION_PICKLE_PATH
+            )
+        )
+
+        db.session.add(
+            ExpDimReduct(
+                name= "umap",
+                place=TEST_XY_PATH,
+                expression_id=1
+            )
+        )
+
+        db.session.add(
+            ExpCluster(
+                id=1,
+                name="lovain",
+                place=TEST_CLUSTER_ID_PATH,
+                expression_id=1
+            )
+        )
+
+        db.session.add(
+            ClusterGeneTable(
+                cluster_id=1,
+                place=TEST_MARKERS_DICT_PATH
+            )
+        )
+
+        db.session.commit()
+
+
 
 
 def setup_logger(logfile='../logging.conf'):
@@ -51,13 +117,13 @@ def setup_logger(logfile='../logging.conf'):
     logging.getLogger(__name__)
 
 
-def create_app(config=None):
+def create_app(extra_config={}):
 
     app = Flask(__name__)
 
     app.config.from_pyfile('settings.py')
 
-    app.config.update(config)
+    app.config.update(extra_config)
 
     testing = app.config["TESTING"]
 
@@ -75,7 +141,8 @@ def create_app(config=None):
     with app.app_context():
         db.create_all()
         user_manager = UserManager(app, db, User)
-        add_test_user(user_manager)
+        if not testing:
+            add_default_user(user_manager)
 
     return app
 
