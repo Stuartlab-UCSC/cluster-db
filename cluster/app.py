@@ -1,6 +1,6 @@
-import datetime
 import logging.config
 import os
+import datetime
 
 from flask import Flask, Blueprint
 from flask_babelex import Babel
@@ -9,7 +9,6 @@ from flask_user import UserManager
 
 from cluster.api.restplus import api
 from cluster.database import db
-from cluster.database.user_models import User
 
 from cluster.api.user import ns as user_namespace
 from cluster.api.sql import ns as sql_namespace
@@ -18,7 +17,9 @@ from cluster.api.dataset import ns as dataset_namespace
 from cluster.api.marker import ns as marker_namespace
 from cluster.api.dotplot import ns as dotplot_namespace
 
-from cluster.database.user_models import CellTypeWorksheet, ExpCluster, ExpDimReduct, WorksheetUser, ClusterGeneTable, UserExpression
+from cluster.database.default_entries import entries as default_entries
+from cluster.database.add_entries import add_entries
+from cluster.database.user_models import *
 
 def initialize_blueprint(app):
 
@@ -35,84 +36,6 @@ def initialize_blueprint(app):
     app.register_blueprint(apiBlueprint)
 
 
-def add_default_user(user_manager):
-
-    user_already_there = User.query.filter(User.email == 'tester@test.com').first()
-    if not user_already_there:
-        user = User(
-            id=1,
-            email='tester@test.com',
-            email_confirmed_at=datetime.datetime.utcnow(),
-            password=user_manager.hash_password('testT1234'),
-        )
-
-        db.session.add(user)
-        db.session.commit()
-
-    """
-    user = user_already_there or user
-    user_id = user.id
-
-    ws_already_there = WorksheetUser.query.filter(WorksheetUser.user_id == user_id).first()
-    
-    if not ws_already_there:
-
-        db.session.add(
-            CellTypeWorksheet(
-                id=1,
-                name="test",
-                place="cantfind"
-            )
-        )
-
-        db.session.add(
-            WorksheetUser(
-                user_id=1,
-                worksheet_id= 1
-            )
-        )
-
-        from cluster.api.user import TEST_EXPRESSION_PICKLE_PATH, TEST_XY_PATH, TEST_CLUSTER_ID_PATH, TEST_MARKERS_DICT_PATH
-
-        db.session.add(
-            UserExpression(
-                id=1,
-                name="test",
-                species="test",
-                organ="test",
-                place=TEST_EXPRESSION_PICKLE_PATH
-            )
-        )
-        
-        db.session.add(
-            ExpDimReduct(
-                name= "umap",
-                place=TEST_XY_PATH,
-                expression_id=1
-            )
-        )
-        
-        db.session.add(
-            ExpCluster(
-                id=1,
-                name="lovain",
-                place=TEST_CLUSTER_ID_PATH,
-                expression_id=1
-            )
-        )
-        
-        db.session.add(
-            ClusterGeneTable(
-                cluster_id=1,
-                place=TEST_MARKERS_DICT_PATH
-            )
-        )
-       
-        db.session.commit()
-
-        """
-
-
 def setup_logger(logfile='../logging.conf'):
     logging_conf_path = os.path.normpath(os.path.join(os.path.dirname(__file__), logfile))
     logging.config.fileConfig(logging_conf_path)
@@ -127,10 +50,6 @@ def create_app(extra_config={}):
 
     app.config.update(extra_config)
 
-    testing = app.config["TESTING"]
-
-    if not testing:
-        setup_logger()
 
     CORS(app)
     Babel(app)
@@ -143,8 +62,17 @@ def create_app(extra_config={}):
     with app.app_context():
         db.create_all()
         user_manager = UserManager(app, db, User)
-        if not testing:
-            add_default_user(user_manager)
+
+        if not app.testing:
+            setup_logger()
+            user = {
+                "email": "test@test.com",
+                "password": user_manager.hash_password("testT1234"),
+                "email_confirmed_at": datetime.datetime.utcnow(),
+
+            }
+            default_entries.append((User, user))
+            add_entries(db.session, default_entries)
 
     return app
 
