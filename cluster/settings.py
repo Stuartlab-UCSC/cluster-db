@@ -1,15 +1,20 @@
 import os
 
 
-# Used for default location of database
-CLUSTERDB = os.path.split(
+def directory_back_from_this_file():
+    return os.path.split(
         os.path.split(os.path.abspath(__file__))[0]
-    )[0] + "cluster.db"
+    )[0]
+
+# Used for default location of database
+CLUSTERDB = os.path.join(directory_back_from_this_file(), "cluster.db")
+USERDB = os.path.join(directory_back_from_this_file(), "cluster_user.db")
 
 # Flask settings
 FLASK_DEBUG = True
 SECRET_KEY = "super secret key"
 SQLALCHEMY_DATABASE_URI="sqlite:///" + CLUSTERDB
+SQLALCHEMY_USER_DATABASE_URI="sqlite:///" + USERDB
 SQLALCHEMY_TRACK_MODIFICATIONS = False
 # Flask-Restplus settings
 RESTPLUS_SWAGGER_UI_DOC_EXPANSION = 'list'

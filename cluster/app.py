@@ -55,6 +55,9 @@ def create_app(extra_config={}):
     Babel(app)
 
     app.url_map.strict_slashes = False
+    app.config['SQLALCHEMY_BINDS'] = \
+        {"users": app.config["SQLALCHEMY_USER_DATABASE_URI"]}
+
     initialize_blueprint(app)
 
     db.init_app(app)
