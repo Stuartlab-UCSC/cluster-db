@@ -2,23 +2,18 @@
 Provides access to database through sqlalchemy core objects (sqlalchemy.sql.schema.Table) and SQL alchemy ORMs
 """
 from cluster.database import db
-from sqlalchemy import Column, Integer, String, Float, ForeignKey
+from sqlalchemy import Column, Integer, String, ForeignKey, Float
 from sqlalchemy.orm import relationship
-
-from sqlalchemy.ext.declarative import declarative_base
 from cluster.auth.query import HasRole
 
-
 class Dataset(HasRole, db.Model):
-
     __tablename__ = "dataset"
-
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String, nullable=False, unique=True)
     uuid = Column(String)
     species = Column(String)
     organ = Column(String)
-    cell_count = Column(Integer), default=0
+    cell_count = Column(Integer, default=0)
     disease = Column(String)
     platform = Column(String)
     description = Column(String)
@@ -27,7 +22,7 @@ class Dataset(HasRole, db.Model):
     cluster_solutions = relationship("ClusterSolution", backref="dataset")
 
     def __repr__(self):
-     return "<User(name=%s, species=%s, organ=%s, cell count=%d, data source url=%s )>" % \
+     return "<Dataset(name=%s, species=%s, organ=%s, cell count=%d, data source url=%s )>" % \
             (self.name, self.species, self.organ, self.cell_count, self.data_source_url)
 
 
@@ -43,7 +38,7 @@ class ClusterSolution(db.Model):
     method_url = Column(String)
     method_parameters = Column(String)
     scores = Column(String)
-    analyst  = Column(String)
+    analyst = Column(String)
     likes = Column(Integer)
     expression_hash = Column(String)
     dataset_id = Column(Integer, ForeignKey("dataset.id"), nullable=False)

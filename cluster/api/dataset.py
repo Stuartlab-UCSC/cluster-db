@@ -1,10 +1,8 @@
 from flask_restplus import fields, Resource
 from flask_user import current_user
 from cluster.api.restplus import api
-#from cluster.api.cluster_solution import ca_model
-#from cluster.database.access import all_datasets, cluster_solutions, \
-#    cell_assignments, cluster_solution_id
-from cluster.database.dataset import all_datasets
+from cluster.api.cluster_solution import ca_model
+from cluster.api.dbquery import all_datasets, cluster_solutions, cluster_solution_id, cell_assignments
 
 ns = api.namespace('dataset')
 
@@ -29,7 +27,7 @@ class DataSetList(Resource):
         """A list of data sets: name, description, and id."""
         return all_datasets()
 
-'''
+
 @ns.route('/<int:id>/cluster-solutions')
 @ns.param('id', 'Data set identifier')
 class ClusterSolsForDataSet(Resource):
@@ -37,13 +35,7 @@ class ClusterSolsForDataSet(Resource):
     @ns.response(200, 'cluster solutions')
     def get(self, id):
         """A list of available cluster solutions for a data set: name, method and id."""
-
-        return cluster_solutions(
-            tables.cluster_solution,
-            tables.dataset,
-            id,
-            engine.connect()
-        )
+        return cluster_solutions(id)
 
 
 @ns.route('/<string:dataset_name>/cluster-solution/<string:cluster_solution_name>/cell-assignments')
@@ -56,18 +48,8 @@ class CellAssignmentsForAClusterSolution(Resource):
         """The dataset cell assignments for a cluster solution"""
 
         cs_id = cluster_solution_id(
-            tables.dataset,
             dataset_name,
-            tables.cluster_solution,
             cluster_solution_name,
-            engine.connect()
         )
 
-        return cell_assignments(
-            tables.cell_assignment,
-            tables.cluster,
-            tables.cluster_solution,
-            cs_id,
-            engine.connect()
-        )
-'''
+        return cell_assignments(cs_id)

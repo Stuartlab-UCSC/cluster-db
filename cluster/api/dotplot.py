@@ -1,6 +1,6 @@
 from flask_restplus import fields, Resource
 from cluster.api.restplus import api
-from cluster.api.dbquery import all_for_marker, all_for_marker_dotplot, cluster_similarity
+from cluster.api.dbquery import all_for_marker, all_for_marker_dotplot
 ns = api.namespace('dotplot')
 
 # marker table fields we are exposing as requestable values.
@@ -146,4 +146,4 @@ class ClusterSolution(Resource):
     @ns.response(200, 'cluster solution similarity')
     def get(self, cluster_solution_name, gene_name):
         """A list of clustering solutions for a given marker and marker value."""
-        return cluster_similarity(cluster_solution_name, gene_name)
+        raise ValueError("endpoint has been discontinued.")

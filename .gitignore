@@ -1,8 +1,12 @@
 # pycharm
 .idea*
 
+# server data
+/users/*
+
 # sqllite database file
 cluster.db
+cluster_user.db
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

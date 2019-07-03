@@ -2,8 +2,7 @@
 # A generic read-only SQL query.
 import sqlite3
 from cluster.database.pre_sqlAlchemy import get_db
-import cluster.database.error as err
-from cluster.database.error import Not_found, Updates_not_allowed
+from cluster.database.error import Not_found, Updates_not_allowed, abort_database, abort_not_found, updates_not_allowed
 import cluster.database.tsv as tsv
 
 
@@ -27,13 +26,13 @@ def query(query):
         cursor = get_db().execute(query)
         return tsv.from_rows(cursor.fetchall())
     except Updates_not_allowed as e:
-        return err.updates_not_allowed(e)
+        return updates_not_allowed(e)
     except Not_found as e:
-        return err.abort_not_found(e)
+        return abort_not_found(e)
     except sqlite3.IntegrityError as e:
-        return err.abort_database(e)
+        return abort_database(e)
     except sqlite3.ProgrammingError as e:
-        return err.abort_database(e)
+        return abort_database(e)
     except sqlite3.OperationalError as e:
-        return err.abort_database(e)
+        return abort_database(e)
 
