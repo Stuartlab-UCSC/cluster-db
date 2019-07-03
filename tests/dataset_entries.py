@@ -1,7 +1,6 @@
 
 from cluster.database.data_models import Dataset, ClusterSolution, Cluster, CellAssignment
 
-# (Table, dict) entires
 entries=[]
 
 one_dataset = {

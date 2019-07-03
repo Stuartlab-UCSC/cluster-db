@@ -3,7 +3,6 @@
 
 
 import pytest
-import os
 
 TEST_USER="test@test.com"
 
@@ -28,6 +27,7 @@ from cluster.database import db as the_db
 # Initialize the Flask-App with test-specific settings
 the_app = create_app(dict(
     SQLALCHEMY_DATABASE_URI="sqlite://",
+    SQLALCHEMY_USER_DATABASE_URI="sqlite://",
     TESTING=True,
     SQLALCHEMY_TRACK_MODIFICATIONS=False,
     USER_EMAIL_SENDER_EMAIL="test@tests.com",
@@ -40,7 +40,7 @@ the_app = create_app(dict(
     WTF_CSRF_ENABLED=False,
     LOGIN_DISABLED=False,
     MAIL_SUPPRESS_SEND=True,
-    SERVER_NAME="localhost.localdomain"
+    SERVER_NAME="localhost.localdomain",
 
 ))
 

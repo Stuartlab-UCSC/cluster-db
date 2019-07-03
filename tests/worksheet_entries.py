@@ -40,7 +40,8 @@ expression = {
     "species": "test",
     "organ": "test",
     "name": "test",
-    "place": tmpplace("expression")
+    "place": tmpplace("expression"),
+    "worksheet_id":1
 }
 
 entries.append(

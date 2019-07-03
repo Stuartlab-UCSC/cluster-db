@@ -29,12 +29,16 @@ def gen_xy(n_samples=100):
     return pd.DataFrame(npfloats(n_samples, 2), columns=["x", "y"])
 
 
-def gen_expression(n_samples=100, n_genes=100):
-    return pd.DataFrame(npfloats(n_samples, n_genes))
+def gen_expression(n_samples=100, n_genes=1000):
+    genes = [str(name) for name in range(n_genes)]
+    return pd.DataFrame(npfloats(n_genes, n_samples), index=genes)
 
 
 def gen_cluster(n_samples=100, n_clusters=10):
-    return pd.DataFrame(npints(0,n_clusters, n_samples), columns=["test"])
+    df = pd.DataFrame(npints(0, n_clusters, n_samples), columns=["test"])
+    df = df.astype({"test": str})
+
+    return df
 
 
 def gen_gene_table(n_clusters=10, n_genes=100, n_genes_per_cluster=10):
@@ -42,8 +46,9 @@ def gen_gene_table(n_clusters=10, n_genes=100, n_genes_per_cluster=10):
     gene_names = npints(0, n_genes, n_entries)
     clusters = npints(0, n_clusters, n_entries)
     size, color = npfloats(2, n_entries)
-    df = pd.DataFrame([gene_names, clusters, size, color], index=["gene", "cluster", "size", "color"])
-    return df.transpose()
+    df = pd.DataFrame([gene_names, clusters, size, color], index=["gene", "cluster", "size", "color"]).transpose()
+    df = df.astype({"cluster": str, "gene": str})
+    return df
 
 
 func_dict = {
