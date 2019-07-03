@@ -53,6 +53,8 @@ class Worksheet(Resource):
 
         if owns_data:
             worksheet = WorksheetUser.get_worksheet(current_user, worksheet)
+            print(worksheet.place)
+            print(grab_saved_worksheet(worksheet))
             return grab_saved_worksheet(worksheet)
 
         return abort(401, "User emails did not match, currently users may only access their own data.")
@@ -392,11 +394,11 @@ def grab_saved_worksheet(worksheet):
         path = worksheet.place
         resp = read_json_gzipd(path)
 
-    except ValueError:
-        return abort(404, "The user has not saved a worksheet by this name.")
+        if resp is None:
+            return abort(404, "worksheet state was empty")
 
     except FileNotFoundError:
-        resp = None
+        return abort(404, "User worksheet not saved")
 
     return resp
 
