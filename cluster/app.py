@@ -3,7 +3,9 @@
 import logging.config
 import os
 from cluster import settings
-from flask import Flask, Blueprint
+from flask import Flask, Blueprint, url_for
+from flask_restplus import Api
+
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from cluster.auth.init import AuthConfigClass
@@ -34,6 +36,16 @@ logging.config.fileConfig(logging_conf_path)
 log = logging.getLogger(__name__)
 apiBlueprint = 0
 userManager = 0
+
+# monkey patch so that /swagger.json is served over https
+# grabbed from https://github.com/noirbizarre/flask-restplus/issues/54
+if os.environ.get('HTTPS'):
+    @property
+    def specs_url(self):
+        """Monkey patch for HTTPS"""
+        return url_for(self.endpoint('specs'), _external=True, _scheme='https')
+
+    Api.specs_url = specs_url
 
 
 def configure_app(flask_app, test_config):
