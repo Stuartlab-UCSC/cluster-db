@@ -1,6 +1,7 @@
 """
 A mock up of future user protected endpoints.
 """
+import os
 from flask import send_file, request, url_for
 from flask_restplus import Resource
 from cluster.api.restplus import api
@@ -15,12 +16,12 @@ matplotlib.use("Agg")
 
 
 # These are all the global variables that will need access functions once the data serves more than worksheet.
-TEST_STATE_PATH = "./users/test/test_state.json.gzip"
-TEST_CLUSTER_TABLE_PATH = "./users/test/clusters_table.tab"
-TEST_MARKERS_DICT_PATH = "./users/test/krigstien6000k_markers.json.gzip"
-TEST_EXPRESSION_PICKLE_PATH = "./users/test/exp.pi"
-TEST_CLUSTER_ID_PATH = "./users/test/louvain:res:1.50.pi"
-TEST_XY_PATH = "./users/test/X_umap.pi"
+TEST_STATE_PATH = "../users/test/test_state.json.gzip"
+TEST_CLUSTER_TABLE_PATH = "../users/test/clusters_table.tab"
+TEST_MARKERS_DICT_PATH = "../users/test/krigstien6000k_markers.json.gzip"
+TEST_EXPRESSION_PICKLE_PATH = "../users/test/exp.pi"
+TEST_CLUSTER_ID_PATH = "../users/test/louvain:res:1.50.pi"
+TEST_XY_PATH = "../users/test/X_umap.pi"
 DEFAULT_CLUSTER_SOLUTION="1"
 DEFAULT_SCATTER_TYPE="umap"
 # The cluster solution name matches what is int the cluster-id file and a key inside the markers.json.gzip
@@ -184,19 +185,25 @@ def generate_worksheet(user, worksheet):
         attr_name="specificity"
     )
 
+    scheme = 'http'
+    if os.environ.get('HTTPS'):
+        scheme = 'https'
+    
     gene_table_url = url_for(
         'api.user_gene_table',
         user=user,
         worksheet=worksheet,
         cluster_name=DEFAULT_CLUSTER_SOLUTION,
-        _external=True
+        _external=True,
+        _scheme=scheme
     )
 
     scatterplot_url = url_for(
         'api.user_cluster_scatterplot',
         user=user, worksheet=worksheet,
         type=DEFAULT_SCATTER_TYPE,
-        _external=True
+        _external=True,
+        _scheme=scheme
     )
 
     resp = {

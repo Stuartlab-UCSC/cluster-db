@@ -52,7 +52,7 @@ def configure_app(flask_app, test_config):
     if test_config is None:
         # load the instance config, if it exists, when not testing
         flask_app.config.from_mapping(
-            #SERVER_NAME = settings.FLASK_SERVER_NAME,
+            #SERVER_NAME = settings.SERVER_NAME,
             RESTPLUS_VALIDATE= settings.RESTPLUS_VALIDATE,
             RESTPLUS_MASK_SWAGGER= settings.RESTPLUS_MASK_SWAGGER,
             DATABASE= settings.DATABASE, # for pre_sqlAlchemy.py

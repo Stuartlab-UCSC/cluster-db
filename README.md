@@ -5,11 +5,15 @@ RestAPI for single cell clusters.
 
 You will need to have Python3.7 and Git installed on your machine.
 
-First clone the repo somewhere on your disk.
+Define an environment variable to be the root of your install.
 
-`cd /path/to/my/workspace/`
+`export CLUSTERDB=/some-path`
 
-`git clone https://github.com/terraswat/clusterDb`
+Clone the repository.
+
+`cd $CLUSTERDB`
+
+`git clone https://github.com/stuartlab-UCSC/cluster-db`
 
 
 Create a virtual environment and install the requirements.
@@ -25,33 +29,37 @@ Create a virtual environment and install the requirements.
 `deactivate`
 
 
-Now add configuration environment variables to the script in `./bin/start`. Examples of 
-environmental variable set up are below:
+Now add a configuration file at `$CLUSTERDB/clusterDbConfig.sh`, something like the 
+below:
 
+Production running in background:
 ```
-export CLUSTERDB=/data/cdb
-export HOST=hexcalc.ucsc.edu
+export BACKGROUND=1
+export HOST=localhost
 export PORT=9000
+export HTTPS=1
+export VIEWER_URL=https://cellatlas.ucsc.edu/
 export WWW_SOCKET=127.0.0.1:$PORT
+source /<protected-dir>/clusterDbSecret
+source $CLUSTERDB/env/bin/activate
 ```
 
-or using the localhost in a dev environment:
-
+or using the localhost in a dev environment running in foreground:
 ```
-export CLUSTERDB=/Users/swat/dev/cdb
+export FLASK_DEBUG=True
+export FLASK_ENV=development
 export HOST=localhost
 export PORT=5555
+export VIEWER_URL=http://localhost:3000/
 export WWW_SOCKET=127.0.0.1:$PORT
-```
-If you want to use https, also add environment variables something like:
-```
-export HTTPS=1
-export CERTS=/data/certs
-export CERT=$CERTS/server.crt
-export CA=$CERTS/chain.crt
-export KEY=$CERTS/server.key
+source $CLUSTERDB/env/bin/activate
 ```
 
-Now you're ready to put the app in development mode and start it up.
+Now you're ready to start the app.
 
 `bin/start`
+
+Logins: to use the authentication and authorization functions, a secret string must be 
+accessible in the application. One way to do this is to put the string in a protected directory
+and source that file from your configuration file.
+

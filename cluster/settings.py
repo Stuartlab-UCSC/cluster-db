@@ -2,10 +2,10 @@
 import os
 
 # Flask settings
-FLASK_SERVER_NAME = 'localhost:5555'
-FLASK_DEBUG = True  # Do not use debug mode in production
+FLASK_DEBUG = os.environ.get('FLASK_DEBUG')
+#SERVER_NAME = os.environ.get('FLASK_SERVER_NAME')
 
-# Flask-Restplus settings
+# Restplus settings
 RESTPLUS_SWAGGER_UI_DOC_EXPANSION = 'list'
 RESTPLUS_VALIDATE = True
 RESTPLUS_MASK_SWAGGER = False

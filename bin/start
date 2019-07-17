@@ -1,20 +1,17 @@
 # !/usr/bin/env bash
 # start
 
-# Install-specific
-export CLUSTERDB=/Users/swat/dev/cdb
-export FLASK_ENV=development
-export HOST=localhost
-export PORT=5555
-export WWW_SOCKET=127.0.0.1:$PORT
-export VIEWER_URL=http://localhost:3000/
+# NOTE: The env var CLUSTERDB must point to the directory
+#       just above the clusterDb directory before running this script.
 
-# Install-independent
+# The install-specific configuration.
+source $CLUSTERDB/clusterDbConfig.sh
+
+# The Install-independent start-up.
 # TODO build a real production server
-source $CLUSTERDB/env/bin/activate
 export FLASK_APP=cluster
-if [ $HTTPS ]; then
-    nohup flask run -h $HOST -p $PORT --with-threads --cert $CERT --key $KEY &> log &
+if [ $BACKGROUND ]; then
+    nohup flask run -h $HOST -p $PORT --with-threads &> log &
 else
-    flask run -h $HOST -p $PORT --with-threads $USE_HTTPS
+    flask run -h $HOST -p $PORT --with-threads
 fi
