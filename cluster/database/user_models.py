@@ -8,6 +8,7 @@ class Role(Model):
     id = Column(Integer(), primary_key=True)
     name = Column(String(80), unique=True)
     description = Column(String(255))
+    members = relationship('User', secondary='user_roles')
 
 
 class User(Model, UserMixin):
