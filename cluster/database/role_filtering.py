@@ -2,7 +2,8 @@
 # Authorization query listener that listens to each query and applies a filter
 # so that the user only sees data containing a role she has.
 
-from flask_user import current_user
+# The code is currently not used so is commented out, and could be possibly used in the future...
+'''
 from sqlalchemy import event
 from sqlalchemy import inspect
 from sqlalchemy.orm.query import Query
@@ -65,5 +66,5 @@ class RoleOption(MapperOption):
     propagate_to_loaders = True
 
     def __init__(self, user_roles):
-        self.user_roles = user_roles
-
+        self.user_roles = user_rolescd
+'''

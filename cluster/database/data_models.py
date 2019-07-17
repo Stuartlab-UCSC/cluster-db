@@ -4,9 +4,8 @@ Provides access to database through sqlalchemy core objects (sqlalchemy.sql.sche
 from cluster.database import db
 from sqlalchemy import Column, Integer, String, ForeignKey, Float
 from sqlalchemy.orm import relationship
-from cluster.auth.query import HasRole
 
-class Dataset(HasRole, db.Model):
+class Dataset(db.Model):
     __tablename__ = "dataset"
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String, nullable=False, unique=True)
