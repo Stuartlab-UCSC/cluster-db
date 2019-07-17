@@ -9,9 +9,11 @@ scp $FROMTAR $LOCALTAR
 
 cd $CLUSTERDB
 echo "moving old code to clusterDb.old"
+rm -rf clusterDb.old
 mv clusterDb clusterDb.old
 echo "untarring..."
 tar -xf $LOCALTAR -C $CLUSTERDB
 
 echo "kill old process and issue 'start'"
+#pgrep -U $USER | grep $CLUSTERDB/clusterDb/cluster
 ps -eaf | grep flask

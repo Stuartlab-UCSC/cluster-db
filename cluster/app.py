@@ -1,8 +1,14 @@
 import logging.config
 import os
-import datetime
+from cluster import settings
+from flask import Flask, Blueprint, url_for
+from flask_restplus import Api
 
-from flask import Flask, Blueprint
+from flask_cors import CORS
+from flask_sqlalchemy import SQLAlchemy
+from cluster.auth.init import AuthConfigClass
+from flask_admin import Admin
+import datetime
 from flask_babelex import Babel
 from flask_cors import CORS
 from flask_user import UserManager
@@ -21,8 +27,49 @@ from cluster.database.default_entries import entries as default_entries
 from cluster.database.add_entries import add_entries
 from cluster.database.user_models import *
 
-def initialize_blueprint(app):
+# monkey patch so that /swagger.json is served over https
+# grabbed from https://github.com/noirbizarre/flask-restplus/issues/54
+if os.environ.get('HTTPS'):
+    @property
+    def specs_url(self):
+        """Monkey patch for HTTPS"""
+        return url_for(self.endpoint('specs'), _external=True, _scheme='https')
 
+    Api.specs_url = specs_url
+
+
+def configure_app(flask_app, test_config):
+    if test_config is None:
+        # load the instance config, if it exists, when not testing
+        flask_app.config.from_mapping(
+            #SERVER_NAME = settings.SERVER_NAME,
+            RESTPLUS_VALIDATE= settings.RESTPLUS_VALIDATE,
+            RESTPLUS_MASK_SWAGGER= settings.RESTPLUS_MASK_SWAGGER,
+            DATABASE= settings.DATABASE, # for pre_sqlAlchemy.py
+            SQLALCHEMY_DATABASE_URI= "sqlite:///" + settings.DATABASE,
+            SQLALCHEMY_BINDS = {"users": "sqlite:///" + settings.USER_DATABASE},
+            UPLOADS= settings.UPLOADS,
+        )
+        flask_app.config['VIEWER_URL'] = os.environ.get('VIEWER_URL')
+        flask_app.config.from_object(AuthConfigClass)
+        # Doesn't work:
+        #flask_app.config.from_pyfile('config.py', silent=True)
+    else:
+        # load the test config if passed in
+        flask_app.config.from_mapping(test_config)
+        flask_app.config['DEBUG'] = False
+
+    # Ensure the instance folder exists, if we are using one.
+    try:
+        os.makedirs(flask_app.instance_path)
+    except OSError:
+        pass
+
+
+def initialize_blueprint(flask_app):
+    global apiBlueprint
+    if (apiBlueprint):
+        return
     apiBlueprint = Blueprint('api', __name__, url_prefix='')
     api.init_app(apiBlueprint)
 
