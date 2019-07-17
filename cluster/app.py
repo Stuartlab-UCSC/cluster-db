@@ -5,7 +5,6 @@ from flask import Flask, Blueprint, url_for
 from flask_restplus import Api
 
 from flask_cors import CORS
-from flask_sqlalchemy import SQLAlchemy
 from cluster.auth.init import AuthConfigClass
 from flask_admin import Admin
 import datetime
@@ -57,9 +56,15 @@ def configure_app(flask_app, test_config):
     else:
         # load the test config if passed in
         flask_app.config.from_mapping(test_config)
-        flask_app.config['DEBUG'] = False
+    # The authentication/authorization config:
+    flask_app.config.from_object(AuthConfigClass)
+    # SqlAlchemy derived variables:
+    flask_app.config['SQLALCHEMY_DATABASE_URI'] = \
+        "sqlite:///" + flask_app.config['DATABASE']
+    flask_app.config['SQLALCHEMY_BINDS'] = \
+        {"users": "sqlite:///" + flask_app.config['USER_DATABASE']}
 
-    # Ensure the instance folder exists, if we are using one.
+    # Insure the instance folder exists, if we are using one.
     try:
         os.makedirs(flask_app.instance_path)
     except OSError:

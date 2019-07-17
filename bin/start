@@ -1,6 +1,13 @@
 # !/usr/bin/env bash
 # start
 
+# Install-specific
+export CLUSTERDB=/Users/swat/dev/cdb
+export FLASK_ENV=development
+export HOST=localhost
+export PORT=5555
+export SECRET_KEY='justTestingTheFlaskUserEncryption'
+#source '/data/certs/authSecret'
 # NOTE: The env var CLUSTERDB must point to the directory
 #       just above the clusterDb directory before running this script.
 

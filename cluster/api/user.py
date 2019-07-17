@@ -15,17 +15,9 @@ from cluster.database.user_models import WorksheetUser, User, UserExpression, Ex
 import matplotlib
 
 matplotlib.use("Agg")
-"""
-# Starter for determining whether a worksheet is in a particular role.
-# need a get_user_role(user), need a get_worksheet_role(worksheet)
-roles should have view permissions but not same permissions.
-from decorator import decorator
-@decorator
-def has_role(func, *args, **kwargs):
-    print(current_user)
-    print(kwargs)
-    return func(*args, **kwargs)
-"""
+from flask_user import login_required
+
+
 # These are all the global variables that will need access functions once the data serves more than worksheet.
 TEST_STATE_PATH = "../users/test/test_state.json.gzip"
 TEST_CLUSTER_TABLE_PATH = "../users/test/clusters_table.tab"
@@ -45,8 +37,8 @@ ns = api.namespace('user')
 @ns.param('worksheet', 'The name of the worksheet.')
 class Worksheet(Resource):
     # @api.marshal_with(all_markers_model, envelope="resource")
-    @ns.response(200, 'worksheet retrieved')
     @login_required
+    @ns.response(200, 'worksheet retrieved', )
     def get(self, user, worksheet):
         """Retrieve a saved worksheet."""
         owns_data = current_user.email == user

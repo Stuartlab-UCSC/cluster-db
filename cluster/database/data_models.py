@@ -4,21 +4,22 @@ Provides access to database through sqlalchemy core objects (sqlalchemy.sql.sche
 from cluster.database import db
 from sqlalchemy import Column, Integer, String, ForeignKey, Float
 from sqlalchemy.orm import relationship
+from cluster.auth.query import HasRole
 
-
-class Dataset(db.Model):
+class Dataset(HasRole, db.Model):
     __tablename__ = "dataset"
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String, nullable=False, unique=True)
     uuid = Column(String)
     species = Column(String)
     organ = Column(String)
-    cell_count = Column(Integer)
+    cell_count = Column(Integer, default=0)
     disease = Column(String)
     platform = Column(String)
     description = Column(String)
     data_source_url = Column(String)
     publication_url = Column(String)
+    cluster_solutions = relationship("ClusterSolution", backref="dataset")
 
     def __repr__(self):
      return "<Dataset(name=%s, species=%s, organ=%s, cell count=%d, data source url=%s )>" % \

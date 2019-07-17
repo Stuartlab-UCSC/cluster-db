@@ -4,5 +4,8 @@
 echo
 echo
 echo
-source $CLUSTERDB/venv/bin/activate
+source $CLUSTERDB/env/bin/activate
 pytest  -p no:warnings $1
+
+# doesn't work:
+#pytest $1 -W ignore::SADeprecationWarning
