@@ -3,8 +3,8 @@
 
 from flask_user import current_user
 from flask_admin.contrib.sqla import ModelView
-from cluster.database.models import ClusterSolution, Dataset
-from cluster.auth.db_models import User, Role
+from cluster.database.data_models import ClusterSolution, Dataset
+from cluster.database.user_models import User, Role
 
 # To add a batch action, perhaps to add many users to a role:
 # https://flask-admin.readthedocs.io/en/latest/advanced/
