@@ -14,7 +14,7 @@ from flask_user import UserManager
 
 from cluster.api.restplus import api
 from cluster.database import db
-
+from cluster import admin
 from cluster.api.user import ns as user_namespace
 from cluster.api.sql import ns as sql_namespace
 from cluster.api.cluster_solution import ns as cluster_solution_namespace
@@ -113,6 +113,7 @@ def create_app(extra_config={}):
     initialize_blueprint(app)
 
     db.init_app(app)
+    admin.init(app, db)
 
     with app.app_context():
         db.create_all()

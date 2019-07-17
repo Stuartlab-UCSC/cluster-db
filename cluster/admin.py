@@ -5,9 +5,20 @@ from flask_user import current_user
 from flask_admin.contrib.sqla import ModelView
 from cluster.database.data_models import ClusterSolution, Dataset
 from cluster.database.user_models import User, Role
+from flask_admin import Admin
 
 # To add a batch action, perhaps to add many users to a role:
 # https://flask-admin.readthedocs.io/en/latest/advanced/
+
+
+def init(app, db):
+
+    admin = Admin(app, name='CellAtlas Admin', template_mode='bootstrap3')
+    admin.add_view(ClusterSolutionView(ClusterSolution, db.session))
+    admin.add_view(DatasetView(Dataset, db.session))
+    admin.add_view(UserView(User, db.session))
+    admin.add_view(RoleView(Role, db.session))
+
 
 class BaseView(ModelView):
     can_export = True
@@ -20,7 +31,9 @@ class BaseView(ModelView):
             return False
         return current_user.has_roles('admin')
 
+
 class ClusterSolutionView(BaseView):
+
     list = ('id', 'name', 'description', 'method',
         'method_implementation', 'method_url', 'method_parameters', 'scores',
         'analyst', 'likes', 'dataset_id')
@@ -28,21 +41,27 @@ class ClusterSolutionView(BaseView):
     column_list = list
     column_searchable_list = list
 
+
 class DatasetView(BaseView):
-    list = ('id', 'role', 'name', 'uuid', 'species', 'organ',
+
+    list = ('id', 'name', 'uuid', 'species', 'organ',
         'cell_count', 'disease', 'platform', 'description', 'data_source_url',
          'publication_url')
     column_filters = list
     column_list = list
     column_searchable_list = list
 
+
 class RoleView(BaseView):
+
     list = ('id', 'name', 'members')
     column_filters = list
     column_list = list
     column_searchable_list = ('id', 'name')
 
+
 class UserView(BaseView):
+
     list = ('id', 'email', 'roles', 'active', 'email_confirmed_at')
     can_create = False
     column_filters = list
@@ -58,9 +77,3 @@ class UserView(BaseView):
 
     def __str__(self):
         return self.name  # shows role names rather than IDs
-
-def admin_init(db, admin):
-    admin.add_view(ClusterSolutionView(ClusterSolution, db.session))
-    admin.add_view(DatasetView(Dataset, db.session))
-    admin.add_view(UserView(User, db.session))
-    admin.add_view(RoleView(Role, db.session))
