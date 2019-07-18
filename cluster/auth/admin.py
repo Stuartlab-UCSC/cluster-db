@@ -41,6 +41,7 @@ class RoleView(BaseView):
     column_filters = list
     column_list = list
     column_searchable_list = ('id', 'name')
+    form_excluded_columns = ('users')
 
 class UserView(BaseView):
     list = ('id', 'email', 'roles', 'active', 'email_confirmed_at')

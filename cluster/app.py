@@ -110,7 +110,7 @@ def initialize_app(flask_app, test_config):
 
 
 def create_app(test_config=None):
-    CORS(app)
+    CORS(app, supports_credentials=True)
     app.url_map.strict_slashes = False
     initialize_app(app, test_config)
 
