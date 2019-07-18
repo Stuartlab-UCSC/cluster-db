@@ -4,6 +4,8 @@ A mock up of future user protected endpoints.
 import os
 from flask import send_file, request, url_for
 from flask_restplus import Resource
+from flask_user import current_user
+import cluster.auth.accounts as auth
 from cluster.api.restplus import api
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -34,11 +36,18 @@ ns = api.namespace('user')
 @ns.param('worksheet', 'The name of the worksheet.')
 class Worksheet(Resource):
     # @api.marshal_with(all_markers_model, envelope="resource")
+    #@login_required # does not update client with user info
     @ns.response(200, 'worksheet retrieved', )
     def get(self, user, worksheet):
+        print('Worksheet.get: current_user:', current_user)
+        print('Worksheet.get: current_user.is_authenticated:',
+            current_user.is_authenticated)
         """Retrieve a saved worksheet."""
-        resp = grab_saved_worksheet(user, worksheet) or generate_worksheet(user, worksheet)
-        return resp
+        if (current_user.is_authenticated):
+            resp = grab_saved_worksheet(user, worksheet) or generate_worksheet(user, worksheet)
+            return resp
+        else:
+            return auth.unauthorized_view(Resource)
 
     @ns.response(200, 'worksheet received')
     def post(self, user, worksheet):

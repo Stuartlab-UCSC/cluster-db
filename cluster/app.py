@@ -8,13 +8,11 @@ from flask_restplus import Api
 
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
+from cluster.auth.accounts import auth_accounts_init
 from cluster.auth.init import AuthConfigClass
 from flask_admin import Admin
 from flask_babelex import Babel
-from flask_user import UserManager
-from cluster.auth.db_models import User
 from cluster.auth.accounts import auth_temporary_account
-from cluster.auth.routes import auth_routes
 from cluster.auth.admin import admin_init
 from cluster.api.sql import ns as sql_namespace
 from cluster.api.restplus import api
@@ -108,11 +106,7 @@ def initialize_app(flask_app, test_config):
 
     with flask_app.app_context():
         db.create_all()
-        global userManager
-        if (not userManager):
-            userManager = UserManager(flask_app, db, User)
-            auth_temporary_account(flask_app, db, userManager)
-            auth_routes(flask_app, db)
+        auth_accounts_init(flask_app, db)
 
 
 def create_app(test_config=None):
