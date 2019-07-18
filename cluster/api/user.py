@@ -39,20 +39,21 @@ class Worksheet(Resource):
     #@login_required # does not update client with user info
     @ns.response(200, 'worksheet retrieved', )
     def get(self, user, worksheet):
-        print('Worksheet.get: current_user:', current_user)
-        print('Worksheet.get: current_user.is_authenticated:',
-            current_user.is_authenticated)
         """Retrieve a saved worksheet."""
-        if (current_user.is_authenticated):
-            resp = grab_saved_worksheet(user, worksheet) or generate_worksheet(user, worksheet)
-            return resp
-        else:
+        
+        if not current_user.is_authenticated:
             return auth.unauthorized_view(Resource)
+            
+        resp = grab_saved_worksheet(user, worksheet) or generate_worksheet(user, worksheet)
+        return resp
 
     @ns.response(200, 'worksheet received')
     def post(self, user, worksheet):
         """Save a worksheet"""
 
+        if not current_user.is_authenticated:
+            return auth.unauthorized_view(Resource)
+        
         if request.get_json() is None:
             raise ValueError("json state representation required in body of request")
 
@@ -68,6 +69,9 @@ class GeneTable(Resource):
     @ns.response(200, 'tab delimited genes per cluster file', )
     def get(self, user, worksheet, cluster_name):
         """Grab gene metrics for a specified cluster."""
+
+        if not current_user.is_authenticated:
+            return auth.unauthorized_view(Resource)
 
         # Make the table and then throw it in a byte buffer to pass over.
         markers_file_name=TEST_MARKERS_DICT_PATH
@@ -97,6 +101,9 @@ class AddGene(Resource):
     @ns.response(200, 'Color by and size by as rows and columns as clusters', )
     def get(self, user, worksheet, color_by, size_by, gene_name):
         """Grab color and size gene metrics for a specified gene."""
+        
+        if not current_user.is_authenticated:
+            return auth.unauthorized_view(Resource)
 
         # Make the table and then throw it in a byte buffer to pass over.
         markers_file_name = TEST_MARKERS_DICT_PATH
@@ -126,6 +133,10 @@ class GeneScatterplot(Resource):
     @ns.response(200, 'png scatterplot image')
     def get(self, user, worksheet, type, gene):
         """A png of a scatter plot colored by a genes value"""
+        
+        if not current_user.is_authenticated:
+            return auth.unauthorized_view(Resource)
+
         cluster = read_cluster(user, worksheet)
         xys = read_xys(user, worksheet)
 
@@ -148,6 +159,9 @@ class ClusterScatterplot(Resource):
     @ns.response(200, 'png scatterplot image')
     def post(self, user, worksheet, type):
         """A png scatterplot with clusters colored by json color map."""
+
+        if not current_user.is_authenticated:
+            return auth.unauthorized_view(Resource)
 
         # Generate the scatter plot on the fly.
         cluster = read_cluster(user, worksheet)
