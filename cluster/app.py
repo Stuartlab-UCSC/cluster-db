@@ -71,13 +71,15 @@ def create_app(config={}):
     app.url_map.strict_slashes = False
     app.config['SQLALCHEMY_BINDS'] = \
         {"users": app.config["SQLALCHEMY_USER_DATABASE_URI"]}
-
+    from cluster.api.auth import auth_routes
+    auth_routes(app)
     initialize_blueprint(app)
 
     db.init_app(app)
     admin.init(app, db)
 
     with app.app_context():
+        #auth_routes(app)
         db.create_all()
         user_manager = UserManager(app, db, User)
 

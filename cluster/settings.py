@@ -9,7 +9,7 @@ def directory_back_from_this_file():
 # Used for default location of database
 CLUSTERDB = os.path.join(directory_back_from_this_file(), "cluster.db")
 USERDB = os.path.join(directory_back_from_this_file(), "cluster_user.db")
-
+VIEWER_URL= os.environ.get("VIEWER_URL", "localhost:3000")
 USER_DIRECTORY= os.environ.get("USER_DIRECTORY")
 # Flask settings
 FLASK_DEBUG = os.environ.get('FLASK_DEBUG')
@@ -76,14 +76,14 @@ USER_EMAIL_SENDER_EMAIL = '"UCSC Cell Atlas" <hexmap@ucsc.edu>'
 USER_EDIT_USER_PROFILE_URL = '/user/change-password'
 
 # Endpoints
-#VIEWER_URL="localhost:3000"
-#USER_AFTER_CHANGE_PASSWORD_ENDPOINT = 'home'
-#USER_AFTER_CONFIRM_ENDPOINT = 'user.login'
-#USER_AFTER_FORGOT_PASSWORD_ENDPOINT = 'home'
-#USER_AFTER_LOGIN_ENDPOINT = VIEWER_URL
-#USER_AFTER_LOGOUT_ENDPOINT = 'home'
-#USER_AFTER_REGISTER_ENDPOINT = 'home'
-#USER_AFTER_RESEND_EMAIL_CONFIRMATION_ENDPOINT = 'home'
-#USER_AFTER_RESET_PASSWORD_ENDPOINT = 'home'
-#USER_UNAUTHENTICATED_ENDPOINT = 'user.login'
-#USER_UNAUTHORIZED_ENDPOINT = 'unauthorized'
+
+USER_AFTER_CHANGE_PASSWORD_ENDPOINT = 'home'
+USER_AFTER_CONFIRM_ENDPOINT = 'user.login'
+USER_AFTER_FORGOT_PASSWORD_ENDPOINT = 'home'
+USER_AFTER_LOGIN_ENDPOINT = 'after_login'
+USER_AFTER_LOGOUT_ENDPOINT = 'after_logout'
+USER_AFTER_REGISTER_ENDPOINT = 'home'
+USER_AFTER_RESEND_EMAIL_CONFIRMATION_ENDPOINT = 'home'
+USER_AFTER_RESET_PASSWORD_ENDPOINT = 'home'
+USER_UNAUTHENTICATED_ENDPOINT = 'user.login'
+USER_UNAUTHORIZED_ENDPOINT = 'unauthorized'
