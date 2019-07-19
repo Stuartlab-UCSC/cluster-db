@@ -59,13 +59,16 @@ class WorksheetUser(SurrogatePK, Model):
     worksheet_id = Column(Integer(), ForeignKey('worksheet.id'))
 
     @classmethod
-    def get_user_worksheets(cls, user_id):
-        return cls.query.filter(cls.user_id == user_id)
+    def get_user_worksheets(cls, user):
+        return cls.query.filter(cls.user_id == user.id)
 
+    @classmethod
+    def get_user_worksheet_names(cls, user):
+        return [CellTypeWorksheet.get_by_id(userws.worksheet_id).name for userws in cls.get_user_worksheets(user)]
 
     @classmethod
     def get_worksheet(cls, user, worksheet_name):
-        user_ws = cls.get_user_worksheets(user.id).filter(CellTypeWorksheet.name == worksheet_name).first()
+        user_ws = cls.get_user_worksheets(user).filter(CellTypeWorksheet.name == worksheet_name).first()
         try:
             worksheet = CellTypeWorksheet.get_by_id(user_ws.worksheet_id)
         except AttributeError:

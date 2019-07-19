@@ -1,5 +1,5 @@
 """
-A mock up of future user protected endpoints.
+Protected user enpoints work accessing cell type worksheets.
 """
 from flask import send_file, request, abort
 from flask_restplus import Resource
@@ -7,10 +7,15 @@ from flask_user import current_user
 from cluster.api.restplus import api
 import matplotlib.pyplot as plt
 import pandas as pd
-
-import io
-from cluster.database.user_models import WorksheetUser, User, UserExpression, ExpCluster, ClusterGeneTable
 import matplotlib
+import io
+from cluster.database.user_models import (
+    WorksheetUser,
+    User,
+    UserExpression,
+    ExpCluster,
+    ClusterGeneTable
+)
 from cluster.user_io import (
     read_markers_df,
     read_saved_worksheet,
@@ -22,11 +27,22 @@ from cluster.user_io import (
 matplotlib.use("Agg")
 ns = api.namespace('user')
 
+
+@ns.route('/worksheets')
+class UserWorksheets(Resource):
+    @ns.response(200, 'worksheet retrieved', )
+    def get(self):
+        """Retrieve a list of available worksheets available to the user """
+        if not current_user.is_authenticated:
+            return abort(403)
+
+        return WorksheetUser.get_user_worksheet_names(current_user)
+
+
 @ns.route('/<string:user>/worksheet/<string:worksheet>')
 @ns.param('user', 'user id')
 @ns.param('worksheet', 'The name of the worksheet.')
 class Worksheet(Resource):
-    # @api.marshal_with(all_markers_model, envelope="resource")
     @ns.response(200, 'worksheet retrieved', )
     def get(self, user, worksheet):
         """Retrieve a saved worksheet."""
