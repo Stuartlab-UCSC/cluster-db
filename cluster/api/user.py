@@ -35,6 +35,7 @@ class UserWorksheets(Resource):
     @ns.response(200, 'worksheet retrieved', )
     def get(self):
         """Retrieve a list of available worksheets available to the user """
+        print(current_user.email)
         if not current_user.is_authenticated:
             return abort(403)
 
@@ -50,7 +51,8 @@ class Worksheet(Resource):
         """Retrieve a saved worksheet."""
         if not current_user.is_authenticated:
             return abort(403)
-
+        print(user)
+        print("#### current user", current_user.email)
         owns_data = current_user.email == user
 
         if owns_data:

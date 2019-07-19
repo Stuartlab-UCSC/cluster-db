@@ -65,7 +65,7 @@ def create_app(config={}):
 
     app.config.update(config)
 
-    CORS(app)
+    CORS(app, supports_credentials=True)
     Babel(app)
 
     app.url_map.strict_slashes = False
