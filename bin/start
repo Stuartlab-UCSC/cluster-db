@@ -5,7 +5,7 @@
 #       just above the clusterDb directory before running this script.
 
 # The install-specific configuration.
-source $CLUSTERDB/../clusterDbConfig.sh
+source $CLUSTERDB/clusterDbConfig.sh
 
 # The Install-independent start-up.
 # TODO build a real production server

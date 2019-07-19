@@ -1,8 +1,8 @@
 # pycharm
 .idea*
 
-# server data
-/users/*
+# machine specific config
+clusterDbConfig.sh
 
 # sqllite database file
 cluster.db
