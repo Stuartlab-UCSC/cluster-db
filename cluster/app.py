@@ -1,12 +1,8 @@
 import logging.config
 import os
-from cluster import settings
 from flask import Flask, Blueprint, url_for
 from flask_restplus import Api
 
-from flask_cors import CORS
-from cluster.auth.init import AuthConfigClass
-from flask_admin import Admin
 import datetime
 from flask_babelex import Babel
 from flask_cors import CORS
@@ -24,7 +20,11 @@ from cluster.api.dotplot import ns as dotplot_namespace
 
 from cluster.database.default_entries import entries as default_entries
 from cluster.database.add_entries import add_entries
-from cluster.database.user_models import *
+
+from cluster.database.user_models import (
+    add_worksheet_entries,
+    User
+)
 
 # monkey patch so that /swagger.json is served over https
 # grabbed from https://github.com/noirbizarre/flask-restplus/issues/54
@@ -37,44 +37,7 @@ if os.environ.get('HTTPS'):
     Api.specs_url = specs_url
 
 
-def configure_app(flask_app, test_config):
-    if test_config is None:
-        # load the instance config, if it exists, when not testing
-        flask_app.config.from_mapping(
-            #SERVER_NAME = settings.SERVER_NAME,
-            RESTPLUS_VALIDATE= settings.RESTPLUS_VALIDATE,
-            RESTPLUS_MASK_SWAGGER= settings.RESTPLUS_MASK_SWAGGER,
-            DATABASE= settings.DATABASE, # for pre_sqlAlchemy.py
-            SQLALCHEMY_DATABASE_URI= "sqlite:///" + settings.DATABASE,
-            SQLALCHEMY_BINDS = {"users": "sqlite:///" + settings.USER_DATABASE},
-            UPLOADS= settings.UPLOADS,
-        )
-        flask_app.config['VIEWER_URL'] = os.environ.get('VIEWER_URL')
-        flask_app.config.from_object(AuthConfigClass)
-        # Doesn't work:
-        #flask_app.config.from_pyfile('config.py', silent=True)
-    else:
-        # load the test config if passed in
-        flask_app.config.from_mapping(test_config)
-    # The authentication/authorization config:
-    flask_app.config.from_object(AuthConfigClass)
-    # SqlAlchemy derived variables:
-    flask_app.config['SQLALCHEMY_DATABASE_URI'] = \
-        "sqlite:///" + flask_app.config['DATABASE']
-    flask_app.config['SQLALCHEMY_BINDS'] = \
-        {"users": "sqlite:///" + flask_app.config['USER_DATABASE']}
-
-    # Insure the instance folder exists, if we are using one.
-    try:
-        os.makedirs(flask_app.instance_path)
-    except OSError:
-        pass
-
-
 def initialize_blueprint(flask_app):
-    global apiBlueprint
-    if (apiBlueprint):
-        return
     apiBlueprint = Blueprint('api', __name__, url_prefix='')
     api.init_app(apiBlueprint)
 
@@ -85,7 +48,7 @@ def initialize_blueprint(flask_app):
     api.add_namespace(sql_namespace)
     api.add_namespace(user_namespace)
 
-    app.register_blueprint(apiBlueprint)
+    flask_app.register_blueprint(apiBlueprint)
 
 
 def setup_logger(logfile='../logging.conf'):
@@ -94,14 +57,13 @@ def setup_logger(logfile='../logging.conf'):
     logging.getLogger(__name__)
 
 
-def create_app(extra_config={}):
+def create_app(config={}):
 
     app = Flask(__name__)
 
     app.config.from_pyfile('settings.py')
 
-    app.config.update(extra_config)
-
+    app.config.update(config)
 
     CORS(app)
     Babel(app)
@@ -122,13 +84,20 @@ def create_app(extra_config={}):
         if not app.testing:
             setup_logger()
             user = {
-                "email": "test@test.com",
-                "password": user_manager.hash_password("testT1234"),
+                "email": "admin@replace.me",
+                "password": user_manager.hash_password("Password1"),
                 "email_confirmed_at": datetime.datetime.utcnow(),
-
             }
+
             default_entries.append((User, user))
             add_entries(db.session, default_entries)
+            add_worksheet_entries(
+                db.session,
+                "admin@replace.me",
+                "pbmc",
+                cluster_name="graphclust",
+                dataset_name="pbmc"
+            )
 
     return app
 
