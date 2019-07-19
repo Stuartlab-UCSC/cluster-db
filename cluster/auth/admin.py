@@ -61,6 +61,7 @@ class UserView(BaseView):
         return self.name  # shows role names rather than IDs
 
 def admin_init(db, admin):
+    return
     admin.add_view(ClusterSolutionView(ClusterSolution, db.session))
     admin.add_view(DatasetView(Dataset, db.session))
     admin.add_view(UserView(User, db.session))
