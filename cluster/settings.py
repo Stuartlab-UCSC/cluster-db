@@ -10,6 +10,7 @@ def directory_back_from_this_file():
 CLUSTERDB = os.path.join(directory_back_from_this_file(), "cluster.db")
 USERDB = os.path.join(directory_back_from_this_file(), "cluster_user.db")
 
+USER_DIRECTORY= os.environ.get("USER_DIRECTORY")
 # Flask settings
 FLASK_DEBUG = os.environ.get('FLASK_DEBUG')
 #SERVER_NAME = os.environ.get('FLASK_SERVER_NAME')
