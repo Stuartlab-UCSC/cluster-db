@@ -39,6 +39,57 @@ def test_get_worksheet_no_login(client, session, user_worksheet_data):
         assert response.status_code == 403
 
 
+def test_get_var_names_login(client, session, user_worksheet_data):
+    with client:
+        add_entries(session, entries)
+        login(client)
+        get_state_url = url_for(
+            "api.user_dotplot_values", user="test@test.com", worksheet="test",var_name="size",genes="37.0,36.0"
+        )
+
+        response = client.get(
+            get_state_url, follow_redirects=True
+        )
+
+        print(response.__dict__)
+
+        assert "text/tsv" in response.content_type
+
+
+
+
+def test_get_worksheets_unauth(client, session, user_worksheet_data):
+
+    with client:
+        add_entries(session, entries)
+        logout(client)
+        get_state_url = url_for(
+            "api.user_user_worksheets"
+        )
+
+        response = client.get(
+            get_state_url
+        )
+
+        assert response.status_code == 403
+
+
+def test_login_and_get_worksheets(client, session, user_worksheet_data):
+
+    with client:
+        add_entries(session, entries)
+        login(client)
+        get_state_url = url_for(
+            "api.user_user_worksheets"
+        )
+
+        response = client.get(
+            get_state_url, follow_redirects=True
+        )
+
+        assert isinstance(response.get_json(), list)
+
+
 def test_login_and_get_worksheet1(client, session, user_worksheet_data):
 
     with client:

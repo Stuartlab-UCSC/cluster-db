@@ -6,7 +6,7 @@ TODO: when used a second time abstract with a CLI
 
 import pandas as pd
 
-from cluster.api.user import gene_table, dataframe_to_str
+from cluster.api.user import gene_table, dataframe_to_str, bubble_table
 import os
 from cluster.database.filename_constants import MARKER_TABLE, EXPRESSION, CLUSTERING, STATE
 import pandas as pd
@@ -83,20 +83,6 @@ def generate_worksheet_state(
     }
     return jdict
 
-
-def bubble_table(marker_df, genes, attr_name):
-    """Creates a size or color table for the worksheet endpoint."""
-    if genes is None or marker_df is None:
-        return None
-
-    bubble_values= marker_df.loc[genes][["cluster", attr_name]]
-    bubble_values = bubble_values.pivot(
-        index="gene",
-        columns="cluster",
-        values="value"
-    )
-
-    return bubble_values
 
 
 def empty_bubble_table(clustering):

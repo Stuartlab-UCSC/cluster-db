@@ -9,6 +9,8 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import matplotlib
 import io
+from cluster.database.user_models import get_all_worksheet_paths
+from cluster.database.filename_constants import MARKER_TABLE
 from cluster.database.user_models import (
     WorksheetUser,
     User,
@@ -136,6 +138,43 @@ class AddGene(Resource):
         buffer = io.StringIO()
         gt = dotplot_values(gene_table, gene=gene_name, color_by=color_by, size_by=size_by)
         gt.to_csv(buffer, sep="\t")
+        buffer.seek(0)
+
+        mem = io.BytesIO()
+        mem.write(buffer.getvalue().encode("utf-8"))
+        mem.seek(0)
+
+        return send_file(
+            mem,
+            mimetype="text/tsv"
+        )
+
+
+@ns.route('/<string:user>/worksheet/<string:worksheet>/var_name/<string:var_name>/genes/<string:genes>')
+@ns.param('user', 'user id')
+@ns.param('worksheet', 'The name of the worksheet.')
+@ns.param('var_name', 'A valid variable name in the gene table')
+@ns.param('genes', 'Comma separated gene names available in the gene table')
+class DotplotValues(Resource):
+    # @api.marshal_with(all_markers_model, envelope="resource")
+    @ns.response(200, 'tab delimited genes per cluster file', )
+    def get(self, user, worksheet, var_name, genes):
+        """Grab gene metrics for a specified cluster."""
+        if not current_user.is_authenticated:
+            return abort(403)
+
+        doesnt_own_data = current_user.email != user
+        if doesnt_own_data:
+            return abort(401, "User emails did not match, currently users may only access their own data.")
+
+        path_dict = get_all_worksheet_paths(user, worksheet)
+        genes = genes.strip().split(",")
+        # Make the table and then throw it in a byte buffer to pass over.
+        markers_df = read_markers_df(path_dict[MARKER_TABLE])
+        table = bubble_table(markers_df, genes, var_name)
+
+        buffer = io.StringIO()
+        table.to_csv(buffer, sep="\t")
         buffer.seek(0)
 
         mem = io.BytesIO()
@@ -335,3 +374,18 @@ def dataframe_to_str(df, index=True):
     buffer.seek(0)
     return buffer.getvalue()
 
+
+def bubble_table(marker_df, genes, attr_name):
+    """Creates a size or color table for the worksheet endpoint."""
+    if genes is None or marker_df is None:
+        return None
+
+    msk = marker_df["gene"].isin(genes).tolist()
+    bubble_values = marker_df.iloc[msk][["gene", "cluster", attr_name]]
+    bubble_values = bubble_values.pivot(
+        index="gene",
+        columns="cluster",
+        values=attr_name
+    )
+
+    return bubble_values
