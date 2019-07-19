@@ -1,5 +1,4 @@
 
-from tests.gen_data import tmpplace
 import datetime
 from cluster.database.user_models import User, UserExpression, ClusterGeneTable, ExpDimReduct, ExpCluster, CellTypeWorksheet, WorksheetUser
 from flask import current_app
@@ -19,7 +18,7 @@ entries.append(
 
 worksheet = {
     "name": "test",
-    "place": tmpplace("state")
+    "place": "state"
 }
 
 entries.append(
@@ -40,7 +39,7 @@ expression = {
     "species": "test",
     "organ": "test",
     "name": "test",
-    "place": tmpplace("expression"),
+    "place": "expression",
     "worksheet_id":1
 }
 
@@ -51,7 +50,7 @@ entries.append(
 dimreduct = {
     "name": "test",
     "expression_id": 1,
-    "place": tmpplace("xys")
+    "place": "xys"
 }
 
 entries.append(
@@ -62,7 +61,7 @@ cluster = {
     "id": 1,
     "name": "test",
     "expression_id": 1,
-    "place": tmpplace("cluster_solution")
+    "place": "cluster_solution"
 }
 
 entries.append(
@@ -70,7 +69,7 @@ entries.append(
 )
 
 gene_table = {
-    "place": tmpplace("gene_table"),
+    "place": "gene_table",
     "cluster_id": 1
 }
 

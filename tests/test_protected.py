@@ -23,7 +23,7 @@ def logout(client):
     assert response.status_code == 200
 
 
-def test_get_worksheet_redirect(client, session, user_worksheet_data):
+def test_get_worksheet_no_login(client, session, user_worksheet_data):
 
     with client:
         add_entries(session, entries)
@@ -36,10 +36,10 @@ def test_get_worksheet_redirect(client, session, user_worksheet_data):
             get_state_url
         )
 
-        assert response.status_code == 302
+        assert response.status_code == 403
 
 
-def test_login_and_get_worksheet(client, session, user_worksheet_data):
+def test_login_and_get_worksheet1(client, session, user_worksheet_data):
 
     with client:
         add_entries(session, entries)
@@ -53,7 +53,6 @@ def test_login_and_get_worksheet(client, session, user_worksheet_data):
         )
 
         assert response.get_json()["simple"] == "json"
-
 
 def test_login_and_save_worksheet(client, session, user_worksheet_data):
 
@@ -79,7 +78,7 @@ def test_login_and_save_worksheet(client, session, user_worksheet_data):
         assert response.get_json()["more complex"] == "json"
 
 
-def test_save_worksheet_redirect(client, session, user_worksheet_data):
+def test_save_worksheet_unauth(client, session, user_worksheet_data):
 
     with client:
         add_entries(session, entries)
@@ -93,10 +92,10 @@ def test_save_worksheet_redirect(client, session, user_worksheet_data):
             worksheet_url, json={"more complex": "json"}
         )
 
-        assert response.status_code == 302
+        assert response.status_code == 403
 
 
-def test_login_and_get_worksheet(client, session, user_worksheet_data):
+def test_login_and_get_gene_table(client, session, user_worksheet_data):
     cluster_name="1.0"
     with client:
         add_entries(session, entries)
@@ -109,13 +108,12 @@ def test_login_and_get_worksheet(client, session, user_worksheet_data):
             get_worksheet_url, follow_redirects=True
         )
         json = response.get_json()
-
         assert json
         assert json["cluster_name"] == cluster_name
-        assert isinstance(json["gene_table"],str)
+        assert isinstance(json["gene_table"], str)
 
 
-def test_get_worksheet_redirect(client, session, user_worksheet_data):
+def test_get_worksheet_unauth(client, session, user_worksheet_data):
     cluster_name="1.0"
     with client:
         add_entries(session, entries)
@@ -128,7 +126,7 @@ def test_get_worksheet_redirect(client, session, user_worksheet_data):
             get_worksheet_url
         )
 
-        assert response.status_code == 302
+        assert response.status_code == 403
 
 
 def test_login_and_get_add_gene(client, session, user_worksheet_data):
@@ -150,7 +148,7 @@ def test_login_and_get_add_gene(client, session, user_worksheet_data):
         assert "text/tsv" in response.content_type
 
 
-def test_get_add_gene_redirect(client, session, user_worksheet_data):
+def test_get_add_gene_unauth(client, session, user_worksheet_data):
     size_by="size"
     color_by="color"
     gene="37.0"
@@ -167,7 +165,8 @@ def test_get_add_gene_redirect(client, session, user_worksheet_data):
         )
 
         assert "text/tsv" not in response.content_type
-        assert response.status_code == 302
+        assert response.status_code == 403
+
 
 
 def test_login_and_get_gene_scatter(client, session, user_worksheet_data):
@@ -184,12 +183,9 @@ def test_login_and_get_gene_scatter(client, session, user_worksheet_data):
             get_add_gene_url, follow_redirects=True
         )
 
-        import pandas as pd
-        df = pd.read_pickle(user_worksheet_data["expression"])
         assert "image" in response.content_type
 
-
-def test_get_gene_scatter_redirect(client, session, user_worksheet_data):
+def test_get_gene_scatter_unauth(client, session, user_worksheet_data):
     gene = "37"
     type_var= "unused"
     with client:
@@ -205,7 +201,7 @@ def test_get_gene_scatter_redirect(client, session, user_worksheet_data):
 
 
         assert "image" not in response.content_type
-        assert response.status_code == 302
+        assert response.status_code == 403
 
 
 def test_login_and_post_gene_categorical(client, session, user_worksheet_data):
@@ -235,7 +231,7 @@ def test_login_and_post_gene_categorical(client, session, user_worksheet_data):
         assert "image" in response.content_type
 
 
-def test_post_gene_categorical_redirect(client, session, user_worksheet_data):
+def test_post_gene_categorical_unauth(client, session, user_worksheet_data):
     type_var="unused"
     n_clusters=10
     import random
@@ -259,4 +255,4 @@ def test_post_gene_categorical_redirect(client, session, user_worksheet_data):
             get_scatter_url, json=colormap
         )
 
-        assert response.status_code == 302
+        assert response.status_code == 403

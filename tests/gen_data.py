@@ -4,10 +4,6 @@ import numpy as np
 import os
 import gzip
 import json
-from tests.settings import TMPDIR
-
-def tmpplace(name, tmpdir=TMPDIR):
-    return os.path.join(tmpdir, name)
 
 @decorator
 def set_seed(func, seed=1, *args, **kwargs):
@@ -70,10 +66,11 @@ def write_json_gzip(path, dictionary):
             json.dumps(dictionary
        ).encode('utf-8'))
 
+from cluster.user_io import save_worksheet
 
 def write_all(tmp_path, funcs=func_dict, jsons={"state": worksheet}):
     [f().to_pickle(os.path.join(tmp_path, name)) for name, f in funcs.items()]
-    filepaths = dict([(name, tmpplace(name)) for name, f in funcs.items()])
-    [write_json_gzip(tmpplace(name), dictionary) for name, dictionary in jsons.items()]
-    filepaths.update(dict([(name, tmpplace(name)) for name, f in jsons.items()]))
+    filepaths = dict([(name, name) for name, f in funcs.items()])
+    [save_worksheet(name, dictionary) for name, dictionary in jsons.items()]
+    filepaths.update(dict([(name, name) for name, f in jsons.items()]))
     return filepaths

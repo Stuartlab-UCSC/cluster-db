@@ -6,8 +6,6 @@ import pytest
 
 TEST_USER="test@test.com"
 
-from tests.settings import TMPDIR
-
 url_genss = [
         ("api.user_worksheet", {"user": "test@test.com", "worksheet": "test"}),
         ("api.user_gene_table", {"user": "test@test.com", "worksheet": "test", "cluster_name": "4"}),
@@ -23,6 +21,7 @@ def url_gens(request):
 
 from cluster.app import create_app
 from cluster.database import db as the_db
+import os
 
 # Initialize the Flask-App with test-specific settings
 the_app = create_app(dict(
@@ -41,7 +40,7 @@ the_app = create_app(dict(
     LOGIN_DISABLED=False,
     MAIL_SUPPRESS_SEND=True,
     SERVER_NAME="localhost.localdomain",
-
+    USER_DIRECTORY = os.path.join(os.path.split(os.path.abspath(__file__))[0], "tmp")
 ))
 
 # Setup an application context (since the tests run outside of the webserver context)
@@ -85,7 +84,8 @@ import shutil
 import os
 from tests.gen_data import write_all
 @pytest.fixture(scope='session')
-def user_worksheet_data(request, tmpdir=TMPDIR):
+def user_worksheet_data(request,app):
+    tmpdir = app.config["USER_DIRECTORY"]
     os.mkdir(tmpdir)
     filepaths = write_all(tmpdir)
     def teardown():
