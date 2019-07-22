@@ -349,6 +349,8 @@ def centroids(xys, cluster):
     both = pd.concat([xys, cluster], axis=1)
     both.columns = ["x", "y", "cluster"]
     cluster_centers = both.groupby("cluster").mean()
+    # Clusters are represented as strings.
+    cluster_centers.index = [str(c) for c in cluster_centers.index]
     return cluster_centers
 
 
