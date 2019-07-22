@@ -171,7 +171,7 @@ def add_worksheet_entries(
 
     alread_there = WorksheetUser.get_user_worksheets(User.get_by_email(user_email))
     if not alread_there:
-        print("akjsdhfkladskfakdsf adding entry")
+        print("adding entry worksheet entry")
         import os
         worksheet_root = os.path.join(user_email, worksheet_name)
         worksheet_path = os.path.join(worksheet_root, STATE)

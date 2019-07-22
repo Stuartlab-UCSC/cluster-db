@@ -99,7 +99,13 @@ class GeneTable(Resource):
 
         # Make the table and then throw it in a byte buffer to pass over.
         gene_table = read_markers_df(path)
-        gene_table = gene_table.iloc[(gene_table["cluster"] == cluster_name).tolist()]
+        msk = (gene_table["cluster"] == cluster_name).tolist()
+
+        gene_table = gene_table.iloc[msk]
+        cluster_not_there = gene_table.shape[0] == 0
+        if cluster_not_there:
+            abort(422, "The cluster requested has no values in the gene table")
+
         gene_table = gene_table.drop("cluster", axis=1)
 
         buffer = io.StringIO()
