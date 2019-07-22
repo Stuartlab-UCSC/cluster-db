@@ -9,7 +9,7 @@ def auth_routes(app):
     @app.route('/user/after-login')
     def after_login():
 
-        viewer_url = current_app.config['VIEWER_URL'] + '/auth'
+        viewer_url = current_app.config['VIEWER_URL'] + 'auth'
         print(viewer_url)
         return redirect(viewer_url + \
                  '/?u=' + current_user.email + \
