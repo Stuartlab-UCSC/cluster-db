@@ -55,7 +55,9 @@ def read_gene_expression(path, gene):
 
 @add_user_dir
 def read_cluster(path):
-    return pd.read_pickle(path)
+    clustering = pd.read_pickle(path)
+    clustering = clustering.astype(str)
+    return clustering
 
 
 @add_user_dir
