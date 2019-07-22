@@ -69,10 +69,13 @@ class WorksheetUser(SurrogatePK, Model):
     @classmethod
     def get_worksheet(cls, user, worksheet_name):
         user_ws = cls.get_user_worksheets(user).filter(CellTypeWorksheet.name == worksheet_name).first()
-        try:
+
+        not_found = user_ws is None
+        if not_found:
+            return None
+
+        else:
             worksheet = CellTypeWorksheet.get_by_id(user_ws.worksheet_id)
-        except AttributeError:
-            raise ValueError("The user has no worksheet of the given name.")
 
         return worksheet
 
@@ -169,9 +172,9 @@ def add_worksheet_entries(
     :return:
     """
 
-    alread_there = WorksheetUser.get_user_worksheets(User.get_by_email(user_email))
-    if not alread_there:
-        print("adding entry worksheet entry")
+    already_there = WorksheetUser.get_worksheet(User.get_by_email(user_email), worksheet_name)
+    if not already_there:
+        print("adding entry worksheet entry", user_email, worksheet_name)
         import os
         worksheet_root = os.path.join(user_email, worksheet_name)
         worksheet_path = os.path.join(worksheet_root, STATE)
