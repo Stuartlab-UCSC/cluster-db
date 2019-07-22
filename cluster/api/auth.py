@@ -3,18 +3,19 @@ from flask_user import current_user
 
 # The view server URL to redirect at the end of auth processing.
 
-# Set up the token and db managers.
-#token_manager = TokenManager(app)
-#db_manager = DBManager(app, db, User, RoleClass=Role)
-
 def auth_routes(app):
 
     # Handle redirect after login including username and roles.
     @app.route('/user/after-login')
     def after_login():
-        print("adftere log in called")
-        viewer_url = current_app.config['VIEWER_URL'] + 'auth'
-        return redirect(viewer_url, code=302)
+
+        viewer_url = current_app.config['VIEWER_URL'] + '/auth'
+        print(viewer_url)
+        return redirect(viewer_url + \
+                 '/?u=' + current_user.email + \
+                 '&r=' + ','.join(map(str, current_user.roles)), \
+                 code=302)
+
 
 
     # Handle redirect after logout including logout indicated.

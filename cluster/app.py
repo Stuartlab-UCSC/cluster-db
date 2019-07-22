@@ -7,16 +7,19 @@ import datetime
 from flask_babelex import Babel
 from flask_cors import CORS
 from flask_user import UserManager
+from cluster import admin
+
 
 from cluster.api.restplus import api
 from cluster.database import db
-from cluster import admin
+
 from cluster.api.user import ns as user_namespace
 from cluster.api.sql import ns as sql_namespace
 from cluster.api.cluster_solution import ns as cluster_solution_namespace
 from cluster.api.dataset import ns as dataset_namespace
 from cluster.api.marker import ns as marker_namespace
 from cluster.api.dotplot import ns as dotplot_namespace
+from cluster.api.auth import auth_routes
 
 from cluster.database.default_entries import entries as default_entries
 from cluster.database.add_entries import add_entries
@@ -71,8 +74,7 @@ def create_app(config={}):
     app.url_map.strict_slashes = False
     app.config['SQLALCHEMY_BINDS'] = \
         {"users": app.config["SQLALCHEMY_USER_DATABASE_URI"]}
-    from cluster.api.auth import auth_routes
-    auth_routes(app)
+    #auth_routes(app)
     initialize_blueprint(app)
 
     db.init_app(app)

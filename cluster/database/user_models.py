@@ -168,9 +168,9 @@ def add_worksheet_entries(
     :param cluster_name:
     :return:
     """
-    try:
-        get_all_worksheet_paths(user_email, worksheet_name)
-    except: # get all throws an error when there isn't an entry
+
+    alread_there = WorksheetUser.get_user_worksheets(User.get_by_email(user_email))
+    if not alread_there:
         print("akjsdhfkladskfakdsf adding entry")
         import os
         worksheet_root = os.path.join(user_email, worksheet_name)

@@ -9,7 +9,7 @@ def directory_back_from_this_file():
 # Used for default location of database
 CLUSTERDB = os.path.join(directory_back_from_this_file(), "cluster.db")
 USERDB = os.path.join(directory_back_from_this_file(), "cluster_user.db")
-VIEWER_URL= os.environ.get("VIEWER_URL", "localhost:3000")
+VIEWER_URL= os.environ.get("VIEWER_URL", "localhost:3000/")
 USER_DIRECTORY= os.environ.get("USER_DIRECTORY")
 # Flask settings
 FLASK_DEBUG = os.environ.get('FLASK_DEBUG')
