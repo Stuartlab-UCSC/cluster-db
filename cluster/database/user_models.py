@@ -2,6 +2,9 @@ from cluster.database import Model, SurrogatePK, backref, relationship
 from flask_user import UserMixin
 from sqlalchemy import Column, Integer, String, ForeignKey, Boolean, DateTime
 from cluster.database.filename_constants import XYS, EXPRESSION, CLUSTERING, MARKER_TABLE, STATE
+from sqlalchemy import UniqueConstraint
+from sqlalchemy.orm.exc import NoResultFound
+import os
 
 
 class Role(Model):
@@ -33,7 +36,7 @@ class User(Model, UserMixin):
 
     @classmethod
     def get_by_email(cls, email):
-        return cls.query.filter(cls.email == email).first()
+        return cls.query.filter(cls.email == email).one()
 
 
 class UserRoles(Model):
@@ -45,18 +48,13 @@ class UserRoles(Model):
 
 class CellTypeWorksheet(SurrogatePK, Model):
     __tablename__ = "worksheet"
-    name = Column(String, nullable=True)
-    place = Column(String, nullable=True)
-    @classmethod
-    def get_by_name(cls, record_name):
-        if isinstance(record_name, str):
-            return cls.query.filter(cls.name == record_name).first()
-
-
-class WorksheetUser(SurrogatePK, Model):
-    __tablename__ = "worksheetuser"
+    id = Column(Integer(), primary_key=True)
+    name = Column(String)
+    place = Column(String)
     user_id = Column(Integer(), ForeignKey('user.id'))
-    worksheet_id = Column(Integer(), ForeignKey('worksheet.id'))
+    expression_id = Column(Integer(), ForeignKey('userexpression.id'))
+    __table_args__ = (UniqueConstraint('name', 'user_id', name="ws:user"),)
+
 
     @classmethod
     def get_user_worksheets(cls, user):
@@ -64,44 +62,41 @@ class WorksheetUser(SurrogatePK, Model):
 
     @classmethod
     def get_user_worksheet_names(cls, user):
-        return [CellTypeWorksheet.get_by_id(userws.worksheet_id).name for userws in cls.get_user_worksheets(user)]
+        return [ws.name for ws in cls.get_user_worksheets(user)]
 
     @classmethod
     def get_worksheet(cls, user, worksheet_name):
-        user_ws = cls.get_user_worksheets(user).filter(CellTypeWorksheet.name == worksheet_name).first()
-
+        user_ws = cls.get_user_worksheets(user).filter(cls.name == worksheet_name).one()
         not_found = user_ws is None
         if not_found:
             return None
 
-        else:
-            worksheet = CellTypeWorksheet.get_by_id(user_ws.worksheet_id)
-
-        return worksheet
+        return user_ws
 
 
 class UserExpression(SurrogatePK, Model):
     __tablename__ = "userexpression"
+    id = Column(Integer(), primary_key=True)
     species = Column(String, nullable=True)
     organ = Column(String, nullable=True)
     name = Column(String, nullable=True)
     place = Column(String, nullable=True)
-    worksheet_id = Column(Integer(), ForeignKey('worksheet.id'), unique=True)
 
     @classmethod
     def get_by_worksheet(cls, worksheet):
-        return UserExpression.query.filter(UserExpression.worksheet_id == worksheet.id).one()
+        return UserExpression.query.filter(UserExpression.id == worksheet.expression_id).one()
 
 
 class WorksheetRole(SurrogatePK, Model):
     __tablename__ = "worksheetrole"
+    id = Column(Integer(), primary_key=True)
     role_id = Column(Integer(), ForeignKey('role.id'))
     worksheet_id = Column(Integer(), ForeignKey('worksheet.id'))
 
 
 class ExpDimReduct(SurrogatePK, Model):
-    # Multiple dim reducts per dataset.
     __tablename__ = "dsdimreduct"
+    id = Column(Integer(), primary_key=True)
     name = Column(String, nullable=False)
     place = Column(String, nullable=False)
     expression_id = Column(Integer, ForeignKey("userexpression.id"), nullable=False)
@@ -110,10 +105,12 @@ class ExpDimReduct(SurrogatePK, Model):
     def get_by_expression(cls, expression):
         return cls.query.filter(cls.expression_id == expression.id).first()
 
+
 class ExpCluster(SurrogatePK, Model):
     __tablename__ = "expcluster"
     name = Column(String, nullable=False)
     place = Column(String, nullable=False)
+    id = Column(Integer(), primary_key=True)
     expression_id = Column(Integer, ForeignKey("userexpression.id"), nullable=False)
 
     @classmethod
@@ -133,11 +130,17 @@ class ClusterGeneTable(SurrogatePK, Model):
 
 def get_all_worksheet_paths(user_email, worksheet_name):
     user = User.get_by_email(user_email)
-    ws = WorksheetUser.get_worksheet(user, worksheet_name)
+    try:
+        ws = CellTypeWorksheet.get_worksheet(user, worksheet_name)
+
+    except NoResultFound:
+        return None
+
     user_exp = UserExpression.get_by_worksheet(ws)
-    clustering = ExpCluster.get_cluster(user_exp) # assumes ther is only one...
+    clustering = ExpCluster.get_cluster(user_exp)  # assumes ther is only one...
     marker_table = ClusterGeneTable.get_table(clustering)
-    reduction = ExpDimReduct.get_by_expression(user_exp) #assumes there is only one ...
+    reduction = ExpDimReduct.get_by_expression(user_exp)  # assumes there is only one ...
+
     return {
         XYS: reduction.place,
         STATE: ws.place,
@@ -172,10 +175,12 @@ def add_worksheet_entries(
     :return:
     """
 
-    already_there = WorksheetUser.get_worksheet(User.get_by_email(user_email), worksheet_name)
-    if not already_there:
+    try:
+        CellTypeWorksheet.get_worksheet(User.get_by_email(user_email), worksheet_name)
+
+    except NoResultFound:
         print("adding entry worksheet entry", user_email, worksheet_name)
-        import os
+
         worksheet_root = os.path.join(user_email, worksheet_name)
         worksheet_path = os.path.join(worksheet_root, STATE)
         exp_data_path  = os.path.join(worksheet_root, EXPRESSION)
@@ -185,32 +190,25 @@ def add_worksheet_entries(
 
         user_id = User.get_by_email(user_email).id
 
-        ws = CellTypeWorksheet(
-            name=worksheet_name,
-            place=worksheet_path
-        )
-
-        session.add(ws)
-        session.commit()
-
-        ws_user = WorksheetUser(
-            user_id = user_id,
-            worksheet_id = ws.id
-        )
-
-        session.add(ws_user)
-        session.commit()
-
         user_exp = UserExpression(
             species=species,
             organ=organ,
             name=dataset_name,
             place=exp_data_path,
-            worksheet_id=ws.id
         )
+
         session.add(user_exp)
         session.commit()
 
+        ws = CellTypeWorksheet(
+            name=worksheet_name,
+            place=worksheet_path,
+            user_id=user_id,
+            expression_id=user_exp.id
+        )
+
+        session.add(ws)
+        session.commit()
 
         reduct = ExpDimReduct(
             name="xys",

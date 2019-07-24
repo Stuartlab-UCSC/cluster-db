@@ -12,11 +12,11 @@ import io
 from cluster.database.user_models import get_all_worksheet_paths
 from cluster.database.filename_constants import MARKER_TABLE
 from cluster.database.user_models import (
-    WorksheetUser,
     User,
     UserExpression,
     ExpCluster,
-    ClusterGeneTable
+    ClusterGeneTable,
+    CellTypeWorksheet
 )
 from cluster.user_io import (
     read_markers_df,
@@ -35,11 +35,10 @@ class UserWorksheets(Resource):
     @ns.response(200, 'worksheet retrieved', )
     def get(self):
         """Retrieve a list of available worksheets available to the user """
-        print(current_user.email)
         if not current_user.is_authenticated:
             return abort(403)
 
-        return WorksheetUser.get_user_worksheet_names(current_user)
+        return CellTypeWorksheet.get_user_worksheet_names(current_user)
 
 
 @ns.route('/<string:user>/worksheet/<string:worksheet>')
@@ -51,12 +50,11 @@ class Worksheet(Resource):
         """Retrieve a saved worksheet."""
         if not current_user.is_authenticated:
             return abort(403)
-        print(user)
-        print("#### current user", current_user.email)
+
         owns_data = current_user.email == user
 
         if owns_data:
-            worksheet = WorksheetUser.get_worksheet(current_user, worksheet)
+            worksheet = CellTypeWorksheet.get_worksheet(current_user, worksheet)
             return read_saved_worksheet(worksheet.place)
 
         return abort(401, "User emails did not match, currently users may only access their own data.")
@@ -75,7 +73,7 @@ class Worksheet(Resource):
         if owns_data:
 
             user_entry = User.get_by_email(user)
-            ws_entry = WorksheetUser.get_worksheet(user_entry, worksheet)
+            ws_entry = CellTypeWorksheet.get_worksheet(user_entry, worksheet)
             save_worksheet(ws_entry.place, request.get_json())
 
 
@@ -92,7 +90,7 @@ class GeneTable(Resource):
             return abort(403)
 
         user_entry = User.get_by_email(user)
-        ws_entry = WorksheetUser.get_worksheet(user_entry, worksheet_name=worksheet)
+        ws_entry = CellTypeWorksheet.get_worksheet(user_entry, worksheet_name=worksheet)
         exp_entry = UserExpression.get_by_worksheet(ws_entry)
         cluster_entry = ExpCluster.get_cluster(exp_entry)
         path = ClusterGeneTable.get_table(cluster_entry).place
@@ -136,7 +134,7 @@ class AddGene(Resource):
             return abort(403)
         # Make the table and then throw it in a byte buffer to pass over.
         user_entry = User.get_by_email(user)
-        ws_entry = WorksheetUser.get_worksheet(user_entry, worksheet_name=worksheet)
+        ws_entry = CellTypeWorksheet.get_worksheet(user_entry, worksheet_name=worksheet)
         exp_entry = UserExpression.get_by_worksheet(ws_entry)
         cluster_entry = ExpCluster.get_cluster(exp_entry)
         path = ClusterGeneTable.get_table(cluster_entry).place
@@ -210,7 +208,7 @@ class GeneScatterplot(Resource):
         from cluster.database.user_models import ExpDimReduct
         # Make the table and then throw it in a byte buffer to pass over.
         user_entry = User.get_by_email(user)
-        ws_entry = WorksheetUser.get_worksheet(user_entry, worksheet_name=worksheet)
+        ws_entry = CellTypeWorksheet.get_worksheet(user_entry, worksheet_name=worksheet)
         exp_entry = UserExpression.get_by_worksheet(ws_entry)
         cluster_entry = ExpCluster.get_cluster(exp_entry)
         xy_entry = ExpDimReduct.get_by_expression(exp_entry)
@@ -243,15 +241,13 @@ class ClusterScatterplot(Resource):
 
         from cluster.database.user_models import ExpDimReduct
         # Make the table and then throw it in a byte buffer to pass over.
-        user_entry = User.get_by_email(user)
-        ws_entry = WorksheetUser.get_worksheet(user_entry, worksheet_name=worksheet)
-        exp_entry = UserExpression.get_by_worksheet(ws_entry)
-        cluster_entry = ExpCluster.get_cluster(exp_entry)
-        xy_entry = ExpDimReduct.get_by_expression(exp_entry)
+        from cluster.database.user_models import get_all_worksheet_paths
+        paths_dict = get_all_worksheet_paths(user, worksheet)
+        import cluster.database.filename_constants as keys
 
-        cluster = read_cluster(cluster_entry.place)
+        cluster = read_cluster(paths_dict[keys.CLUSTERING])
 
-        xys = read_xys(xy_entry.place)
+        xys = read_xys(paths_dict[keys.XYS])
 
         centers = centroids(xys, cluster)
 
