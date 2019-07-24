@@ -275,6 +275,20 @@ class ClusterScatterplot(Resource):
             mimetype='image/png'
         )
 
+def graph_protions(centers, data, color_map):
+    """Iterator provides portions of the categorical scatter plot"""
+    for label in centers.index:
+        xs = data.loc[data['cluster'] == label, 'x']
+        ys = data.loc[data['cluster'] == label, 'y']
+        cx, cy = (centers.loc[label]["x"], centers.loc[label]["y"])
+        color = color_map[label]
+        yield xs, ys, cx, cy, color, label
+
+def join_xys_clusters(xys, clustering):
+    data = pd.concat([xys, clustering], axis=1)
+    data.columns = ["x", "y", "cluster"]
+    return data
+
 
 def scatter_categorical(xys, centers, color_map, clusters):
     """
@@ -286,31 +300,31 @@ def scatter_categorical(xys, centers, color_map, clusters):
     :return:
     """
     plt.axis('off')
-    data = pd.concat([xys, clusters], axis=1)
-    data.head()
-    data.columns = ["x", "y", "cluster"]
-    for label in centers.index:
+    data = join_xys_clusters(xys, clusters)
+    for xs, ys, cx, cy, color, label in graph_protions(centers, data, color_map):
         plt.scatter(
-            x=data.loc[data['cluster'] == label, 'x'],
-            y=data.loc[data['cluster'] == label, 'y'],
-            color=color_map[label],
+            x=xs,
+            y=ys,
+            color=color,
             alpha=0.7,
         )
 
         plt.annotate(
             label,
-            (centers.loc[label]["x"], centers.loc[label]["y"]),
+            (cx, cy),
             horizontalalignment='center',
             verticalalignment='center',
             size=15, weight='bold',
             color="black"
         )
 
+
     img_bytes = io.BytesIO()
     plt.savefig(img_bytes)
     img_bytes.seek(0)
     plt.close()
     return img_bytes
+
 
 
 def scatter_continuous(xys, centers, gene):
