@@ -1,6 +1,8 @@
 
 import datetime
-from cluster.database.user_models import User, UserExpression, ClusterGeneTable, ExpDimReduct, ExpCluster, CellTypeWorksheet, WorksheetUser
+from cluster.database.user_models import (
+    User, UserExpression, ClusterGeneTable, ExpDimReduct, ExpCluster, CellTypeWorksheet
+)
 from flask import current_app
 entries = []
 
@@ -18,21 +20,15 @@ entries.append(
 
 worksheet = {
     "name": "test",
-    "place": "state"
+    "place": "state",
+    "user_id": 1,
+    "expression_id": 1
 }
 
 entries.append(
     (CellTypeWorksheet, worksheet)
 )
 
-worksheet_user = {
-    "user_id": 1,
-    "worksheet_id": 1
-}
-
-entries.append(
-    (WorksheetUser, worksheet_user)
-)
 
 expression = {
     "id": 1,
@@ -40,7 +36,6 @@ expression = {
     "organ": "test",
     "name": "test",
     "place": "expression",
-    "worksheet_id":1
 }
 
 entries.append(

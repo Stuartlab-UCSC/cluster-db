@@ -30,9 +30,9 @@ def gen_expression(n_samples=100, n_genes=1000):
     return pd.DataFrame(npfloats(n_genes, n_samples), index=genes)
 
 
-def gen_cluster(n_samples=100, n_clusters=10):
-    df = pd.DataFrame(npints(0, n_clusters, n_samples), columns=["test"])
-    df = df.astype({"test": str})
+def gen_cluster(n_samples=100, n_clusters=10, type_inject=str):
+    df = pd.Series(npints(0, n_clusters, n_samples))
+    df = df.astype(type_inject)
 
     return df
 

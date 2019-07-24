@@ -18,9 +18,8 @@ def logout(client):
     response = client.post(
         login_url,
         data={"email": "test@test.com", "password": "testT1234"},
-        follow_redirects=True
     )
-    assert response.status_code == 200
+    assert response.status_code == 302
 
 
 def test_get_worksheet_no_login(client, session, user_worksheet_data):
@@ -51,11 +50,7 @@ def test_get_var_names_login(client, session, user_worksheet_data):
             get_state_url, follow_redirects=True
         )
 
-        print(response.__dict__)
-
         assert "text/tsv" in response.content_type
-
-
 
 
 def test_get_worksheets_unauth(client, session, user_worksheet_data):
@@ -236,6 +231,7 @@ def test_login_and_get_gene_scatter(client, session, user_worksheet_data):
 
         assert "image" in response.content_type
 
+
 def test_get_gene_scatter_unauth(client, session, user_worksheet_data):
     gene = "37"
     type_var= "unused"
@@ -257,7 +253,7 @@ def test_get_gene_scatter_unauth(client, session, user_worksheet_data):
 
 def test_login_and_post_gene_categorical(client, session, user_worksheet_data):
     type_var="unused"
-    n_clusters=10
+    n_clusters = 10
     import random
 
     colors = ["#" + ''.join([random.choice('0123456789ABCDEF') for j in range(6)])
@@ -283,8 +279,8 @@ def test_login_and_post_gene_categorical(client, session, user_worksheet_data):
 
 
 def test_post_gene_categorical_unauth(client, session, user_worksheet_data):
-    type_var="unused"
-    n_clusters=10
+    type_var = "unused"
+    n_clusters = 10
     import random
 
     colors = ["#" + ''.join([random.choice('0123456789ABCDEF') for j in range(6)])
