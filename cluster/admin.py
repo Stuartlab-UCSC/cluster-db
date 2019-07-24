@@ -11,7 +11,7 @@ from flask_admin import Admin
 # https://flask-admin.readthedocs.io/en/latest/advanced/
 
 
-def init(app, db):
+def init_app(app, db):
     return
     admin = Admin(app, name='CellAtlas Admin', template_mode='bootstrap3')
     admin.add_view(ClusterSolutionView(ClusterSolution, db.session))

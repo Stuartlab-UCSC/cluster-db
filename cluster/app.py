@@ -78,7 +78,7 @@ def create_app(config={}):
     initialize_blueprint(app)
 
     db.init_app(app)
-    admin.init(app, db)
+    admin.init_app(app, db)
 
     with app.app_context():
         #auth_routes(app)
