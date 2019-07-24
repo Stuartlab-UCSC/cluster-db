@@ -71,7 +71,8 @@ class Worksheet(Resource):
         owns_data = current_user.email == user
 
         if owns_data:
-
+            state_rep = request.get_json()
+            worksheet = state_rep["worksheet_name"]
             user_entry = User.get_by_email(user)
             ws_entry = CellTypeWorksheet.get_worksheet(user_entry, worksheet)
             save_worksheet(ws_entry.place, request.get_json())
