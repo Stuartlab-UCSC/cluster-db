@@ -3,12 +3,11 @@ import os
 from flask import Flask, Blueprint, url_for
 from flask_restplus import Api
 
-import datetime
 from flask_babelex import Babel
 from flask_cors import CORS
 from flask_user import UserManager
 from cluster import admin
-
+from cluster.cli import command_line_interface
 
 from cluster.api.restplus import api
 from cluster.database import db
@@ -21,13 +20,8 @@ from cluster.api.marker import ns as marker_namespace
 from cluster.api.dotplot import ns as dotplot_namespace
 from cluster.api.auth import auth_routes
 
-from cluster.database.default_entries import entries as default_entries
-from cluster.database.add_entries import add_entries
+from cluster.database.user_models import User
 
-from cluster.database.user_models import (
-    add_worksheet_entries,
-    User
-)
 
 # monkey patch so that /swagger.json is served over https
 # grabbed from https://github.com/noirbizarre/flask-restplus/issues/54
@@ -60,6 +54,7 @@ def setup_logger(logfile='../logging.conf'):
     logging.getLogger(__name__)
 
 
+@command_line_interface
 def create_app(config={}):
 
     app = Flask(__name__)
@@ -81,30 +76,13 @@ def create_app(config={}):
     admin.init_app(app, db)
 
     with app.app_context():
-        #auth_routes(app)
         db.create_all()
-        user_manager = UserManager(app, db, User)
+        UserManager(app, db, User)
 
-        if not app.testing:
-            setup_logger()
-            user = {
-                "email": "admin@replace.me",
-                "password": user_manager.hash_password("Password1"),
-                "email_confirmed_at": datetime.datetime.utcnow(),
-            }
-
-            default_entries.append((User, user))
-            add_entries(db.session, default_entries)
-            add_worksheet_entries(
-                db.session,
-                "admin@replace.me",
-                "pbmc",
-                cluster_name="graphclust",
-                dataset_name="pbmc"
-            )
+    if not app.testing:
+        setup_logger()
 
     return app
-
 
 if __name__ == "__main__":
     create_app()
