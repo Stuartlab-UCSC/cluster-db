@@ -3,40 +3,27 @@ Creates worksheet state from files needed to view a worksheet.
 
 TODO: when used a second time abstract with a CLI
 """
-
-import pandas as pd
-
-from cluster.api.user import gene_table, dataframe_to_str, bubble_table
-import os
-from cluster.database.filename_constants import MARKER_TABLE, EXPRESSION, CLUSTERING, STATE
-import pandas as pd
-
-USER_DIRECTORY="/home/duncan/work/sandbox/users"
-ws_name="pbmc"
-user="admin@replace.me"
-clustering = pd.read_pickle(os.path.join(USER_DIRECTORY, user, ws_name, CLUSTERING))
-#clustering = clustering[clustering.columns[0]]
-#clustering.to_pickle(os.path.join(USER_DIRECTORY, user, ws_name, CLUSTERING))
-markers_df = pd.read_pickle(os.path.join(USER_DIRECTORY, user, ws_name, MARKER_TABLE))
-#import numpy as np
-#markers_df["-log10_pval"] = -1.0*np.log10(markers_df["adjp"].values)
-#markers_df.to_pickle(os.path.join(USER_DIRECTORY, user, ws_name, MARKER_TABLE))
-#markers_df.head()
-size_by = "-log10_pval"
-color_by= "log2fc"
-
-state = generate_worksheet_state(
-    user, ws_name, "pbmc", clustering, None, size_by, color_by
-)
-
-state_file = os.path.join(USER_DIRECTORY, user, ws_name, STATE)
-
-write_gzip_state(state_file, state)
-
 import json, gzip
+from cluster.api.user import dataframe_to_str, bubble_table
+import pandas as pd
+from scipy.spatial.distance import pdist
+from seriate import seriate
+# finisising making worksheet from scanpy
+
+def read_genes_csv(filename):
+    df = pd.read_csv(filename, index_col=0)
+    genes = set()
+    for index, row in df.iterrows():
+        row.dropna(inplace=True)
+        genes = genes.union(set(row.astype(str).tolist()))
+
+    return list(genes)
+
+
 def write_gzip_state(out_file, marker_dicts):
     with gzip.GzipFile(out_file, 'w') as fout:
         fout.write(json.dumps(marker_dicts).encode('utf-8'))
+
 
 def generate_worksheet_state(
         user_email,
@@ -60,15 +47,25 @@ def generate_worksheet_state(
     :return:
     """
 
+
     no_genes = len(genes) == 0
     if no_genes:
-        genes = pd.DataFrame(columns=["row", "genes"])
+        genes_df = pd.DataFrame(columns=["row", "genes"])
+        colors = empty_bubble_table(clustering)
+        sizes = empty_bubble_table(clustering)
+        clusters = cluster_table(clustering)
 
-    clusters = cluster_table(clustering)
+    else:
+        colors = bubble_table(markers_df, genes, color_by)
+        sizes = bubble_table(markers_df, genes, size_by)
+        sizes.fillna(0, inplace=True)
+        #row_order = seriate(pdist(sizes))
+        row_order = range(0, len(genes))
+        genes_df = pd.DataFrame({"row": row_order, "genes": genes})
+        #col_order = seriate(pdist(sizes.transpose()))
+        clusters = cluster_table(clustering, order=None)
 
-    colors = bubble_table(None, None, None) or empty_bubble_table(clustering)
-
-    sizes = bubble_table(None, None, None) or empty_bubble_table(clustering)
+        colors.fillna(0, inplace=True)
 
 
     jdict = {
@@ -77,10 +74,11 @@ def generate_worksheet_state(
         "size_by": size_by,
         "color_by": color_by,
         "clusters": dataframe_to_str(clusters, index=False),
-        "genes": dataframe_to_str(genes, index=False),
+        "genes": dataframe_to_str(genes_df, index=False),
         "colors": dataframe_to_str(colors),
         "sizes": dataframe_to_str(sizes),
     }
+    #print(jdict["colors"])
     return jdict
 
 
@@ -92,7 +90,7 @@ def empty_bubble_table(clustering):
     return pd.DataFrame(columns=colnames)
 
 
-def cluster_table(clustering):
+def cluster_table(clustering, order=None):
     cluster_counts = clustering.value_counts()
 
     df = pd.DataFrame(
@@ -100,7 +98,11 @@ def cluster_table(clustering):
         index=range(len(cluster_counts))
     )
 
-    df["column"] = df.index
+    if order is None:
+        df["column"] = df.index
+    else:
+        df['column'] = order
+
     df["cluster"] = cluster_counts.index
     df["cell_count"] = cluster_counts.values
     df["bar_color"] = 0
@@ -116,5 +118,18 @@ def find_genes(marker_df, size="pct.1", color="avg_diff"):
     :param color:
     :return: series with genes of highest color and score product per cluster
     """
-    return []
+    size_df = marker_df.pivot(
+        index="gene",
+        columns="cluster",
+        values=size
+    )
+
+    color_df = marker_df.pivot(
+        index="gene",
+        columns="cluster",
+        values=color
+    )
+    rank = size_df.std(axis=1) * color_df.std(axis=1)
+    #print(rank.head())
+    return rank.sort_values()[-40:].index
 

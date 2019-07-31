@@ -7,7 +7,7 @@ from flask_babelex import Babel
 from flask_cors import CORS
 from flask_user import UserManager
 from cluster import admin
-from cluster.cli import command_line_interface
+from cluster.cli.cli import command_line_interface
 
 from cluster.api.restplus import api
 from cluster.database import db

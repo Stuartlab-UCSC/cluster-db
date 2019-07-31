@@ -1,5 +1,5 @@
 """
-Protected user enpoints work accessing cell type worksheets.
+Protected user endpoints work accessing cell type worksheets.
 """
 from flask import send_file, request, abort
 from flask_restplus import Resource
@@ -398,7 +398,7 @@ def dataframe_to_str(df, index=True):
 
 def bubble_table(marker_df, genes, attr_name):
     """Creates a size or color table for the worksheet endpoint."""
-    if genes is None or marker_df is None:
+    if genes is None:
         return None
 
     msk = marker_df["gene"].isin(genes).tolist()

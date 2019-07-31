@@ -10,8 +10,9 @@ def directory_back_from_this_file():
 CLUSTERDB = os.path.join(directory_back_from_this_file(), "cluster.db")
 USERDB = os.path.join(directory_back_from_this_file(), "cluster_user.db")
 VIEWER_URL = os.environ.get("VIEWER_URL", "localhost:3000/")
-USER_DIRECTORY = os.environ.get("USER_DIRECTORY")
+USER_DIRECTORY = os.path.join(directory_back_from_this_file(), "users")
 # Flask settings
+
 FLASK_DEBUG = os.environ.get('FLASK_DEBUG')
 #SERVER_NAME = os.environ.get('FLASK_SERVER_NAME')
 
@@ -31,6 +32,8 @@ RESTPLUS_MASK_SWAGGER = False
 
 # Flask settings
 SECRET_KEY = 'This is an INSECURE secret!! DO NOT use this in production!!'
+
+USER_USER_SESSION_EXPIRATION = 604800
 
 # Flask-Mail SMTP server settings
 MAIL_SERVER = 'smtp.com'

@@ -11,6 +11,7 @@ import json
 import pandas as pd
 from flask import current_app, abort
 from decorator import decorator
+import cluster.database.filename_constants as keys
 
 @decorator
 def add_user_dir(func, *args, **kwargs):
@@ -48,6 +49,16 @@ def read_saved_worksheet(path):
     return resp
 
 
+def make_worksheet_root(user_email, worksheet_name):
+    return os.path.join(user_email, worksheet_name)
+
+
+@add_user_dir
+def write_df(worksheet_root, df, type_key):
+    path = os.path.join(worksheet_root, type_key)
+    df.to_pickle(path)
+
+
 @add_user_dir
 def read_gene_expression(path, gene):
     return pd.read_pickle(path).loc[gene]
@@ -60,9 +71,20 @@ def read_cluster(path):
     return clustering
 
 
+def markers_manip(marker_df):
+    """Ensures markers dataframe has some format restrictions."""
+    marker_df["cluster"] = marker_df["cluster"].astype(str)
+    cols = marker_df.columns.tolist()
+    cols.insert(0, cols.pop(cols.index('gene')))
+    marker_df = marker_df.reindex(columns=cols)
+    return marker_df
+
+
 @add_user_dir
 def read_markers_df(path):
-    return pd.read_pickle(path)
+    df = pd.read_pickle(path)
+    df = markers_manip(df)
+    return df
 
 
 @add_user_dir
@@ -81,3 +103,10 @@ def read_json_gzipd(path):
     data = json.loads(json_str)
     return data
 
+
+def write_all_worksheet(user_email, worksheet_name, markers=None, xys=None, exp=None, clustering=None):
+    worksheet_root = make_worksheet_root(user_email, worksheet_name)
+    write_df(worksheet_root, exp, keys.EXPRESSION)
+    write_df(worksheet_root, markers_manip(markers), keys.MARKER_TABLE)
+    write_df(worksheet_root, xys, keys.XYS)
+    write_df(worksheet_root, clustering, keys.CLUSTERING)
