@@ -53,18 +53,19 @@ markers_table.head()
 
 keepers = []
 len(markers_table["gene"].unique())
-for i,gene in enumerate(markers_table["gene"].unique()):
-    if not i %1000:
+for i, gene in enumerate(markers_table["gene"].unique()):
+    if not i % 1000:
         print(gene,i)
     msk = (markers_table["gene"] == gene).tolist()
     if markers_table.iloc[msk]["adjp"].min() < .1:
         keepers.append(gene)
 
-
 dmarkers_table = markers_table.iloc[markers_table['gene'].isin(keepers).tolist()]
 dmarkers_table.shape
+
 from cluster.database.filename_constants import MARKER_TABLE
 import os
+
 ## YOU WANT TO CHANGE ADJP in the makers to -log10
 root_dir = "/home/duncan/work/sandbox/users/test@test.com/pbmc"
 markers_path = os.path.join(root_dir, MARKER_TABLE)
