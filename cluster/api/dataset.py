@@ -1,4 +1,5 @@
 from flask_restplus import fields, Resource
+from flask_user import current_user
 from cluster.api.restplus import api
 from cluster.api.cluster_solution import ca_model
 from cluster.api.dbquery import all_datasets, cluster_solutions, cluster_solution_id, cell_assignments
@@ -40,7 +41,7 @@ class ClusterSolsForDataSet(Resource):
 @ns.route('/<string:dataset_name>/cluster-solution/<string:cluster_solution_name>/cell-assignments')
 @ns.param('dataset_name', 'Data set name')
 @ns.param('cluster_solution_name', 'Cluster solution name')
-class ClusterSolsForDataSet(Resource):
+class CellAssignmentsForAClusterSolution(Resource):
     @api.marshal_with(ca_model, envelope="resource")
     @ns.response(200, 'cluster solutions')
     def get(self, dataset_name, cluster_solution_name):
@@ -52,4 +53,3 @@ class ClusterSolsForDataSet(Resource):
         )
 
         return cell_assignments(cs_id)
-

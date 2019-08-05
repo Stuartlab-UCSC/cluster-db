@@ -14,7 +14,7 @@ ca_model = api.model('cell-assignment', {
 @ns.route('/<int:id>/cell-assignments')
 @ns.param('id', 'Cluster solution identifier')
 class CellAssignment(Resource):
-    @api.marshal_with(ca_model, envelope="resource")
+    @api.marshal_with(ca_model, envelope=None)
     @ns.response(200, 'cell assignments')
     def get(self, id):
         """A list of cell assignments for a clustering solution."""

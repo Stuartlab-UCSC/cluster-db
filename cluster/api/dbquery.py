@@ -1,7 +1,7 @@
 """
 Databast queries wrangled into expected formats.
 """
-from cluster.database.models import Cluster, ClusterSolution, Marker, Dataset, CellAssignment
+from cluster.database.data_models import Cluster, ClusterSolution, Marker, Dataset, CellAssignment
 from cluster.database import db
 from sqlalchemy import or_, and_, func
 import pandas as pd

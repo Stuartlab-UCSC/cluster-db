@@ -1,7 +1,5 @@
-
 To run tests, either call bin/start_test
 
-Or if you want more control, like debugging, do this:
+or activate your virtual environment and:
 
-    source $CLUSTERDB/venv/bin/activate
-    pytest
+pytest -s -q tests/
