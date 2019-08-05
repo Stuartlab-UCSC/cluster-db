@@ -13,11 +13,10 @@ import datetime
 import os
 import click
 from decorator import decorator
-import scanpy as sc
+import cluster.cli.scanpyapi as ad_obj
 import pandas as pd
 import numpy as np
 
-from scipy.sparse.csr import csr_matrix
 from cluster.user_io import make_worksheet_root, save_worksheet, read_markers_df, read_cluster, write_all_worksheet
 from cluster.database.user_models import get_all_worksheet_paths, add_worksheet_entries, User
 import cluster.database.filename_constants as keys
@@ -30,27 +29,24 @@ from cluster.database.add_entries import add_entries
 from .create.worksheet_state import generate_worksheet_state
 
 
-def expression_dataframe(anndata):
-    if isinstance(anndata.X, csr_matrix):
-        anndata.X = anndata.X.toarray()
-
-    df = pd.DataFrame(anndata.X, index=anndata.obs_names, columns=anndata.var_names)
-    return df
 
 
-def centroids(ad, cs_name="louvain"):
-    cluster_solution = ad.obs[cs_name]
-    # Calculate each centroid.
-    centers = pd.DataFrame(index=ad.var_names)
-    for cluster_name in cluster_solution.unique():
-        cells_in_cluster = ad.obs.index[ad.obs[cs_name] == cluster_name]
-        centroid = pd.Series(
-            ad[cells_in_cluster].X.mean(axis=0).tolist()[0],
-            index=ad.var_names
-        )
-        centers[cluster_name] = centroid
+def ensure_values(reset_df):
+    """
+    crazy sheme to ensure there are no wierd values going over into the state
+    :param df:
+    :return:
+    """
+    # For now just get rid of -inf values
+    min = reset_df[0].iloc[(reset_df[0] != -np.inf).tolist()].min()
+    max = reset_df[0].iloc[(reset_df[0] != np.inf).tolist()].max()
 
-    return centers
+    reset_df[0].replace({-np.inf: min}, inplace=True)
+    reset_df[0].replace({np.inf: max}, inplace=True)
+
+    reset_df.fillna(0, inplace=True)
+    return reset_df
+
 
 
 @click.command(help="Add worksheet tsvs to user file system.")
@@ -77,20 +73,6 @@ def load_tsv(
         print(e)
 
 @click.command(help="Make a pickle from a tsv.")
-@click.argument('marker1')
-@click.argument('marker2')
-@click.argument('field')
-#@click.option('--format', default="tsv")
-#@click.option('--index_col', default=None)
-def to_pickle(marker1, marker2, fout, field):
-    df = pd.read_csv(marker1, sep="\t", index_col=None)
-    df2 = pd.read_csv(marker2, sep="\t", index_col=None)
-
-    df.sort_values(["cluster", "gene"])
-
-    pd.to_pickle(df, fout)
-#df["1-adjp*2"]
-@click.command(help="Make a pickle from a tsv.")
 @click.argument('fin')
 @click.argument('fout')
 @click.option('--format', default="tsv")
@@ -114,10 +96,12 @@ def create_state(
 
         clustering = read_cluster(ws_paths[keys.CLUSTERING])
         markers = read_markers_df(ws_paths[keys.MARKER_TABLE])
+        """
         genes = ["TNNT2", "MYL2", "TOP2A", "CENPF", "NR2F1", "PITX2", "SHOX2", "PECAM1", "NPR3", "CLDN5", "LYVE1",
                  "DCN", "POSTN", "ACTA2", "TAGLN", "CSPG4", "RSPO3", "HAPLN1", "WT1", "MPZ", "PRPH", "IL1B",
                  "TPSAB1", "HBG1"]
-        print(genes)
+         """
+        genes=[]
         state = generate_worksheet_state(
             user_email,
             worksheet_name,
@@ -147,68 +131,89 @@ def create_state(
 @click.argument('scanpy_path')
 @click.option('--cluster_name', default="louvain")
 @click.option('--dataset_name', default="")
+@click.option('--celltype_key', default="scorect")
 @with_appcontext
-def load_scanpy(user_email, worksheet_name, scanpy_path, cluster_name, dataset_name, size_by="-log10adjp", color_by="mean"):
-    ad = sc.read(scanpy_path)
-    print("read in shape", ad.shape)
-    not_in_12 = ad.obs_names[ad.obs["louvain"].astype(str) != "12"]
+def load_scanpy(user_email, worksheet_name, scanpy_path, cluster_name,
+                dataset_name, size_by="-log10adjp", color_by="mean", celltype_key=None
+):
+    print("reading in data...")
+    ad = ad_obj.readh5ad(scanpy_path)
+    mapping = ad_obj.celltype_mapping(ad, cluster_name, celltype_key)
+    use_raw = ad_obj.has_raw(ad)
+    xys = ad_obj.get_xys(ad, key="X_umap")
+    """
+    import anndata
+    a = anndata.AnnData(ad.raw.X, var=ad.raw.var_names, obs=ad.raw.obs_names)
+    a.var_names = a.var['index']
+    a.obs_names = a.obs['index']
+    mg = ad_obj.mito_genes(a.var_names)
+    mean_mg = a[:,mg].X.toarray().sum(axis=1)
+    met_genes = ['ALDOA', 'GAPDH', 'MALAT1', 'LDHA', 'PFKFB4', 'HK2']
+    mean_met = a[:, met_genes].X.toarray().sum(axis=1)
+    outside_RG = ['HOPX', 'PTPRZ1', 'TNC', 'ITGB5','SDC3', 'HS6ST1', 'IL6ST', 'LIFR', 'VIM', 'PTN']
+    outside_RG = [f for f in ad.var_names if f in outside_RG]
+    oRG =  a[:, outside_RG].X.toarray().sum(axis=1)
+    df = pd.DataFrame({"org": oRG, "metabolic signature": mean_met, "mitochondrial signature": mean_mg}, index=a.obs_names)
+    #print(df)
+    ab = anndata.AnnData(df)
 
-    ad = ad[not_in_12]
-    print(ad.shape)
-    means = centroids(ad, cluster_name)
-    #from cluster.cli.create.marker_table import log2fc_markers
 
-    clustering = ad.obs[cluster_name]
-    #print(clustering.shape)
+    a = a.transpose()
+    ab = ab.transpose()
+    ac = a.concatenate(ab)
+    ac = ac.transpose()
+    ac.obs['louvain'] = ad.obs['louvain']
+    ad = ac
+    use_raw = False
+    """
+    means = ad_obj.centroids(ad, cluster_name, use_raw)
 
-    sc.tl.rank_genes_groups(ad, cluster_name, method='t-test', n_genes=ad.n_vars)
-    print('rank genes done')
-    #ad.uns['rank_genes_groups'].keys()
+    clustering = ad_obj.get_obs(ad, cluster_name)
 
-    gene_names = ad.var_names
-    scores = pd.DataFrame(ad.uns['rank_genes_groups']['scores'], index=gene_names)
-    pvals_adj = pd.DataFrame(ad.uns['rank_genes_groups']['pvals_adj'], index=gene_names)
-    log2fc = pd.DataFrame(ad.uns['rank_genes_groups']['logfoldchanges'], index=gene_names)
+    #print(ad.var_names)
+    # Need to use all of the genes of NA's will come about in the data.
+    n_genes = ad_obj.all_genes_n(ad, use_raw)
+    print("executing gene ranking...")
+    ad_obj.run_gene_ranking(ad, cluster_name, n_genes, use_raw)
 
-    # Orient the datafra,es the same way so the stacking is aligned
-    means = means[log2fc.columns]
-    pvals_adj = pvals_adj[log2fc.columns]
-    scores = scores[log2fc.columns]
+    proportions = ad_obj.proportion_expressed_cluster(ad, clustering, use_raw)
+    #print(proportions.head())
+    scores = ad_obj.parse_ranked_genes(ad, "scores")
+    #print(scores.head())
+    pvals_adj = ad_obj.parse_ranked_genes(ad, "pvals_adj")
+    #print(pvals_adj.head())
+    log2fc = ad_obj.parse_ranked_genes(ad, "logfoldchanges")
+    #print(log2fc.head())
+    # Parse out a markers table from the metrics of interest.
+    proportions = proportions.loc[log2fc.index, log2fc.columns]
+    means = means.loc[log2fc.index, log2fc.columns]
+    pvals_adj = pvals_adj.loc[log2fc.index, log2fc.columns]
+    scores = scores.loc[log2fc.index, log2fc.columns]
 
+    proportions = proportions.stack().reset_index()
     means = means.stack().reset_index()
-
     scores = scores.stack().reset_index()
     pvals_adj = pvals_adj.stack().reset_index()
     log2fc = log2fc.stack().reset_index()
 
-    # For now just get rid of -inf values
-    min = log2fc[0].iloc[(log2fc[0] != -np.inf).tolist()].min()
-    max = log2fc[0].iloc[(log2fc[0] != np.inf).tolist()].max()
+    if scores.shape != pvals_adj.shape or scores.shape != log2fc.shape or means.shape != scores.shape:
+        print(scores.isna().sum().sum(), "scores are na")
+        print(means.isna().sum().sum(), "means are na")
+        print(log2fc.isna().sum().sum(), "log2f are na")
+        raise ValueError("Markers table could not be created, likely because Na values existed for some metrics.")
 
-    log2fc[0].replace({-np.inf: min}, inplace=True)
-    log2fc[0].replace({np.inf: max}, inplace=True)
-
-    log2fc.fillna(min, inplace=True)
-
-    markers_df = pd.DataFrame(columns=["gene", "cluster", "logfc", "-log10adjp", "mean", "scores"])
-
-    markers_df["gene"] = scores['index'].values
+    markers_df = pd.DataFrame(columns=["gene", "cluster", "logfc", "-log10adjp", "mean", "scores", "pct.exp"])
+    markers_df["gene"] = scores['level_0'].values
     markers_df["cluster"] = scores['level_1'].astype(str).values
-
     markers_df["mean"] = means[0].values
     markers_df["logfc"] = log2fc[0].values
     markers_df["-log10adjp"] = -np.log10(pvals_adj[0].values+0.000000000001)
-
+    markers_df["pct.exp"] = proportions[0].values
     markers_df["scores"] = scores[0].values
 
     markers_df["1 - adjp**2"] = 1 - pvals_adj[0].values ** 2
-
     not_positive = markers_df.index[log2fc[0].values <= 0]
-    print(not_positive)
-    #markers_df.loc[not_positive, "1 - adjp**2"] = .1
-    from cluster.cli.create.worksheet_state import find_genes, read_genes_csv
-    #genes=['Pdgfra', 'Lhx5', 'Pvrl3', 'Top2a', 'Ldb2', 'Sox17', 'Slc18a2', 'Col3a1', 'P2ry14', 'Sfrp1', 'Lpl', 'Gdf5', 'Six3']#, 'Spag5', 'Dlx5', 'Ebf1']#, 'Inhba', 'Otx2', 'Ptprz1', 'Cd44']#, 'Neurog2', 'Syt6', 'Grin3a', 'Sox10', 'Pou3f1', '9130024F11Rik', 'Sp9', 'Dnah12']#, 'Lhx1', 'Tle4', 'Gad1']#, 'Naaa', 'Dlx2', 'Unc45b', 'Mfap4', 'Epas1', 'P2ry12', 'Tbx18', 'Ifgbp7', 'Tbr1', 'cdc25c', 'Fezf2', 'Npas1', 'C3ar1', 'Aldh1l1', 'Emr1', 'Sp8', 'Entpd2', 'Btbd17', 'Trem2', 'Kcnj8', 'Satb2', 'Slc6a11', 'Lmo3', 'Gad2', 'Pecam1', 'Tmeme252', 'Folr1', 'Erbb4', 'Slc6a20a', 'Mki67', 'Aqp4', 'Hes5', 'Olig2', 'Fcgr1', 'Sod3', 'Ndnf', 'Gata2', 'Gpr88', 'Tfap2c', 'Foxp2', 'Ebf3', 'Sst', 'Gsx2', 'Bcl11b', 'Kcne2', 'Ushbp1', 'Eomes', 'Htr3a', 'Slc1a3', 'Trp73', 'Vim', 'C1qa', 'Flt4', 'Isl1', 'Abcc9', 'Prokr2', 'Dok5', 'Rxrg', 'Mpeg1', 'Penk', 'Ctss', 'Csf1r', 'Sstr2', 'Nrgn', 'Tiam2', 'Fam107a', 'Pla2g3', 'Dlx1', 'Cdca7', 'Reln', 'Ak7', 'Tshz1', 'Npy', 'Maf', 'Lhx6', 'Ascl1', 'Bcas1', 'Iqca', 'Sgol2', 'nes', 'Pax6']
-    #genes = read_genes_csv("/home/duncan/work/sandbox/users/admin@replace.me/chen/20190208_Chen_markers_formats.csv")
+    markers_df.loc[not_positive, "1 - adjp**2"] = .1
 
     # hard coded genes for chen lab
     genes=['Tmem163', 'Rgs4', 'Olfm1', 'Nnat', 'Snhg11', 'Cdh4', 'Alas2', 'Car2',
@@ -220,16 +225,13 @@ def load_scanpy(user_email, worksheet_name, scanpy_path, cluster_name, dataset_n
     'Lhx1os', 'Top2a', 'Cks2', 'Gap43', 'Cd200', 'Pcp4', 'Fech', 'Emx2',
     'Nanos1']
     genes = []
-    #genes = log2fc_markers_vs_mean(means).tolist()
-    print(genes)
-    #genes = find_genes(markers_df, size_by, color_by)
 
-    xys = pd.DataFrame(ad.obsm["X_tsne"], index=ad.obs_names)
-    exp = expression_dataframe(ad).transpose()
+    exp = ad_obj.get_expression(ad, use_raw)
 
     write_all_worksheet(user_email, worksheet_name, xys=xys, exp=exp, clustering=clustering, markers=markers_df)
 
-    print("making state")
+    print("making state...")
+
     state = generate_worksheet_state(
         user_email,
         worksheet_name,
@@ -238,7 +240,8 @@ def load_scanpy(user_email, worksheet_name, scanpy_path, cluster_name, dataset_n
         markers_df,
         size_by,
         color_by,
-        genes
+        genes,
+        mapping
     )
 
     state_path = os.path.join(
@@ -247,6 +250,13 @@ def load_scanpy(user_email, worksheet_name, scanpy_path, cluster_name, dataset_n
     )
 
     save_worksheet(state_path, state)
+
+
+@click.command(help="See the keys for observation matrix")
+@click.argument('scanpy_path')
+def scanpy_obs_keys(scanpy_path):
+    ad = ad_obj.readh5ad(scanpy_path)
+    print(ad.obs_keys())
 
 
 @click.command(help="Add a new user to the user database.")
@@ -296,7 +306,11 @@ def create_worksheet(email, worksheet_name, dataset_name, cluster_name):
     )
 
 
-CLICK_COMMANDS = (create_user, create_worksheet, all_users, clear_users, load_scanpy, load_tsv, create_state, to_pickle)
+CLICK_COMMANDS = (
+    create_user, create_worksheet, all_users,
+    clear_users, load_scanpy, load_tsv, create_state,
+    to_pickle, scanpy_obs_keys
+)
 
 
 @decorator
