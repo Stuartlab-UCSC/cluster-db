@@ -65,20 +65,17 @@ class Worksheet(Resource):
         if not current_user.is_authenticated:
             return abort(403)
 
-        if not current_user.is_authenticated:
-            return auth.unauthorized_view(Resource)
-        
-        if request.get_json() is None:
-            raise ValueError("json state representation required in body of request")
+        state = request.get_json()
+        if state is None:
+            abort(400, "A json state representation is required in the body of request.")
 
         owns_data = current_user.email == user
 
         if owns_data:
-            state_rep = request.get_json()
-            worksheet = state_rep["worksheet_name"]
+            worksheet = worksheet
             user_entry = User.get_by_email(user)
             ws_entry = CellTypeWorksheet.get_worksheet(user_entry, worksheet)
-            save_worksheet(ws_entry.place, request.get_json())
+            save_worksheet(ws_entry.place, state)
 
 
 @ns.route('/<string:user>/worksheet/<string:worksheet>/cluster/<string:cluster_name>')
@@ -325,7 +322,6 @@ def scatter_categorical(xys, centers, color_map, clusters):
     img_bytes.seek(0)
     plt.close()
     return img_bytes
-
 
 
 def scatter_continuous(xys, centers, gene):
