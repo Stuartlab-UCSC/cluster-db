@@ -303,7 +303,8 @@ def scatter_categorical(xys, centers, color_map, clusters):
             x=xs,
             y=ys,
             color=color,
-            alpha=0.7,
+            marker=".",
+            alpha=1,
         )
 
         plt.annotate(
@@ -334,7 +335,7 @@ def scatter_continuous(xys, centers, gene):
     """
     plt.axis('off')
     cm = plt.cm.get_cmap('coolwarm')
-    sc = plt.scatter(x=xys['x'], y=xys['y'], c=gene, alpha=0.7, cmap=cm, norm=None, edgecolor='none')
+    sc = plt.scatter(x=xys['x'], y=xys['y'], marker=".", c=gene, alpha=1, cmap=cm, norm=None, edgecolor='none')
 
     # Annotate the clusters at their centroids.
     for label in centers.index:
