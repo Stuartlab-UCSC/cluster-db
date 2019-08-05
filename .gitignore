@@ -4,6 +4,9 @@
 # server data
 /users/*
 
+# config file
+clusterDbConfig.sh
+
 # sqllite database file
 cluster.db
 cluster_user.db
