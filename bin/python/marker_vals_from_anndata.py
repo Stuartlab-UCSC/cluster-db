@@ -258,14 +258,15 @@ def main():
             centroid = X.loc[cell_names].mean(axis=0)
             centroids[cluster_name] = centroid
 
-        marker_genes = find_markers(centroids)
+        #marker_genes = find_markers(centroids)
+        marker_genes = centroids.index.tolist()
         print("found %d possible marker genes" % len(marker_genes))
         #pd.Series(marker_genes).to_csv("trash.txt",index=False)
         # Subset down to only those marker genes.
         X = X[marker_genes]
 
         # Now go through all the found marker genes and calculate each metric for each cluster.
-        print(marker_genes)
+        #print(marker_genes)
         for gene in marker_genes:
             second_largest = centroids.loc[gene].nlargest(2).tolist()[1] + 2
             minimum = centroids.loc[gene].min() + 2
