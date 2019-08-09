@@ -24,10 +24,74 @@ from cluster.user_io import (
     read_gene_expression,
     read_cluster,
     read_xys,
-    save_worksheet
+    save_worksheet,
+    make_new_worksheet_dir,
+    make_worksheet_root,
+    get_user_dir
 )
+from cluster.utils import timeit
+
 matplotlib.use("Agg")
 ns = api.namespace('user')
+
+
+@ns.route('/worksheet/<string:worksheet>')
+@ns.param('worksheet', 'The name of the worksheet.')
+class WorksheetUpload(Resource):
+    @ns.response(200, 'worksheet uploaded', )
+    def post(self, worksheet):
+        """Load a .tar.gz cell type worksheet file with a signed in user"""
+        #print("ws upload/...", current_user.is_authenticated, current_user.email, worksheet)
+        if not current_user.is_authenticated:
+            return abort(403)
+
+        #print("in space")
+        ws_root = make_worksheet_root(current_user.email, worksheet)
+        make_new_worksheet_dir(ws_root)
+        path = get_user_dir(ws_root)
+        print(path)
+        file = request.files['file']
+
+        print(file.filename)
+        import os
+        tarfilename = os.path.join(path, file.filename)
+        file.save(tarfilename)
+        import tarfile
+        print("path to opened files", path)
+        with tarfile.open(tarfilename) as tar:
+            members = [m for m in tar.getmembers() if m.isfile() and is_valid_file(m.name)]
+            print(len(members), "n mems")
+            for member in members:
+                fout_path = os.path.join(path, name_transform(member.name))
+                print(fout_path, "fout path")
+                tfile = tar.extractfile(member)
+
+                with open(fout_path, "wb") as fout:
+                    fout.write(tfile.read())
+
+        # Now you need to add the worksheet to the database.
+        add_worksheet_entries(
+            db.session,
+            current_user.email,
+            worksheet,
+            organ=None,
+            species=None,
+            dataset_name=None,
+            cluster_name=None,
+        )
+
+def is_valid_file(tarsfilename):
+    for key in fname_keys:
+        if key in tarsfilename:
+            return True
+    return False
+
+
+def name_transform(tarsfilename):
+    for key in fname_keys:
+        if key in tarsfilename:
+            return key
+    raise ValueError("The file name could not be transformed into a valid filename constant")
 
 
 @ns.route('/worksheets')
