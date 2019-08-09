@@ -39,6 +39,7 @@ def test_get_worksheet_no_login(client, session, user_worksheet_data):
 
 
 def test_get_var_names_login(client, session, user_worksheet_data):
+
     with client:
         add_entries(session, entries)
         login(client)
@@ -106,7 +107,6 @@ def test_login_and_save_worksheet(client, session, user_worksheet_data):
         add_entries(session, entries)
         login(client)
 
-
         worksheet_url = url_for(
             "api.user_worksheet", user="test@test.com", worksheet="test"
         )
@@ -142,6 +142,7 @@ def test_save_worksheet_unauth(client, session, user_worksheet_data):
 
 
 def test_login_and_get_gene_table(client, session, user_worksheet_data):
+
     cluster_name="1.0"
     with client:
         add_entries(session, entries)
@@ -160,6 +161,7 @@ def test_login_and_get_gene_table(client, session, user_worksheet_data):
 
 
 def test_get_worksheet_unauth(client, session, user_worksheet_data):
+
     cluster_name="1.0"
     with client:
         add_entries(session, entries)
@@ -195,6 +197,7 @@ def test_login_and_get_add_gene(client, session, user_worksheet_data):
 
 
 def test_get_add_gene_unauth(client, session, user_worksheet_data):
+
     size_by="size"
     color_by="color"
     gene="37.0"
@@ -216,6 +219,7 @@ def test_get_add_gene_unauth(client, session, user_worksheet_data):
 
 
 def test_login_and_get_gene_scatter(client, session, user_worksheet_data):
+
     gene = "37"
     type_var= "unused"
     with client:
@@ -233,6 +237,7 @@ def test_login_and_get_gene_scatter(client, session, user_worksheet_data):
 
 
 def test_get_gene_scatter_unauth(client, session, user_worksheet_data):
+
     gene = "37"
     type_var= "unused"
     with client:
@@ -252,6 +257,7 @@ def test_get_gene_scatter_unauth(client, session, user_worksheet_data):
 
 
 def test_login_and_post_gene_categorical(client, session, user_worksheet_data):
+
     type_var="unused"
     n_clusters = 10
     import random
@@ -279,6 +285,7 @@ def test_login_and_post_gene_categorical(client, session, user_worksheet_data):
 
 
 def test_post_gene_categorical_unauth(client, session, user_worksheet_data):
+
     type_var = "unused"
     n_clusters = 10
     import random
