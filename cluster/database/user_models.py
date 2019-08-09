@@ -174,7 +174,8 @@ def add_worksheet_entries(
     :param cluster_name:
     :return:
     """
-
+    if cluster_name is None:
+        cluster_name = "cluster"
     try:
         CellTypeWorksheet.get_worksheet(User.get_by_email(user_email), worksheet_name)
 
