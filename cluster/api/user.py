@@ -1,7 +1,8 @@
 """
 Protected user endpoints work accessing cell type worksheets.
 """
-from flask import send_file, request, abort
+from flask import send_file, request, abort, current_app
+from cluster.database import db
 from flask_restplus import Resource
 from flask_user import current_user
 from cluster.api.restplus import api
@@ -9,6 +10,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import matplotlib
 import io
+from cluster.database.filename_constants import fname_keys
 from cluster.database.user_models import get_all_worksheet_paths
 from cluster.database.filename_constants import MARKER_TABLE
 from cluster.database.user_models import (
@@ -16,7 +18,8 @@ from cluster.database.user_models import (
     UserExpression,
     ExpCluster,
     ClusterGeneTable,
-    CellTypeWorksheet
+    CellTypeWorksheet,
+    add_worksheet_entries
 )
 from cluster.user_io import (
     read_markers_df,
@@ -109,6 +112,7 @@ class UserWorksheets(Resource):
 @ns.param('user', 'user id')
 @ns.param('worksheet', 'The name of the worksheet.')
 class Worksheet(Resource):
+    @timeit(id_string="get worksheet")
     @ns.response(200, 'worksheet retrieved', )
     def get(self, user, worksheet):
         """Retrieve a saved worksheet."""
@@ -141,6 +145,24 @@ class Worksheet(Resource):
             ws_entry = CellTypeWorksheet.get_worksheet(user_entry, worksheet)
             save_worksheet(ws_entry.place, state)
 
+    @ns.response(200, 'worksheet received')
+    def put(self, user, worksheet):
+        """Save a worksheet"""
+        if not current_user.is_authenticated:
+            return abort(403)
+
+        state = request.get_json()
+        if state is None:
+            abort(400, "A json state representation is required in the body of request.")
+
+        owns_data = current_user.email == user
+
+        if owns_data:
+            worksheet = worksheet
+            user_entry = User.get_by_email(user)
+            ws_entry = CellTypeWorksheet.get_worksheet(user_entry, worksheet)
+            save_worksheet(ws_entry.place, state)
+
 
 @ns.route('/<string:user>/worksheet/<string:worksheet>/cluster/<string:cluster_name>')
 @ns.param('user', 'user id')
@@ -148,11 +170,13 @@ class Worksheet(Resource):
 @ns.param('cluster_name', 'The name of the cluster')
 class GeneTable(Resource):
     # @api.marshal_with(all_markers_model, envelope="resource")
+    @timeit(id_string="get Gene table")
     @ns.response(200, 'tab delimited genes per cluster file', )
     def get(self, user, worksheet, cluster_name):
         """Grab gene metrics for a specified cluster."""
         if not current_user.is_authenticated:
             return abort(403)
+        import time
 
         user_entry = User.get_by_email(user)
         ws_entry = CellTypeWorksheet.get_worksheet(user_entry, worksheet_name=worksheet)
@@ -162,6 +186,7 @@ class GeneTable(Resource):
 
         # Make the table and then throw it in a byte buffer to pass over.
         gene_table = read_markers_df(path)
+        ts = time.time()
         msk = (gene_table["cluster"] == cluster_name).tolist()
 
         gene_table = gene_table.iloc[msk]
@@ -170,7 +195,8 @@ class GeneTable(Resource):
             abort(422, "The cluster requested has no values in the gene table")
 
         gene_table = gene_table.drop("cluster", axis=1)
-
+        te = time.time()
+        print('%s  %2.2f ms' % ("before buffer", (te - ts) * 1000))
         buffer = io.StringIO()
 
         gene_table.to_csv(buffer, index=False, sep="\t")
@@ -221,6 +247,10 @@ class AddGene(Resource):
         )
 
 
+def parse_genes(genes):
+    return genes.strip().split(",")
+
+
 @ns.route('/<string:user>/worksheet/<string:worksheet>/var_name/<string:var_name>/genes/<string:genes>')
 @ns.param('user', 'user id')
 @ns.param('worksheet', 'The name of the worksheet.')
@@ -239,7 +269,7 @@ class DotplotValues(Resource):
             return abort(401, "User emails did not match, currently users may only access their own data.")
 
         path_dict = get_all_worksheet_paths(user, worksheet)
-        genes = genes.strip().split(",")
+        genes = parse_genes(genes)
         # Make the table and then throw it in a byte buffer to pass over.
         markers_df = read_markers_df(path_dict[MARKER_TABLE])
         table = bubble_table(markers_df, genes, var_name)
@@ -264,6 +294,7 @@ class DotplotValues(Resource):
 @ns.param('type', 'tsne, umap, or pca.')
 @ns.param('gene', 'A gene name present in the expression matrix')
 class GeneScatterplot(Resource):
+    @timeit(id_string="gene value scatter plot")
     @ns.response(200, 'png scatterplot image')
     def get(self, user, worksheet, type, gene):
         """A png of a scatter plot colored by a genes value"""
@@ -298,6 +329,7 @@ class GeneScatterplot(Resource):
 @ns.param('worksheet', 'The name of the worksheet.')
 @ns.param('type', 'tsne, umap, or pca.')
 class ClusterScatterplot(Resource):
+    @timeit(id_string="Cluster scatterplot")
     @ns.response(200, 'png scatterplot image')
     def post(self, user, worksheet, type):
         """A png scatterplot with clusters colored by json color map."""
@@ -336,6 +368,7 @@ class ClusterScatterplot(Resource):
             mimetype='image/png'
         )
 
+
 def graph_protions(centers, data, color_map):
     """Iterator provides portions of the categorical scatter plot"""
     for label in centers.index:
@@ -344,6 +377,7 @@ def graph_protions(centers, data, color_map):
         cx, cy = (centers.loc[label]["x"], centers.loc[label]["y"])
         color = color_map[label]
         yield xs, ys, cx, cy, color, label
+
 
 def join_xys_clusters(xys, clustering):
     data = pd.concat([xys, clustering], axis=1)
@@ -398,7 +432,45 @@ def scatter_continuous(xys, centers, gene):
     """
     plt.axis('off')
     cm = plt.cm.get_cmap('coolwarm')
-    sc = plt.scatter(x=xys['x'], y=xys['y'], marker=".", c=gene, alpha=1, cmap=cm, norm=None, edgecolor='none')
+    # This is a binning hack to deal with the distributions of count type data.
+    # linear color mappings do not do well because of outliers that stretch the scale.
+    gene_vector_has_zeros = (gene==0).sum() != 0 and gene.min() == 0
+    if gene_vector_has_zeros:
+        # Do the binning:
+        # one bin for zeros
+        # 3 bins for non zeros
+        zero_cells = gene.index[gene==0]
+        non_zero_cells = gene.index[gene != 0]
+        import numpy as np
+
+        first_third = np.percentile(gene[non_zero_cells], 33)
+        second_third = np.percentile(gene[non_zero_cells], 66)
+        first_third_cells = gene.index[np.logical_and(gene > 0, gene <= first_third)]
+        second_third_cells = gene.index[np.logical_and(gene > first_third, gene <= second_third)]
+        last_third_cells = gene.index[gene > second_third]
+
+        import matplotlib.colors as colors
+        import matplotlib.cm as cmx
+        # Set the color map to match the number of species
+        n_bins = 4
+        z = range(1, n_bins)
+        hot = plt.get_cmap('Reds')
+        cNorm = colors.Normalize(vmin=0, vmax=n_bins)
+        scalarMap = cmx.ScalarMappable(norm=cNorm, cmap=hot)
+        label = [
+            "0", "0 - %.2g" % first_third, "%.2g - %.2g" % (first_third, second_third),
+            "%.2g - %.2g" % (second_third, gene.max())
+        ]
+
+        # Plot each of the bins
+        for i, cells in enumerate([zero_cells, first_third_cells, second_third_cells, last_third_cells]):
+            #plt.scatter(xys.loc[cells, "x"], xys.loc[cells,"y"], marker=".", color=color[i], label=label[i])
+            plt.scatter(xys.loc[cells, "x"], xys.loc[cells, "y"], marker=".", color=scalarMap.to_rgba(i), label=label[i])
+        plt.legend()
+
+    else:
+        sc = plt.scatter(x=xys['x'], y=xys['y'], marker=".", c=gene, alpha=1, cmap=cm, norm=None, edgecolor='none')
+        plt.colorbar(sc)
 
     # Annotate the clusters at their centroids.
     for label in centers.index:
@@ -411,7 +483,8 @@ def scatter_continuous(xys, centers, gene):
             color="black"
         )
 
-    plt.colorbar(sc)
+
+
     img_bytes = io.BytesIO()
     plt.savefig(img_bytes, format="png")
     img_bytes.seek(0)
