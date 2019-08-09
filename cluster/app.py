@@ -18,6 +18,7 @@ from cluster.api.cluster_solution import ns as cluster_solution_namespace
 from cluster.api.dataset import ns as dataset_namespace
 from cluster.api.marker import ns as marker_namespace
 from cluster.api.dotplot import ns as dotplot_namespace
+from cluster.api.scorect import ns as scorect_namespace
 from cluster.api.auth import auth_routes
 
 from cluster.database.user_models import User
@@ -38,6 +39,7 @@ def initialize_blueprint(flask_app):
     apiBlueprint = Blueprint('api', __name__, url_prefix='')
     api.init_app(apiBlueprint)
 
+    api.add_namespace(scorect_namespace)
     api.add_namespace(cluster_solution_namespace)
     api.add_namespace(dataset_namespace)
     api.add_namespace(dotplot_namespace)
