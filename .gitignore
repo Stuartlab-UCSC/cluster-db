@@ -1,6 +1,11 @@
 # pycharm
 .idea*
 
+*.pi
+*.lst
+*.gmt
+*.tsv
+
 # machine specific config
 clusterDbConfig.sh
 
