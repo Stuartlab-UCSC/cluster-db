@@ -24,6 +24,11 @@ def add_user_dir(func, *args, **kwargs):
 
 
 @add_user_dir
+def get_user_dir(worksheet_root):
+    return worksheet_root
+
+
+@add_user_dir
 def save_worksheet(path, pydict):
     try:
         with gzip.GzipFile(path, 'w') as fout:
@@ -79,8 +84,10 @@ def markers_manip(marker_df):
     marker_df = marker_df.reindex(columns=cols)
     return marker_df
 
+from cluster.utils import timeit
 
 @add_user_dir
+@timeit(id_string="read markers.pi")
 def read_markers_df(path):
     df = pd.read_pickle(path)
     df = markers_manip(df)
@@ -102,6 +109,14 @@ def read_json_gzipd(path):
     json_str = json_bytes.decode('utf-8')
     data = json.loads(json_str)
     return data
+
+@add_user_dir
+def make_new_worksheet_dir(path):
+    """Makes a new worksheet directory at the worksheet root 'path'."""
+    try:
+        os.mkdir(path)
+    except FileExistsError:
+        pass
 
 
 def write_all_worksheet(user_email, worksheet_name, markers=None, xys=None, exp=None, clustering=None):
