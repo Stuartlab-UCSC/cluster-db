@@ -93,14 +93,15 @@ def load_tsv(
     except FileNotFoundError as e:
         print(e)
 
+
 @click.command(help="Make a pickle from a tsv.")
 @click.argument('fin')
 @click.argument('fout')
-@click.option('--format', default="tsv")
 @click.option('--index_col', default=None)
-def to_pickle(fin, fout, format, index_col):
+def to_pickle(fin, fout, index_col):
     df = pd.read_csv(fin, sep="\t", index_col=index_col)
     pd.to_pickle(df, fout)
+
 
 @click.command(help="Create state after loading files.")
 @click.argument('user_email')
