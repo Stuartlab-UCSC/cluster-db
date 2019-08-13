@@ -210,6 +210,7 @@ def add_worksheet_entries(
         species=None,
         dataset_name=None,
         cluster_name=None,
+        paths_dict=None
 ):
     """
     Single api for the tables needed to have a worksheet.
@@ -236,10 +237,18 @@ def add_worksheet_entries(
 
         worksheet_root = os.path.join(user_email, worksheet_name)
         worksheet_path = os.path.join(worksheet_root, STATE)
-        exp_data_path  = os.path.join(worksheet_root, EXPRESSION)
-        cluster_path = os.path.join(worksheet_root, CLUSTERING)
-        xys_path = os.path.join(worksheet_root, XYS)
-        marker_path = os.path.join(worksheet_root, MARKER_TABLE)
+
+        if paths_dict is not None:
+            exp_data_path  = paths_dict[EXPRESSION]
+            cluster_path = paths_dict[CLUSTERING]
+            xys_path = paths_dict[XYS]
+            marker_path = paths_dict[MARKER_TABLE]
+            print(paths_dict)
+        else:
+            exp_data_path  = os.path.join(worksheet_root, EXPRESSION)
+            cluster_path = os.path.join(worksheet_root, CLUSTERING)
+            xys_path = os.path.join(worksheet_root, XYS)
+            marker_path = os.path.join(worksheet_root, MARKER_TABLE)
 
         user_id = User.get_by_email(user_email).id
 

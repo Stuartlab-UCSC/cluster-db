@@ -13,6 +13,7 @@ from flask import current_app, abort
 from decorator import decorator
 import cluster.database.filename_constants as keys
 
+
 @decorator
 def add_user_dir(func, *args, **kwargs):
     """Adds the user directory to the first argument ('path') of a function"""
@@ -115,6 +116,12 @@ def make_new_worksheet_dir(path):
     """Makes a new worksheet directory at the worksheet root 'path'."""
     try:
         os.mkdir(path)
+
+    except FileNotFoundError as UserDoesntHaveWSDir:
+        # Make the directory and then try again
+        os.mkdir(os.path.dirname(path))
+        make_new_worksheet_dir(path)
+
     except FileExistsError:
         pass
 

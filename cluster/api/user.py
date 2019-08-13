@@ -54,7 +54,6 @@ class WorksheetUpload(Resource):
         path = get_user_dir(ws_root)
         file = request.files['file']
 
-
         tarfilename = os.path.join(path, file.filename)
         file.save(tarfilename)
 
@@ -78,6 +77,7 @@ class WorksheetUpload(Resource):
             cluster_name=None,
         )
 
+
 def is_valid_file(tarsfilename):
     for key in fname_keys:
         if key in tarsfilename:
@@ -96,11 +96,16 @@ def name_transform(tarsfilename):
 class UserWorksheets(Resource):
     @ns.response(200, 'worksheet retrieved', )
     def get(self):
+        #print(CellTypeWorksheet.get_public_worksheets(), "pub names")
+        #print(current_app.config["MAIL_SERVER"], current_app.config["MAIL_PORT"])
         """Retrieve a list of available worksheets available to the user """
         if not current_user.is_authenticated:
             return abort(403)
 
-        return CellTypeWorksheet.get_user_worksheet_names(current_user)
+        users_ws = CellTypeWorksheet.get_user_worksheet_names(current_user)
+        #public_ws = CellTypeWorksheet.get_public_worksheets()
+        #users_ws.append(public_ws)
+        return users_ws
 
 
 @ns.route('/<string:user>/worksheet/<string:worksheet>')
@@ -124,7 +129,7 @@ class Worksheet(Resource):
 
     @ns.response(200, 'worksheet received')
     def post(self, user, worksheet):
-        """Save a worksheet"""
+        """Create or update a worksheets state."""
         if not current_user.is_authenticated:
             return abort(403)
 
@@ -137,8 +142,29 @@ class Worksheet(Resource):
         if owns_data:
             worksheet = worksheet
             user_entry = User.get_by_email(user)
-            ws_entry = CellTypeWorksheet.get_worksheet(user_entry, worksheet)
-            save_worksheet(ws_entry.place, state)
+
+            try:
+                from sqlalchemy.orm.exc import NoResultFound
+                ws_entry = CellTypeWorksheet.get_worksheet(user_entry, worksheet)
+                save_worksheet(ws_entry.place, state)
+
+            except NoResultFound as e:
+                print("Saving as")
+                from cluster.database.user_models import add_worksheet_entries
+                orig_worksheet_email = state['user']
+                orig_worksheet_name = state['worksheet_name']
+                print(orig_worksheet_name, orig_worksheet_email, "orig")
+                paths = get_all_worksheet_paths(orig_worksheet_email, orig_worksheet_name)
+                print("paths", paths)
+                """
+                add_worksheet_entries(db.session, current_user.email, worksheet, paths_dict=paths)
+                ws_entry = CellTypeWorksheet.get_worksheet(user_entry, worksheet)
+                state['user'] = current_user.email
+                state['worksheet_name'] = worksheet
+                from cluster.user_io import make_new_worksheet_dir
+                make_new_worksheet_dir()
+                save_worksheet(ws_entry.place, state)
+                """
 
     @ns.response(200, 'worksheet received')
     def put(self, user, worksheet):
