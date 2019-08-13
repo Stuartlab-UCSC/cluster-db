@@ -146,7 +146,6 @@ def create_state(
     except FileNotFoundError as e:
         print(e)
 
-
 @click.command(help="Add a scanpy object to the user file system")
 @click.argument('user_email')
 @click.argument('worksheet_name')
@@ -188,64 +187,58 @@ def load_scanpy(user_email, worksheet_name, scanpy_path, cluster_name,
     ad = ac
     use_raw = False
     """
-    means = ad_obj.centroids(ad, cluster_name, use_raw)
-
+    from .create.marker_vals_from_anndata import run_pipe
+    markers_df = run_pipe(ad, cluster_name)
     clustering = ad_obj.get_obs(ad, cluster_name)
 
     #print(ad.var_names)
     # Need to use all of the genes of NA's will come about in the data.
-    n_genes = ad_obj.all_genes_n(ad, use_raw)
-    print("executing gene ranking...")
-    ad_obj.run_gene_ranking(ad, cluster_name, n_genes, use_raw)
 
-    proportions = ad_obj.proportion_expressed_cluster(ad, clustering, use_raw)
-    #print(proportions.head())
-    scores = ad_obj.parse_ranked_genes(ad, "scores")
-    #print(scores.head())
-    pvals_adj = ad_obj.parse_ranked_genes(ad, "pvals_adj")
-    #print(pvals_adj.head())
-    log2fc = ad_obj.parse_ranked_genes(ad, "logfoldchanges")
-    #print(log2fc.head())
-    # Parse out a markers table from the metrics of interest.
-    proportions = proportions.loc[log2fc.index, log2fc.columns]
-    means = means.loc[log2fc.index, log2fc.columns]
-    pvals_adj = pvals_adj.loc[log2fc.index, log2fc.columns]
-    scores = scores.loc[log2fc.index, log2fc.columns]
+    genes = []
 
-    proportions = proportions.stack().reset_index()
-    means = means.stack().reset_index()
-    scores = scores.stack().reset_index()
-    pvals_adj = pvals_adj.stack().reset_index()
-    log2fc = log2fc.stack().reset_index()
+    exp = ad_obj.get_expression(ad, use_raw)
 
-    if scores.shape != pvals_adj.shape or scores.shape != log2fc.shape or means.shape != scores.shape:
-        print(scores.isna().sum().sum(), "scores are na")
-        print(means.isna().sum().sum(), "means are na")
-        print(log2fc.isna().sum().sum(), "log2f are na")
-        raise ValueError("Markers table could not be created, likely because Na values existed for some metrics.")
+    write_all_worksheet(user_email, worksheet_name, xys=xys, exp=exp, clustering=clustering, markers=markers_df)
 
-    markers_df = pd.DataFrame(columns=["gene", "cluster", "logfc", "-log10adjp", "mean", "scores", "pct.exp"])
-    markers_df["gene"] = scores['level_0'].values
-    markers_df["cluster"] = scores['level_1'].astype(str).values
-    markers_df["mean"] = means[0].values
-    markers_df["logfc"] = log2fc[0].values
-    markers_df["-log10adjp"] = -np.log10(pvals_adj[0].values+0.000000000001)
-    markers_df["pct.exp"] = proportions[0].values
-    markers_df["scores"] = scores[0].values
+    print("making state...")
 
-    markers_df["1 - adjp**2"] = 1 - pvals_adj[0].values ** 2
-    not_positive = markers_df.index[log2fc[0].values <= 0]
-    markers_df.loc[not_positive, "1 - adjp**2"] = .1
+    state = generate_worksheet_state(
+        user_email,
+        worksheet_name,
+        dataset_name,
+        clustering,
+        size_by,
+        color_by,
+        genes=genes,
+        mapping=mapping,
+        markers_df=markers_df
+    )
 
-    # hard coded genes for chen lab
-    genes=['Tmem163', 'Rgs4', 'Olfm1', 'Nnat', 'Snhg11', 'Cdh4', 'Alas2', 'Car2',
-    'Nhlh2', 'H2afz', 'Ddah1', 'Hmgn2', 'Trp73', 'Reln', 'Ppp2r2c',
-    'Gm28050', 'Diablo', 'Actb', 'Bpgm', 'Mkrn1', 'Snca', 'Ndnf', 'Blvrb',
-    'Nr2f2', 'Hbb-bt', 'Hbb-bs', 'Hbb-y', 'Rspo3', 'Fabp7', '1500009L16Rik',
-    'Hmgb2', 'Smad1', 'Gypa', 'Mt3', 'Calb2', 'H2afx', '2810417H13Rik',
-    'Zic1', 'Cacna2d2', 'Gpx1', 'Tmem158', 'Hba-x', 'Hba-a1', 'Lhx1',
-    'Lhx1os', 'Top2a', 'Cks2', 'Gap43', 'Cd200', 'Pcp4', 'Fech', 'Emx2',
-    'Nanos1']
+    state_path = os.path.join(
+        make_worksheet_root(user_email, worksheet_name),
+        keys.STATE
+    )
+
+    save_worksheet(state_path, state)
+
+@click.command(help="Add a scanpy object to the user file system")
+@click.argument('user_email')
+@click.argument('worksheet_name')
+@click.argument('scanpy_path')
+@click.option('--cluster_name', default="louvain")
+@click.option('--dataset_name', default="")
+@click.option('--celltype_key', default="scorect")
+@with_appcontext
+def scanpydump(user_email, worksheet_name, scanpy_path, cluster_name,
+                dataset_name, size_by="-log10adjp", color_by="mean", celltype_key=None
+):
+    print("reading in data...")
+    ad = ad_obj.readh5ad(scanpy_path)
+    mapping = ad_obj.celltype_mapping(ad, cluster_name, celltype_key)
+    use_raw = ad_obj.has_raw(ad)
+    xys = ad_obj.get_xys(ad, key="X_umap")
+    clustering = ad_obj.get_obs(ad, cluster_name)
+
     genes = []
 
     exp = ad_obj.get_expression(ad, use_raw)
@@ -317,6 +310,7 @@ def clear_users():
 @click.argument('cluster_name')
 @with_appcontext
 def create_worksheet(email, worksheet_name, dataset_name, cluster_name):
+    """Create a database entry for a worksheet. Worsheet data should already be in the user's directory"""
     add_worksheet_entries(
         db.session,
         email,
