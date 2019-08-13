@@ -7,15 +7,38 @@ from sqlalchemy.orm.exc import NoResultFound
 import os
 
 
-class Role(Model):
+def add_group(session, role_name):
+    group = Group(
+        name=role_name,
+    )
+    session.add(group)
+    session.commit()
+
+
+class Role(SurrogatePK, Model):
     __tablename__ = 'role'
     id = Column(Integer(), primary_key=True)
     name = Column(String(80), unique=True)
     description = Column(String(255))
     members = relationship('User', secondary='user_roles')
 
+    @classmethod
+    def get_by_name(cls, name):
+        return cls.query.filter(cls.name == name).one()
 
-class User(Model, UserMixin):
+
+class Group(SurrogatePK, Model):
+    __tablename__ = 'group'
+    id = Column(Integer(), primary_key=True)
+    name = Column(String(80), unique=True)
+    members = relationship('User', secondary='user_groups')
+
+    @classmethod
+    def get_by_name(cls, name):
+        return cls.query.filter(cls.name == name).one()
+
+
+class User(SurrogatePK, Model, UserMixin):
     __tablename__ = 'user'
     id = Column(Integer, primary_key=True)
     active = Column('is_active', Boolean(), nullable=False, server_default='1')
@@ -30,20 +53,32 @@ class User(Model, UserMixin):
     first_name = Column(String(100, collation='NOCASE'), nullable=False, server_default='')
     last_name = Column(String(100, collation='NOCASE'), nullable=False, server_default='')
 
+    roles = relationship(
+        'Role',
+        secondary="user_roles",
+        backref=backref('users', lazy='dynamic')
+    )
 
-    roles = relationship('Role', secondary="user_roles",
-                            backref=backref('users', lazy='dynamic'))
+    groups = relationship('Group', secondary="user_groups",
+                         backref=backref('users', lazy='dynamic'))
 
     @classmethod
     def get_by_email(cls, email):
         return cls.query.filter(cls.email == email).one()
 
 
-class UserRoles(Model):
+class UserRoles(SurrogatePK, Model):
     __tablename__ = 'user_roles'
     id = Column(Integer(), primary_key=True)
     user_id = Column(Integer(), ForeignKey('user.id', ondelete='CASCADE'))
     role_id = Column(Integer(), ForeignKey('role.id', ondelete='CASCADE'))
+
+
+class UserGroups(SurrogatePK, Model):
+    __tablename__ = 'user_groups'
+    id = Column(Integer(), primary_key=True)
+    user_id = Column(Integer(), ForeignKey('user.id', ondelete='CASCADE'))
+    group_id = Column(Integer(), ForeignKey('group.id', ondelete='CASCADE'))
 
 
 class CellTypeWorksheet(SurrogatePK, Model):
@@ -54,6 +89,12 @@ class CellTypeWorksheet(SurrogatePK, Model):
     user_id = Column(Integer(), ForeignKey('user.id'))
     expression_id = Column(Integer(), ForeignKey('userexpression.id'))
     __table_args__ = (UniqueConstraint('name', 'user_id', name="ws:user"),)
+
+    groups = relationship(
+        'Group',
+        secondary="worksheet_groups",
+         backref=backref('group', lazy='dynamic')
+    )
 
 
     @classmethod
@@ -73,6 +114,13 @@ class CellTypeWorksheet(SurrogatePK, Model):
 
         return user_ws
 
+    @classmethod
+    def get_public_worksheets(cls):
+        group = Group.get_by_name("public")
+        ws_ids = [wsg.worksheet_id for wsg in WorksheetGroup.get_by_group(group)]
+        ws_names = [CellTypeWorksheet.get_by_id(ws_id).name for ws_id in ws_ids]
+        return ws_names
+
 
 class UserExpression(SurrogatePK, Model):
     __tablename__ = "userexpression"
@@ -87,11 +135,15 @@ class UserExpression(SurrogatePK, Model):
         return UserExpression.query.filter(UserExpression.id == worksheet.expression_id).one()
 
 
-class WorksheetRole(SurrogatePK, Model):
-    __tablename__ = "worksheetrole"
+class WorksheetGroup(SurrogatePK, Model):
+    __tablename__ = "worksheet_groups"
     id = Column(Integer(), primary_key=True)
-    role_id = Column(Integer(), ForeignKey('role.id'))
+    group_id = Column(Integer(), ForeignKey('group.id'))
     worksheet_id = Column(Integer(), ForeignKey('worksheet.id'))
+
+    @classmethod
+    def get_by_group(cls, group):
+        return cls.query.filter(cls.group_id == group.id)
 
 
 class ExpDimReduct(SurrogatePK, Model):
