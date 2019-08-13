@@ -4,6 +4,51 @@ import pandas as pd
 import numpy as np
 from scipy.sparse.csr import csr_matrix
 
+def run_ranked_genes_build_markers_table(ad, cluster_name, n_genes, use_raw):
+    # n_genes = ad_obj.all_genes_n(ad, use_raw)
+    print("executing gene ranking...")
+    run_gene_ranking(ad, cluster_name, n_genes, use_raw)
+    clustering = ad.obs[cluster_name]
+    proportions = proportion_expressed_cluster(ad, clustering, use_raw)
+    # print(proportions.head())
+    scores = parse_ranked_genes(ad, "scores")
+    # print(scores.head())
+    pvals_adj = parse_ranked_genes(ad, "pvals_adj")
+    # print(pvals_adj.head())
+    log2fc = parse_ranked_genes(ad, "logfoldchanges")
+    # print(log2fc.head())
+    # Parse out a markers table from the metrics of interest.
+    means = centroids(ad, cluster_name, use_raw)
+    proportions = proportions.loc[log2fc.index, log2fc.columns]
+    means = means.loc[log2fc.index, log2fc.columns]
+    pvals_adj = pvals_adj.loc[log2fc.index, log2fc.columns]
+    scores = scores.loc[log2fc.index, log2fc.columns]
+
+    proportions = proportions.stack().reset_index()
+    means = means.stack().reset_index()
+    scores = scores.stack().reset_index()
+    pvals_adj = pvals_adj.stack().reset_index()
+    log2fc = log2fc.stack().reset_index()
+
+    if scores.shape != pvals_adj.shape or scores.shape != log2fc.shape or means.shape != scores.shape:
+        print(scores.isna().sum().sum(), "scores are na")
+        print(means.isna().sum().sum(), "means are na")
+        print(log2fc.isna().sum().sum(), "log2f are na")
+        raise ValueError("Markers table could not be created, likely because Na values existed for some metrics.")
+
+    markers_df = pd.DataFrame(columns=["gene", "cluster", "logfc", "-log10adjp", "mean", "scores", "pct.exp"])
+    markers_df["gene"] = scores['level_0'].values
+    markers_df["cluster"] = scores['level_1'].astype(str).values
+    markers_df["mean"] = means[0].values
+    markers_df["logfc"] = log2fc[0].values
+    markers_df["-log10adjp"] = -np.log10(pvals_adj[0].values + 0.000000000001)
+    markers_df["pct.exp"] = proportions[0].values
+    markers_df["scores"] = scores[0].values
+
+    markers_df["1 - adjp**2"] = 1 - pvals_adj[0].values ** 2
+    not_positive = markers_df.index[log2fc[0].values <= 0]
+    markers_df.loc[not_positive, "1 - adjp**2"] = .1
+
 
 def proportion_expressed_cluster(adata, clustering, use_raw):
     """
