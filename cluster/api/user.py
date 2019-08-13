@@ -168,6 +168,23 @@ class GeneTable(Resource):
     @timeit(id_string="get Gene table")
     @ns.response(200, 'tab delimited genes per cluster file', )
     def get(self, user, worksheet, cluster_name):
+
+        # Hidden pagination api
+        # looks for option parameters in the url and
+        # if not there or malformed returns entire gene table.
+        # TODO: remove or document.
+        sort_by = None
+        try:
+
+            from werkzeug.exceptions import HTTPException
+            sort_by = request.args['sort_by']
+            page = int(request.args['page'])
+            page_size = 100
+            # Throws 400 BAD Request if the arguments aren't there
+        except HTTPException as e:
+            print(e)
+            pass
+
         """Grab gene metrics for a specified cluster."""
         if not current_user.is_authenticated:
             return abort(403)
@@ -193,6 +210,12 @@ class GeneTable(Resource):
         te = time.time()
         print('%s  %2.2f ms' % ("before buffer", (te - ts) * 1000))
         buffer = io.StringIO()
+
+        if sort_by is not None:
+            gene_table.sort_values(sort_by, ascending=False, inplace=True)
+            beginning = page * page_size
+            end = (page * page_size) + page_size
+            gene_table = gene_table.loc[gene_table.index[beginning:end]]
 
         gene_table.to_csv(buffer, index=False, sep="\t")
         buffer.seek(0)
