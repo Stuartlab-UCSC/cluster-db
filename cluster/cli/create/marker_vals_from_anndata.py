@@ -1,12 +1,7 @@
 """
-Input a anndata object and cluster string, output a gzipped json file that is:
+Input a anndata object and cluster string, output a data frame (run_pipe) or tsv (main) with the following columns
 
-{
-    marker_genes: [
-        {
             "gene_name" : gene,
-            "dataset_name": dataset_name,
-            "cluster_solution_name": cluster_solution_name,
             "cluster_name": cluster_name,
             "sensitivity": sensivity, #(+1 read considered a guess) / n cells IN cluster
             "specificity": specificity, #(+1 read considered a guess) (n reads < 1 out of cluster / n cells OUT of cluster)
@@ -20,14 +15,7 @@ Input a anndata object and cluster string, output a gzipped json file that is:
             "log2_change_vs_min": fold_change_min, #( min cluster.... mincluster will always be 0.
             "log2_change_vs_next": fold_change_next, #(next is the level of the second highest cluster, there for the 2nd cluster will always be 1.
             "mean_expression": centroids.loc[gene, cluster_name]
-        }, ...
-    ]
-}
 
-The data set name is currently inferred from the filename, with filename.split("_ebi")[0]
-
-For each of the clustering solutions, any cell with a value of "NA" or "nan" is discarded, and not considered for
-the in/out cluster calculations.
 
 The log fold changes use a pseudocount of 2. This controls the log fold change when you have small values. For instance
 if the smaller average expression was .01, and the largest was 2, without a pseudocount the fold change would be
@@ -83,6 +71,7 @@ def parse_args():
 
 
 from scipy.sparse.csr import csr_matrix
+
 
 def get_expression(adata, use_raw):
     if use_raw:
@@ -209,7 +198,7 @@ def find_markers_clusters(centroids):
     return cluster_idd
 
 
-def find_markers(centroids):
+def find_markers(centroids, cutoff=.5):
     # Find the second largest of each centroid
     second_largest = centroids.apply(lambda x: x.nlargest(2).iloc[1], axis=1)
     # Do log transforms with pseudocount
@@ -218,11 +207,108 @@ def find_markers(centroids):
     # Find the log2 fold change from next highest.
     sdiff = log_centroids.sub(second_largest, axis=0)
     # Keep only genes that have at least 1 log fold change (fold change of 2) higher than next.
-    marker_genes = sdiff.index[(sdiff.max(axis=1) >= 1).tolist()]
-    #print("found %d possible marker genes for cluster solution %s in datasest %s" % (
-    #len(marker_genes), cluster_solution_name, dataset_name))
+    marker_genes = sdiff.index[(sdiff.max(axis=1) >= cutoff).tolist()]
 
     return marker_genes
+
+
+def run_pipe(ad, cluster_solution_name="louvain"):
+    marker_dicts = []
+    X = get_counts(ad, None)
+    X = X.transpose()
+    X = (X / X.sum()) * 10000
+    #print(X.shape)
+    X = X.dropna(axis='columns', how='all')
+    #print(X.shape)
+    #print("XXX")
+    cluster_solution = ad.obs[cluster_solution_name]
+    cluster_solution = cluster_solution.dropna()
+
+    # Calculate each centroid.
+    centroids = pd.DataFrame(index=X.columns)
+    for cluster_name in cluster_solution.unique():
+        cell_names = cluster_solution.index[(cluster_solution == cluster_name).tolist()]
+        centroid = X.loc[cell_names].mean(axis=0)
+        centroids[cluster_name] = centroid
+
+    marker_genes = find_markers(centroids)
+    #marker_genes = centroids.index.tolist()
+    print("found %d possible marker genes" % len(marker_genes))
+    #pd.Series(marker_genes).to_csv("trash.txt",index=False)
+    # Subset down to only those marker genes.
+    X = X[marker_genes]
+
+    # Now go through all the found marker genes and calculate each metric for each cluster.
+    #print(marker_genes)
+    for gene in marker_genes:
+        second_largest = centroids.loc[gene].nlargest(2).tolist()[1] + 2
+        minimum = centroids.loc[gene].min() + 2
+
+        for cluster_name in cluster_solution.unique():
+            gene_centroid = centroids.loc[gene, cluster_name] + 2
+            cell_names = cluster_solution.index[(cluster_solution == cluster_name).tolist()]
+            other_cell_names = cluster_solution.index[(cluster_solution != cluster_name).tolist()]
+
+            # TP: true positives
+            expressed_in_cluster = (X.loc[cell_names, gene] > 0).sum()
+            # FN: false negatives
+            not_expressed_in_cluster = (X.loc[cell_names, gene] == 0).sum()
+            # FP: false positives
+            expressed_out_cluster = (X.loc[other_cell_names, gene] > 0).sum()
+            # TN: true negatives
+            not_expressed_out_cluster = (X.loc[other_cell_names, gene] > 0).sum()
+            # FP + TN
+            out_size = len(other_cell_names)
+            # TP + FN
+            cluster_size = len(cell_names)
+
+            # TP / (FP + TP)
+            precision = expressed_in_cluster / (expressed_in_cluster + expressed_out_cluster)
+            # TP / (FN + TP)
+            recall = expressed_in_cluster / (not_expressed_in_cluster + expressed_in_cluster)
+
+            # TP / ( TP + FN)
+            sensivity = expressed_in_cluster / cluster_size
+            # TN / (FP + TN)
+            specificity = not_expressed_out_cluster / out_size
+
+            # Accuracy = (TP+TN)/(TP+TN+FP+FN)
+            accuracy = (expressed_in_cluster + not_expressed_out_cluster) / (out_size + cluster_size)
+
+            fold_change_next = log2_fold_change(gene_centroid, second_largest)
+            fold_change_min = log2_fold_change(gene_centroid, minimum)
+
+            zstat, zpval = proportions_ztest(
+                count=[expressed_in_cluster, expressed_out_cluster],
+                nobs=[cluster_size, out_size],
+                alternative='larger'
+            )
+
+            tstat, tpval = ttest_ind(X.loc[cell_names, gene], X.loc[other_cell_names, gene])
+
+            marker_dict = {
+                "gene": gene,
+                "cluster": str(cluster_name),
+                "sensitivity": sensivity.item(),  # (+1 read considered a guess) / n cells IN cluster
+                "specificity": specificity.item(),
+                "precision": precision.item(),  # n +1 reads in cluster / n +1 reads out of cluster
+                "accuracy": accuracy.item(),
+                "recall": recall.item(),  # n +1 reads in cluster / n 0 reads in cluster.
+                "t_pval": tpval.item(),
+                "z_pval": zpval.item(),
+                "z_stat": zstat.item(),
+                "t_stat": tstat.item(),  # (t statistic of gene expression in / out of cluster)
+                "log2_change_vs_min": fold_change_min,  # ( min cluster.... mincluster will always be 0.
+                "log2_change_vs_next": fold_change_next,
+                "mean_expression": centroids.loc[gene, cluster_name].item()
+            }
+
+            marker_dicts += [marker_dict]
+            #print(marker_dict)
+            #pd.DataFrame(marker_dicts).to_csv("trash.csv")
+
+    df = pd.DataFrame(marker_dicts)
+    return df
 
 
 def main():
@@ -242,12 +328,18 @@ def main():
     if cluster_string is None:
         cluster_solution_names = ["louvain"]
     else:
-        cluster_solution_names = [cluster_string] #ad.uns[cluster_string]
+        cluster_solution_names = [cluster_string]
 
     for cluster_solution_name in cluster_solution_names:
         X = get_counts(ad, counts)
         X = X.transpose()
         X = (X / X.sum()) * 10000
+        print(X.shape)
+        X = X.dropna(axis='columns', how='any')
+        print(X.shape)
+        print("XXX")
+        #print(X["MUSK"].isna().sum())
+        #print("Nas: ", X.isna().sum().sum())
         cluster_solution = ad.obs[cluster_solution_name]
         cluster_solution = cluster_solution.dropna()
 
@@ -258,8 +350,8 @@ def main():
             centroid = X.loc[cell_names].mean(axis=0)
             centroids[cluster_name] = centroid
 
-        #marker_genes = find_markers(centroids)
-        marker_genes = centroids.index.tolist()
+        marker_genes = find_markers(centroids)
+        #marker_genes = centroids.index.tolist()
         print("found %d possible marker genes" % len(marker_genes))
         #pd.Series(marker_genes).to_csv("trash.txt",index=False)
         # Subset down to only those marker genes.
