@@ -162,31 +162,7 @@ def load_scanpy(user_email, worksheet_name, scanpy_path, cluster_name,
     mapping = ad_obj.celltype_mapping(ad, cluster_name, celltype_key)
     use_raw = ad_obj.has_raw(ad)
     xys = ad_obj.get_xys(ad, key="X_umap")
-    """
-    import anndata
-    a = anndata.AnnData(ad.raw.X, var=ad.raw.var_names, obs=ad.raw.obs_names)
-    a.var_names = a.var['index']
-    a.obs_names = a.obs['index']
-    mg = ad_obj.mito_genes(a.var_names)
-    mean_mg = a[:,mg].X.toarray().sum(axis=1)
-    met_genes = ['ALDOA', 'GAPDH', 'MALAT1', 'LDHA', 'PFKFB4', 'HK2']
-    mean_met = a[:, met_genes].X.toarray().sum(axis=1)
-    outside_RG = ['HOPX', 'PTPRZ1', 'TNC', 'ITGB5','SDC3', 'HS6ST1', 'IL6ST', 'LIFR', 'VIM', 'PTN']
-    outside_RG = [f for f in ad.var_names if f in outside_RG]
-    oRG =  a[:, outside_RG].X.toarray().sum(axis=1)
-    df = pd.DataFrame({"org": oRG, "metabolic signature": mean_met, "mitochondrial signature": mean_mg}, index=a.obs_names)
-    #print(df)
-    ab = anndata.AnnData(df)
 
-
-    a = a.transpose()
-    ab = ab.transpose()
-    ac = a.concatenate(ab)
-    ac = ac.transpose()
-    ac.obs['louvain'] = ad.obs['louvain']
-    ad = ac
-    use_raw = False
-    """
     from .create.marker_vals_from_anndata import run_pipe
     markers_df = run_pipe(ad, cluster_name)
     clustering = ad_obj.get_obs(ad, cluster_name)
