@@ -21,14 +21,14 @@ from cluster.user_io import make_worksheet_root, save_worksheet, read_markers_df
 from cluster.database.user_models import get_all_worksheet_paths, add_worksheet_entries, User
 import cluster.database.filename_constants as keys
 
+
 from flask import current_app
 from flask.cli import with_appcontext
 
 from cluster.database import db
+from cluster.database.user_models import add_group
 from cluster.database.add_entries import add_entries
 from .create.worksheet_state import generate_worksheet_state
-
-
 
 
 def ensure_values(reset_df):
@@ -47,6 +47,27 @@ def ensure_values(reset_df):
     reset_df.fillna(0, inplace=True)
     return reset_df
 
+
+@click.command(help="Add a Group to the User Database.")
+@click.argument('group_name')
+@with_appcontext
+def create_group(group_name):
+    add_group(db.session, group_name)
+
+
+@click.command(help="Add a Group to the User Database.")
+@click.argument('email')
+@click.argument('worksheet_name')
+@click.argument('group_name')
+@with_appcontext
+def add_worksheet_group(email, worksheet_name, group_name):
+    from cluster.database.user_models import CellTypeWorksheet, User, Group
+    user = User.get_by_email(email)
+    ws = CellTypeWorksheet.get_worksheet(user, worksheet_name)
+    group = Group.get_by_name(group_name)
+    ws.groups = [group, ]
+    db.session.add(ws)
+    db.session.commit()
 
 
 @click.command(help="Add worksheet tsvs to user file system.")
@@ -101,16 +122,16 @@ def create_state(
                  "DCN", "POSTN", "ACTA2", "TAGLN", "CSPG4", "RSPO3", "HAPLN1", "WT1", "MPZ", "PRPH", "IL1B",
                  "TPSAB1", "HBG1"]
          """
-        genes=[]
+        genes = []
         state = generate_worksheet_state(
             user_email,
             worksheet_name,
             dataset_name,
             clustering,
-            markers,
             size_by,
             color_by,
-            genes
+            genes=genes,
+            markers_df=markers,
         )
 
         save_worksheet(
@@ -309,7 +330,8 @@ def create_worksheet(email, worksheet_name, dataset_name, cluster_name):
 CLICK_COMMANDS = (
     create_user, create_worksheet, all_users,
     clear_users, load_scanpy, load_tsv, create_state,
-    to_pickle, scanpy_obs_keys
+    to_pickle, scanpy_obs_keys, create_group,
+    add_worksheet_group
 )
 
 

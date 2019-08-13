@@ -8,7 +8,7 @@ from cluster.api.user import dataframe_to_str, bubble_table
 import pandas as pd
 import numpy as np
 from scipy.spatial.distance import pdist
-from seriate import seriate
+#from seriate import seriate
 # finisising making worksheet from scanpy
 
 def read_genes_csv(filename):
@@ -31,9 +31,9 @@ def generate_worksheet_state(
         worksheet_name,
         dataset_name,
         clustering,
-        markers_df,
         size_by,
         color_by,
+        markers_df=None,
         genes=[],
         mapping=None
 ):
