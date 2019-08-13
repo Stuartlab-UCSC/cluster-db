@@ -221,51 +221,6 @@ def load_scanpy(user_email, worksheet_name, scanpy_path, cluster_name,
 
     save_worksheet(state_path, state)
 
-@click.command(help="Add a scanpy object to the user file system")
-@click.argument('user_email')
-@click.argument('worksheet_name')
-@click.argument('scanpy_path')
-@click.option('--cluster_name', default="louvain")
-@click.option('--dataset_name', default="")
-@click.option('--celltype_key', default="scorect")
-@with_appcontext
-def scanpydump(user_email, worksheet_name, scanpy_path, cluster_name,
-                dataset_name, size_by="-log10adjp", color_by="mean", celltype_key=None
-):
-    print("reading in data...")
-    ad = ad_obj.readh5ad(scanpy_path)
-    mapping = ad_obj.celltype_mapping(ad, cluster_name, celltype_key)
-    use_raw = ad_obj.has_raw(ad)
-    xys = ad_obj.get_xys(ad, key="X_umap")
-    clustering = ad_obj.get_obs(ad, cluster_name)
-
-    genes = []
-
-    exp = ad_obj.get_expression(ad, use_raw)
-
-    write_all_worksheet(user_email, worksheet_name, xys=xys, exp=exp, clustering=clustering, markers=markers_df)
-
-    print("making state...")
-
-    state = generate_worksheet_state(
-        user_email,
-        worksheet_name,
-        dataset_name,
-        clustering,
-        markers_df,
-        size_by,
-        color_by,
-        genes,
-        mapping
-    )
-
-    state_path = os.path.join(
-        make_worksheet_root(user_email, worksheet_name),
-        keys.STATE
-    )
-
-    save_worksheet(state_path, state)
-
 
 @click.command(help="See the keys for observation matrix")
 @click.argument('scanpy_path')
