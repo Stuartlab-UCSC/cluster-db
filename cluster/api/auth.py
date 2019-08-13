@@ -37,3 +37,14 @@ def auth_routes(app):
     def home():
         viewer_url = current_app.config['VIEWER_URL'] + 'auth'
         return redirect(viewer_url, code=302)
+
+    # Handle redirect after most of the auth pages.
+    @app.route('/user/after-register')
+    def after_reg():
+        from flask_user.forms import RegisterForm
+        from flask import render_template
+
+        return render_template("flask_user/resend_confirm_email.html", form=RegisterForm(
+
+        ))
+        #return "Please confirm your email."
