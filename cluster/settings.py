@@ -31,18 +31,27 @@ RESTPLUS_MASK_SWAGGER = False
 # https://flask-user.readthedocs.io/en/latest/configuring_settings.html
 
 # Flask settings
-SECRET_KEY = 'This is an INSECURE secret!! DO NOT use this in production!!'
+SECRET_KEY = os.environ.get(
+    "CLUSTERDB_SECRET_KEY",
+    default='This is an INSECURE secret!! DO NOT use this in production!!'
+)
 
 USER_USER_SESSION_EXPIRATION = 604800
 
 # Flask-Mail SMTP server settings
-MAIL_SERVER = 'smtp.com'
+MAIL_SERVER = 'smtp.gmail.com'
 MAIL_PORT = 465
+
 MAIL_USE_SSL = True
 MAIL_USE_TLS = False
-MAIL_USERNAME = 'hexmap@ucsc.edu'
-MAIL_PASSWORD = 'password'
+MAIL_USERNAME = os.environ.get("CLUSTERDB_EMAIL")
+MAIL_PASSWORD = os.environ.get("CLUSTERDB_EMAIL_PW")
+
+if MAIL_PASSWORD is None or MAIL_USERNAME is None:
+    USER_ENABLE_EMAIL = False
+
 MAIL_DEFAULT_SENDER = '"UCSC Cell Atlas" <hexmap@ucsc.edu>'
+DEFAULT_MAIL_SENDER = '"UCSC Cell Atlas" <hexmap@ucsc.edu>'
 
 # Features
 USER_ENABLE_USERNAME = False  # email auth only, no username is used
