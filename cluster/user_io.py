@@ -12,6 +12,7 @@ import pandas as pd
 from flask import current_app, abort
 from decorator import decorator
 import cluster.database.filename_constants as keys
+from cluster.utils import timeit
 
 
 @decorator
@@ -85,7 +86,6 @@ def markers_manip(marker_df):
     marker_df = marker_df.reindex(columns=cols)
     return marker_df
 
-from cluster.utils import timeit
 
 @add_user_dir
 @timeit(id_string="read markers.pi")
@@ -110,6 +110,7 @@ def read_json_gzipd(path):
     json_str = json_bytes.decode('utf-8')
     data = json.loads(json_str)
     return data
+
 
 @add_user_dir
 def make_new_worksheet_dir(path):
