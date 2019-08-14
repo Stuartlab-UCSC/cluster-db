@@ -96,7 +96,6 @@ class CellTypeWorksheet(SurrogatePK, Model):
          backref=backref('group', lazy='dynamic')
     )
 
-
     @classmethod
     def get_user_worksheets(cls, user):
         return cls.query.filter(cls.user_id == user.id)
@@ -115,10 +114,10 @@ class CellTypeWorksheet(SurrogatePK, Model):
         return user_ws
 
     @classmethod
-    def get_public_worksheets(cls):
-        group = Group.get_by_name("public")
+    def get_by_group(cls, group_name):
+        group = Group.get_by_name(group_name)
         ws_ids = [wsg.worksheet_id for wsg in WorksheetGroup.get_by_group(group)]
-        ws_names = [CellTypeWorksheet.get_by_id(ws_id).name for ws_id in ws_ids]
+        ws_names = [CellTypeWorksheet.get_by_id(ws_id) for ws_id in ws_ids]
         return ws_names
 
 
@@ -213,7 +212,7 @@ def add_worksheet_entries(
         paths_dict=None
 ):
     """
-    Single api for the tables needed to have a worksheet.
+    Single api for the tables needed to have a worksheet. returns the added worksheet sqlalch obj
     :param session:
     :param worksheet_name:
     :param worksheet_path:
@@ -225,7 +224,7 @@ def add_worksheet_entries(
     :param species:
     :param dataset_name:
     :param cluster_name:
-    :return:
+    :return: The added CellTypeWorksheet entry.
     """
     if cluster_name is None:
         cluster_name = "cluster"
@@ -298,3 +297,5 @@ def add_worksheet_entries(
 
         session.add(marker_table)
         session.commit()
+
+        return ws

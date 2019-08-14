@@ -96,17 +96,38 @@ def name_transform(tarsfilename):
 class UserWorksheets(Resource):
     @ns.response(200, 'worksheet retrieved', )
     def get(self):
-        #print(CellTypeWorksheet.get_public_worksheets(), "pub names")
-        #print(current_app.config["MAIL_SERVER"], current_app.config["MAIL_PORT"])
-        """Retrieve a list of available worksheets available to the user """
+        """Retrieve a list of worksheets available to the user """
         if not current_user.is_authenticated:
             return abort(403)
 
-        users_ws = CellTypeWorksheet.get_user_worksheet_names(current_user)
-        #public_ws = CellTypeWorksheet.get_public_worksheets()
-        #users_ws.append(public_ws)
-        return users_ws
+        all_available = []
+        users_ws = [
+            "%s/%s" % (current_user.email, wsname)
+            for wsname in CellTypeWorksheet.get_user_worksheet_names(current_user)
+        ]
+        all_available.extend(users_ws)
+        # So you've got groups in and now you just need to find all the user's groups and then get all the
+        # worksheets in that group. do username/worksheet_name. Once you do that then you need you'll need to let the get's happen if
+        # there are group permissions.
+        for group in current_user.groups:
+            worksheet_keys = [
+                "%s/%s" % (User.get_by_id(ws.user_id).email, ws.name)
+                for ws in CellTypeWorksheet.get_by_group(group.name)
+            ]
+            all_available.extend(worksheet_keys)
 
+        # remove duplicates from a user's own worksheet being a member of their group.
+        all_available = list(set(all_available))
+        print('all available worksheets', all_available)
+        return all_available
+        #return [wsname for wsname in CellTypeWorksheet.get_user_worksheet_names(current_user)]
+
+
+def worksheet_in_user_group(user_entry, worksheet_entry):
+    # Users always belong to their own worksheet.
+    if user_entry.id == worksheet_entry.user_id:
+        return True
+    return bool(len(set(user_entry.groups).intersection(set(worksheet_entry.groups))))
 
 @ns.route('/<string:user>/worksheet/<string:worksheet>')
 @ns.param('user', 'user id')
@@ -116,13 +137,18 @@ class Worksheet(Resource):
     @ns.response(200, 'worksheet retrieved', )
     def get(self, user, worksheet):
         """Retrieve a saved worksheet."""
+        user_email = user
+        worksheet_name = worksheet
         if not current_user.is_authenticated:
             return abort(403)
 
-        owns_data = current_user.email == user
+        owns_data = current_user.email == user_email
+        requested_worksheet_user = User.get_by_email(user_email)
+        print('request from %s accessing %s/%s' % (current_user.email, user_email, worksheet_name))
 
-        if owns_data:
-            worksheet = CellTypeWorksheet.get_worksheet(current_user, worksheet)
+        worksheet = CellTypeWorksheet.get_worksheet(requested_worksheet_user, worksheet_name)
+        belongs_to_group = worksheet_in_user_group(current_user, worksheet)
+        if owns_data or belongs_to_group:
             return read_saved_worksheet(worksheet.place)
 
         return abort(401, "User emails did not match, currently users may only access their own data.")
@@ -130,59 +156,62 @@ class Worksheet(Resource):
     @ns.response(200, 'worksheet received')
     def post(self, user, worksheet):
         """Create or update a worksheets state."""
+        user_email = user
+        worksheet_name = worksheet
         if not current_user.is_authenticated:
             return abort(403)
 
         state = request.get_json()
+
         if state is None:
             abort(400, "A json state representation is required in the body of request.")
 
-        owns_data = current_user.email == user
+        owns_space = current_user.email == user_email
 
-        if owns_data:
-            worksheet = worksheet
-            user_entry = User.get_by_email(user)
+        if owns_space:
+            user_entry = User.get_by_email(user_email)
 
+            # Write over the state if the worksheet is already present
             try:
                 from sqlalchemy.orm.exc import NoResultFound
-                ws_entry = CellTypeWorksheet.get_worksheet(user_entry, worksheet)
+                ws_entry = CellTypeWorksheet.get_worksheet(user_entry, worksheet_name)
                 save_worksheet(ws_entry.place, state)
 
+            # Otherwise, make a new worksheet and save the state.
             except NoResultFound as e:
-                print("Saving as")
                 from cluster.database.user_models import add_worksheet_entries
-                orig_worksheet_email = state['user']
-                orig_worksheet_name = state['worksheet_name']
-                print(orig_worksheet_name, orig_worksheet_email, "orig")
+                orig_worksheet_email = state['source_user']
+                orig_worksheet_user = User.get_by_email(orig_worksheet_email)
+                orig_worksheet_name = state['source_worksheet_name']
+                #print("**************************************", orig_worksheet_user,  orig_worksheet_name)
+                #print("all user ws", [f.name for f in CellTypeWorksheet.get_user_worksheets(orig_worksheet_user)])
+                orig_ws_entry = CellTypeWorksheet.get_worksheet(orig_worksheet_user, orig_worksheet_name)
+
+                # Must check that the current user has group access
+                if not worksheet_in_user_group(current_user, orig_ws_entry):
+                    abort(403)
+
                 paths = get_all_worksheet_paths(orig_worksheet_email, orig_worksheet_name)
-                print("paths", paths)
-                """
-                add_worksheet_entries(db.session, current_user.email, worksheet, paths_dict=paths)
-                ws_entry = CellTypeWorksheet.get_worksheet(user_entry, worksheet)
-                state['user'] = current_user.email
-                state['worksheet_name'] = worksheet
-                from cluster.user_io import make_new_worksheet_dir
-                make_new_worksheet_dir()
-                save_worksheet(ws_entry.place, state)
-                """
+                if paths is None:
+                    abort(400, "source worksheet could not be determined")
 
-    @ns.response(200, 'worksheet received')
-    def put(self, user, worksheet):
-        """Save a worksheet"""
-        if not current_user.is_authenticated:
-            return abort(403)
+                new_ws_entry = add_worksheet_entries(db.session, current_user.email, worksheet_name, paths_dict=paths)
 
-        state = request.get_json()
-        if state is None:
-            abort(400, "A json state representation is required in the body of request.")
+                state['source_user'] = current_user.email
+                state['source_worksheet_name'] = worksheet_name
 
-        owns_data = current_user.email == user
+                make_new_worksheet_dir(
+                    make_worksheet_root(current_user.email, worksheet_name)
+                )
 
-        if owns_data:
-            worksheet = worksheet
-            user_entry = User.get_by_email(user)
-            ws_entry = CellTypeWorksheet.get_worksheet(user_entry, worksheet)
-            save_worksheet(ws_entry.place, state)
+                 #= CellTypeWorksheet.get_worksheet(current_user, worksheet_name)
+
+                save_worksheet(
+                    new_ws_entry.place,  # The worksheet just put in there.
+                    state
+                )
+
+                print("saved worksheet to %s" % new_ws_entry.place)
 
 
 @ns.route('/<string:user>/worksheet/<string:worksheet>/cluster/<string:cluster_name>')
@@ -215,7 +244,7 @@ class GeneTable(Resource):
         if not current_user.is_authenticated:
             return abort(403)
         import time
-
+        print("*********************************cluster table params", user, worksheet)
         user_entry = User.get_by_email(user)
         ws_entry = CellTypeWorksheet.get_worksheet(user_entry, worksheet_name=worksheet)
         exp_entry = UserExpression.get_by_worksheet(ws_entry)
