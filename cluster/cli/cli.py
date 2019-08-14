@@ -18,7 +18,7 @@ import pandas as pd
 import numpy as np
 
 from cluster.user_io import make_worksheet_root, save_worksheet, read_markers_df, read_cluster, write_all_worksheet
-from cluster.database.user_models import get_all_worksheet_paths, add_worksheet_entries, User
+from cluster.database.user_models import get_all_worksheet_paths, add_worksheet_entries, User, Group
 import cluster.database.filename_constants as keys
 
 
@@ -48,6 +48,21 @@ def ensure_values(reset_df):
     return reset_df
 
 
+@click.command(help="Add a User to a Group.")
+@click.argument('user_email')
+@click.argument('group_name')
+@with_appcontext
+def add_user_group(user_email, group_name):
+    user = User.get_by_email(user_email)
+    group = Group.get_by_name(group_name)
+
+    user.groups.append(group)
+    db.session.add(user)
+    db.session.commit()
+
+    #add_group(db.session, group_name)
+
+
 @click.command(help="Add a Group to the User Database.")
 @click.argument('group_name')
 @with_appcontext
@@ -65,7 +80,7 @@ def add_worksheet_group(email, worksheet_name, group_name):
     user = User.get_by_email(email)
     ws = CellTypeWorksheet.get_worksheet(user, worksheet_name)
     group = Group.get_by_name(group_name)
-    ws.groups = [group, ]
+    ws.groups.append(group)
     db.session.add(ws)
     db.session.commit()
 
@@ -257,7 +272,7 @@ CLICK_COMMANDS = (
     create_user, create_worksheet, all_users,
     clear_users, load_scanpy, load_tsv, create_state,
     to_pickle, scanpy_obs_keys, create_group,
-    add_worksheet_group
+    add_worksheet_group, add_user_group
 )
 
 
