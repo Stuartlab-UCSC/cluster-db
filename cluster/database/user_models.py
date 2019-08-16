@@ -216,7 +216,8 @@ def add_worksheet_entries(
         species=None,
         dataset_name=None,
         cluster_name=None,
-        paths_dict=None
+        paths_dict=None,
+        group_name=None
 ):
     """
     Single api for the tables needed to have a worksheet. returns the added worksheet sqlalch obj
@@ -304,5 +305,11 @@ def add_worksheet_entries(
 
         session.add(marker_table)
         session.commit()
+
+        if group_name is not None:
+            group = Group.get_by_name(group_name)
+            ws.groups.append(group)
+            session.add(ws)
+            session.commit()
 
         return ws
