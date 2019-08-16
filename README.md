@@ -1,5 +1,5 @@
 # cluster-db
-This is the backend for the UCSC's Cell Atlas. It does handy things like exposing single cell clustering solutions
+This is the backend for the [UCSC's Cell Atlas](https://cellatlas.ucsc.edu/). It does handy things like exposing single cell clustering solutions
 to the community via a RESTful api, and stores the Cell Type Worksheets of our users. Have a peak at the [swagger docs](https://cellatlasapi.ucsc.edu/)
 or check out the front-end application for [Cell Type Worksheets](https://cellatlas.ucsc.edu/cell-type).
 
