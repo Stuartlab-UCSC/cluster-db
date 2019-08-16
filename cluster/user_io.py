@@ -12,6 +12,7 @@ import pandas as pd
 from flask import current_app, abort
 from decorator import decorator
 import cluster.database.filename_constants as keys
+from cluster.database.filename_constants import fname_keys
 from cluster.utils import timeit
 
 
@@ -133,3 +134,18 @@ def write_all_worksheet(user_email, worksheet_name, markers=None, xys=None, exp=
     write_df(worksheet_root, markers_manip(markers), keys.MARKER_TABLE)
     write_df(worksheet_root, xys, keys.XYS)
     write_df(worksheet_root, clustering, keys.CLUSTERING)
+
+
+def is_valid_file(tarsfilename):
+    for key in fname_keys:
+        if key in tarsfilename:
+            return True
+    return False
+
+
+def name_transform(filename):
+    """Returns a valid filename constant for a filename."""
+    for key in fname_keys:
+        if key in filename:
+            return key
+    raise ValueError("The file name could not be transformed into a valid filename constant")

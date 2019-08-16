@@ -10,7 +10,6 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import matplotlib
 import io
-from cluster.database.filename_constants import fname_keys
 from cluster.database.user_models import get_all_worksheet_paths
 from cluster.database.filename_constants import MARKER_TABLE
 from cluster.database.user_models import (
@@ -30,8 +29,11 @@ from cluster.user_io import (
     save_worksheet,
     make_new_worksheet_dir,
     make_worksheet_root,
-    get_user_dir
+    get_user_dir,
+    is_valid_file,
+    name_transform
 )
+import cluster.database.filename_constants as keys
 from cluster.utils import timeit
 import os
 import tarfile
