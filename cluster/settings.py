@@ -12,13 +12,8 @@ USERDB = os.path.join(directory_back_from_this_file(), "cluster_user.db")
 VIEWER_URL = os.environ.get("VIEWER_URL", "localhost:3000/")
 USER_DIRECTORY = os.path.join(directory_back_from_this_file(), "users")
 # Flask settings
+FLASK_DEBUG = os.environ.get('FLASK_DEBUG', True)
 
-FLASK_DEBUG = os.environ.get('FLASK_DEBUG')
-#SERVER_NAME = os.environ.get('FLASK_SERVER_NAME')
-
-# Restplus settings
-FLASK_DEBUG = True
-SECRET_KEY = "super secret key"
 SQLALCHEMY_DATABASE_URI="sqlite:///" + CLUSTERDB
 SQLALCHEMY_USER_DATABASE_URI="sqlite:///" + USERDB
 SQLALCHEMY_TRACK_MODIFICATIONS = False
@@ -51,7 +46,6 @@ if MAIL_PASSWORD is None or MAIL_USERNAME is None:
     USER_ENABLE_EMAIL = False
 
 MAIL_DEFAULT_SENDER = '"UCSC Cell Atlas" <hexmap@ucsc.edu>'
-DEFAULT_MAIL_SENDER = '"UCSC Cell Atlas" <hexmap@ucsc.edu>'
 
 # Features
 USER_ENABLE_USERNAME = False  # email auth only, no username is used
@@ -64,9 +58,8 @@ USER_AUTO_LOGIN_AT_LOGIN = False
 USER_EMAIL_SENDER_NAME = USER_APP_NAME
 USER_EMAIL_SENDER_EMAIL = '"UCSC Cell Atlas" <hexmap@ucsc.edu>'
 
-USER_EDIT_USER_PROFILE_URL = '/user/change-password'
-
 # Endpoints
+USER_EDIT_USER_PROFILE_URL = '/user/change-password'
 USER_AFTER_CHANGE_PASSWORD_ENDPOINT = 'user.login'
 USER_AFTER_CONFIRM_ENDPOINT = 'user.login'
 USER_AFTER_FORGOT_PASSWORD_ENDPOINT = 'home'
