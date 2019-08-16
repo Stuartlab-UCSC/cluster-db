@@ -1,7 +1,7 @@
 """
 Protected user endpoints work accessing cell type worksheets.
 """
-from flask import send_file, request, abort, current_app
+from flask import send_file, request, abort
 from cluster.database import db
 from flask_restplus import Resource
 from flask_user import current_user
@@ -68,7 +68,6 @@ class WorksheetUpload(Resource):
             members = [m for m in tar.getmembers() if m.isfile() and is_valid_file(m.name)]
             for member in members:
                 fout_path = os.path.join(path, name_transform(member.name))
-                print(fout_path, "fout path")
                 tfile = tar.extractfile(member)
                 with open(fout_path, "wb") as fout:
                     fout.write(tfile.read())
@@ -90,7 +89,7 @@ class WorksheetUpload(Resource):
 class UserWorksheets(Resource):
     @ns.response(200, 'worksheet retrieved', )
     def get(self):
-        """Retrieve a list of worksheets available to the user """
+        """Retrieve a list of worksheets available to the user, the list is a user-email/worksheet-name string"""
         if not current_user.is_authenticated:
             return abort(403)
 
@@ -100,9 +99,7 @@ class UserWorksheets(Resource):
             for wsname in CellTypeWorksheet.get_user_worksheet_names(current_user)
         ]
         all_available.extend(users_ws)
-        # So you've got groups in and now you just need to find all the user's groups and then get all the
-        # worksheets in that group. do username/worksheet_name. Once you do that then you need you'll need to let the get's happen if
-        # there are group permissions.
+
         for group in current_user.groups:
             worksheet_keys = [
                 "%s/%s" % (User.get_by_id(ws.user_id).email, ws.name)
@@ -112,9 +109,8 @@ class UserWorksheets(Resource):
 
         # remove duplicates from a user's own worksheet being a member of their group.
         all_available = list(set(all_available))
-        print('all available worksheets', all_available)
         return all_available
-        #return [wsname for wsname in CellTypeWorksheet.get_user_worksheet_names(current_user)]
+
 
 
 def worksheet_in_user_group(user_entry, worksheet_entry):
@@ -138,7 +134,6 @@ class Worksheet(Resource):
 
         owns_data = current_user.email == user_email
         requested_worksheet_user = User.get_by_email(user_email)
-        print('request from %s accessing %s/%s' % (current_user.email, user_email, worksheet_name))
 
         worksheet = CellTypeWorksheet.get_worksheet(requested_worksheet_user, worksheet_name)
         belongs_to_group = worksheet_in_user_group(current_user, worksheet)
@@ -173,12 +168,9 @@ class Worksheet(Resource):
 
             # Otherwise, make a new worksheet and save the state.
             except NoResultFound as e:
-                from cluster.database.user_models import add_worksheet_entries
                 orig_worksheet_email = state['source_user']
                 orig_worksheet_user = User.get_by_email(orig_worksheet_email)
                 orig_worksheet_name = state['source_worksheet_name']
-                #print("**************************************", orig_worksheet_user,  orig_worksheet_name)
-                #print("all user ws", [f.name for f in CellTypeWorksheet.get_user_worksheets(orig_worksheet_user)])
                 orig_ws_entry = CellTypeWorksheet.get_worksheet(orig_worksheet_user, orig_worksheet_name)
 
                 # Must check that the current user has group access
@@ -205,8 +197,6 @@ class Worksheet(Resource):
                     state
                 )
 
-                print("saved worksheet to %s" % new_ws_entry.place)
-
 
 @ns.route('/<string:user>/worksheet/<string:worksheet>/cluster/<string:cluster_name>')
 @ns.param('user', 'user id')
@@ -217,11 +207,12 @@ class GeneTable(Resource):
     @timeit(id_string="get Gene table")
     @ns.response(200, 'tab delimited genes per cluster file', )
     def get(self, user, worksheet, cluster_name):
-
+        """Grab gene metrics for a specified cluster."""
         # Hidden pagination api
         # looks for option parameters in the url and
         # if not there or malformed returns entire gene table.
-        # TODO: remove or document.
+        # TODO: implement in the same way as the load worksheet endpoint with additional group param
+        #  still need to add optional filter params to swagger doct.
         sort_by = None
         try:
 
@@ -230,15 +221,12 @@ class GeneTable(Resource):
             page = int(request.args['page'])
             page_size = 100
             # Throws 400 BAD Request if the arguments aren't there
-        except HTTPException as e:
-            print(e)
+        except HTTPException as DidNotSupplyOptionalParams:
             pass
 
-        """Grab gene metrics for a specified cluster."""
         if not current_user.is_authenticated:
             return abort(403)
-        import time
-        print("*********************************cluster table params", user, worksheet)
+
         user_entry = User.get_by_email(user)
         ws_entry = CellTypeWorksheet.get_worksheet(user_entry, worksheet_name=worksheet)
         exp_entry = UserExpression.get_by_worksheet(ws_entry)
@@ -247,7 +235,6 @@ class GeneTable(Resource):
 
         # Make the table and then throw it in a byte buffer to pass over.
         gene_table = read_markers_df(path)
-        ts = time.time()
         msk = (gene_table["cluster"] == cluster_name).tolist()
 
         gene_table = gene_table.iloc[msk]
@@ -256,8 +243,7 @@ class GeneTable(Resource):
             abort(422, "The cluster requested has no values in the gene table")
 
         gene_table = gene_table.drop("cluster", axis=1)
-        te = time.time()
-        print('%s  %2.2f ms' % ("before buffer", (te - ts) * 1000))
+
         buffer = io.StringIO()
 
         if sort_by is not None:
