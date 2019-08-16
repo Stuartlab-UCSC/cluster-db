@@ -52,6 +52,10 @@ class WorksheetUpload(Resource):
         if not current_user.is_authenticated:
             return abort(403)
 
+        group = request.args.get("group", None)
+        if group not in [g.name for g in current_user.groups]:
+            return abort(403, "You must be a member of the requested group.")
+
         ws_root = make_worksheet_root(current_user.email, worksheet)
         make_new_worksheet_dir(ws_root)
         path = get_user_dir(ws_root)
@@ -78,6 +82,7 @@ class WorksheetUpload(Resource):
             species=None,
             dataset_name=None,
             cluster_name=None,
+            group_name=group
         )
 
 
