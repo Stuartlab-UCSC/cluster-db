@@ -112,12 +112,47 @@ class UserWorksheets(Resource):
         return all_available
 
 
+@ns.route('/<string:user>/worksheet/<string:worksheet>/celltype-assignments')
+@ns.param('user', 'user id')
+@ns.param('worksheet', 'The name of the worksheet.')
+class WorksheetCTassignments(Resource):
+    @timeit(id_string="get worksheet")
+    @ns.response(200, 'worksheet retrieved', )
+    def get(self, user, worksheet):
+        """Retrieve the cell type assignments from a worksheet."""
+        user_email = user
+        worksheet_name = worksheet
+        if not current_user.is_authenticated:
+            return abort(403)
 
-def worksheet_in_user_group(user_entry, worksheet_entry):
-    # Users always belong to their own worksheet.
-    if user_entry.id == worksheet_entry.user_id:
-        return True
-    return bool(len(set(user_entry.groups).intersection(set(worksheet_entry.groups))))
+        owns_data = current_user.email == user_email
+        requested_worksheet_user = User.get_by_email(user_email)
+
+        worksheet = CellTypeWorksheet.get_worksheet(requested_worksheet_user, worksheet_name)
+        belongs_to_group = worksheet_in_user_group(current_user, worksheet)
+        if owns_data or belongs_to_group:
+            state = read_saved_worksheet(worksheet.place)
+            cluster_matrix_str = state['clusters']
+            df = str_to_dataframe(cluster_matrix_str)
+            df['cluster'] = df['cluster'].astype(dtype=str)
+            replacer = dict(
+                zip(df["cluster"], df["cell_type"])
+            )
+            paths = get_all_worksheet_paths(user_email, worksheet_name)
+            clustering = read_cluster(paths[keys.CLUSTERING])
+            buffer = io.StringIO()
+            clustering.replace(to_replace=replacer).to_csv(buffer, sep="\t", header=True)
+            buffer.seek(0)
+
+            mem = io.BytesIO()
+            mem.write(buffer.getvalue().encode("utf-8"))
+            mem.seek(0)
+
+            return send_file(
+                mem,
+                mimetype="text/tsv"
+            )
+
 
 @ns.route('/<string:user>/worksheet/<string:worksheet>')
 @ns.param('user', 'user id')
@@ -584,6 +619,11 @@ def dataframe_to_str(df, index=True):
     df.to_csv(buffer, sep="\t", header=True, index=index)
     buffer.seek(0)
     return buffer.getvalue()
+
+
+def str_to_dataframe(string):
+    """Makes data frame out of tab seperated string assuming first column is an index"""
+    return pd.read_csv(io.StringIO(string), sep="\t", index_col=0)
 
 
 def bubble_table(marker_df, genes, attr_name):
