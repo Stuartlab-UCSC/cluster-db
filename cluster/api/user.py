@@ -18,7 +18,8 @@ from cluster.database.user_models import (
     ExpCluster,
     ClusterGeneTable,
     CellTypeWorksheet,
-    add_worksheet_entries
+    add_worksheet_entries,
+    worksheet_in_user_group
 )
 from cluster.user_io import (
     read_markers_df,
@@ -78,20 +79,6 @@ class WorksheetUpload(Resource):
             dataset_name=None,
             cluster_name=None,
         )
-
-
-def is_valid_file(tarsfilename):
-    for key in fname_keys:
-        if key in tarsfilename:
-            return True
-    return False
-
-
-def name_transform(tarsfilename):
-    for key in fname_keys:
-        if key in tarsfilename:
-            return key
-    raise ValueError("The file name could not be transformed into a valid filename constant")
 
 
 @ns.route('/worksheets')
