@@ -70,7 +70,7 @@ def create_group(group_name):
     add_group(db.session, group_name)
 
 
-@click.command(help="Add a Group to the User Database.")
+@click.command(help="Add a worksheet to a group in the user database.")
 @click.argument('email')
 @click.argument('worksheet_name')
 @click.argument('group_name')
