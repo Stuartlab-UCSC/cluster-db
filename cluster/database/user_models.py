@@ -2,7 +2,7 @@ from cluster.database import Model, SurrogatePK, backref, relationship
 from flask_user import UserMixin
 from sqlalchemy import Column, Integer, String, ForeignKey, Boolean, DateTime
 from cluster.database.filename_constants import XYS, EXPRESSION, CLUSTERING, MARKER_TABLE, STATE
-from sqlalchemy import UniqueConstraint
+from sqlalchemy import UniqueConstraint, and_
 from sqlalchemy.orm.exc import NoResultFound
 import os
 
@@ -113,7 +113,10 @@ class CellTypeWorksheet(SurrogatePK, Model):
 
     @classmethod
     def get_worksheet(cls, user, worksheet_name):
-        user_ws = cls.get_user_worksheets(user).filter(cls.name == worksheet_name).one()
+        user_ws = cls.query.filter(and_(
+            cls.user_id == user.id,
+            cls.name == worksheet_name
+        )).one()
         not_found = user_ws is None
         if not_found:
             return None
