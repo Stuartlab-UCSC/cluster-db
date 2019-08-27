@@ -43,6 +43,11 @@ matplotlib.use("Agg")
 ns = api.namespace('user')
 
 
+def worksheet_is_public(user_email, worksheet_name):
+    groups = CellTypeWorksheet.get_worksheet(user_email, worksheet_name).groups
+    return "public" in groups
+
+
 @ns.route('/worksheet/<string:worksheet>')
 @ns.param('worksheet', 'The name of the worksheet.')
 class WorksheetUpload(Resource):
@@ -90,8 +95,14 @@ class UserWorksheets(Resource):
     @ns.response(200, 'worksheet retrieved', )
     def get(self):
         """Retrieve a list of worksheets available to the user, the list is a user-email/worksheet-name string"""
+        public_worksheet_keys = [
+            "%s/%s" % (User.get_by_id(ws.user_id).email, ws.name)
+            for ws in CellTypeWorksheet.get_by_group("public")
+        ]
+        print(public_worksheet_keys, "pb keys")
         if not current_user.is_authenticated:
-            return abort(403)
+            return public_worksheet_keys
+
 
         all_available = []
         users_ws = [
@@ -107,7 +118,9 @@ class UserWorksheets(Resource):
             ]
             all_available.extend(worksheet_keys)
 
+        all_available.extend(public_worksheet_keys)
         # remove duplicates from a user's own worksheet being a member of their group.
+        print(all_available)
         all_available = list(set(all_available))
         return all_available
 
@@ -122,36 +135,34 @@ class WorksheetCTassignments(Resource):
         """Retrieve the cell type assignments from a worksheet."""
         user_email = user
         worksheet_name = worksheet
-        if not current_user.is_authenticated:
+        if access_denied(current_user, user_email, worksheet_name):
             return abort(403)
 
-        owns_data = current_user.email == user_email
         requested_worksheet_user = User.get_by_email(user_email)
 
         worksheet = CellTypeWorksheet.get_worksheet(requested_worksheet_user, worksheet_name)
-        belongs_to_group = worksheet_in_user_group(current_user, worksheet)
-        if owns_data or belongs_to_group:
-            state = read_saved_worksheet(worksheet.place)
-            cluster_matrix_str = state['clusters']
-            df = str_to_dataframe(cluster_matrix_str)
-            df['cluster'] = df['cluster'].astype(dtype=str)
-            replacer = dict(
-                zip(df["cluster"], df["cell_type"])
-            )
-            paths = get_all_worksheet_paths(user_email, worksheet_name)
-            clustering = read_cluster(paths[keys.CLUSTERING])
-            buffer = io.StringIO()
-            clustering.replace(to_replace=replacer).to_csv(buffer, sep="\t", header=True)
-            buffer.seek(0)
 
-            mem = io.BytesIO()
-            mem.write(buffer.getvalue().encode("utf-8"))
-            mem.seek(0)
+        state = read_saved_worksheet(worksheet.place)
+        cluster_matrix_str = state['clusters']
+        df = str_to_dataframe(cluster_matrix_str)
+        df['cluster'] = df['cluster'].astype(dtype=str)
+        replacer = dict(
+            zip(df["cluster"], df["cell_type"])
+        )
+        paths = get_all_worksheet_paths(user_email, worksheet_name)
+        clustering = read_cluster(paths[keys.CLUSTERING])
+        buffer = io.StringIO()
+        clustering.replace(to_replace=replacer).to_csv(buffer, sep="\t", header=True)
+        buffer.seek(0)
 
-            return send_file(
-                mem,
-                mimetype="text/tsv"
-            )
+        mem = io.BytesIO()
+        mem.write(buffer.getvalue().encode("utf-8"))
+        mem.seek(0)
+
+        return send_file(
+            mem,
+            mimetype="text/tsv"
+        )
 
 
 @ns.route('/<string:user>/worksheet/<string:worksheet>')
@@ -164,18 +175,16 @@ class Worksheet(Resource):
         """Retrieve a saved worksheet."""
         user_email = user
         worksheet_name = worksheet
-        if not current_user.is_authenticated:
+
+        if access_denied(current_user, user_email, worksheet_name):
             return abort(403)
 
-        owns_data = current_user.email == user_email
         requested_worksheet_user = User.get_by_email(user_email)
 
         worksheet = CellTypeWorksheet.get_worksheet(requested_worksheet_user, worksheet_name)
-        belongs_to_group = worksheet_in_user_group(current_user, worksheet)
-        if owns_data or belongs_to_group:
-            return read_saved_worksheet(worksheet.place)
 
-        return abort(401, "User emails did not match, currently users may only access their own data.")
+        return read_saved_worksheet(worksheet.place)
+
 
     @ns.response(200, 'worksheet received')
     def post(self, user, worksheet):
@@ -202,14 +211,14 @@ class Worksheet(Resource):
                 save_worksheet(ws_entry.place, state)
 
             # Otherwise, make a new worksheet and save the state.
-            except NoResultFound as e:
+            except NoResultFound:
                 orig_worksheet_email = state['source_user']
                 orig_worksheet_user = User.get_by_email(orig_worksheet_email)
                 orig_worksheet_name = state['source_worksheet_name']
                 orig_ws_entry = CellTypeWorksheet.get_worksheet(orig_worksheet_user, orig_worksheet_name)
 
                 # Must check that the current user has group access
-                if not worksheet_in_user_group(current_user, orig_ws_entry):
+                if access_denied(current_user, orig_worksheet_email, orig_worksheet_name):
                     abort(403)
 
                 paths = get_all_worksheet_paths(orig_worksheet_email, orig_worksheet_name)
@@ -224,8 +233,6 @@ class Worksheet(Resource):
                 make_new_worksheet_dir(
                     make_worksheet_root(current_user.email, worksheet_name)
                 )
-
-                 #= CellTypeWorksheet.get_worksheet(current_user, worksheet_name)
 
                 save_worksheet(
                     new_ws_entry.place,  # The worksheet just put in there.
@@ -243,36 +250,21 @@ class GeneTable(Resource):
     @ns.response(200, 'tab delimited genes per cluster file', )
     def get(self, user, worksheet, cluster_name):
         """Grab gene metrics for a specified cluster."""
-        # Hidden pagination api
-        # looks for option parameters in the url and
-        # if not there or malformed returns entire gene table.
-        # TODO: implement in the same way as the load worksheet endpoint with additional group param
-        #  still need to add optional filter params to swagger doct.
-        sort_by = None
-        try:
 
-            from werkzeug.exceptions import HTTPException
-            sort_by = request.args['sort_by']
-            page = int(request.args['page'])
-            page_size = 100
-            # Throws 400 BAD Request if the arguments aren't there
-        except HTTPException as DidNotSupplyOptionalParams:
-            pass
-
-        if not current_user.is_authenticated:
+        if access_denied(current_user, user, worksheet):
             return abort(403)
 
         user_entry = User.get_by_email(user)
-        ws_entry = CellTypeWorksheet.get_worksheet(user_entry, worksheet_name=worksheet)
-        exp_entry = UserExpression.get_by_worksheet(ws_entry)
-        cluster_entry = ExpCluster.get_cluster(exp_entry)
-        path = ClusterGeneTable.get_table(cluster_entry).place
+        #print(user, worksheet)
+        paths = get_all_worksheet_paths(user, worksheet)
+        #print([f.name for f in CellTypeWorksheet.get_user_worksheets(user_entry)])
+        print(CellTypeWorksheet.get_worksheet(user_entry, worksheet))
 
         # Make the table and then throw it in a byte buffer to pass over.
-        gene_table = read_markers_df(path)
+        gene_table = read_markers_df(paths[keys.MARKER_TABLE])
         msk = (gene_table["cluster"] == cluster_name).tolist()
-
         gene_table = gene_table.iloc[msk]
+
         cluster_not_there = gene_table.shape[0] == 0
         if cluster_not_there:
             abort(422, "The cluster requested has no values in the gene table")
@@ -280,12 +272,6 @@ class GeneTable(Resource):
         gene_table = gene_table.drop("cluster", axis=1)
 
         buffer = io.StringIO()
-
-        if sort_by is not None:
-            gene_table.sort_values(sort_by, ascending=False, inplace=True)
-            beginning = page * page_size
-            end = (page * page_size) + page_size
-            gene_table = gene_table.loc[gene_table.index[beginning:end]]
 
         gene_table.to_csv(buffer, index=False, sep="\t")
         buffer.seek(0)
@@ -309,7 +295,7 @@ class AddGene(Resource):
     @ns.response(200, 'Color by and size by as rows and columns as clusters', )
     def get(self, user, worksheet, color_by, size_by, gene_name):
         """Grab color and size gene metrics for a specified gene."""
-        if not current_user.is_authenticated:
+        if access_denied(current_user, user, worksheet):
             return abort(403)
         # Make the table and then throw it in a byte buffer to pass over.
         user_entry = User.get_by_email(user)
@@ -349,12 +335,8 @@ class DotplotValues(Resource):
     @ns.response(200, 'tab delimited genes per cluster file', )
     def get(self, user, worksheet, var_name, genes):
         """Grab gene metrics for a specified cluster."""
-        if not current_user.is_authenticated:
+        if access_denied(current_user, user, worksheet):
             return abort(403)
-
-        doesnt_own_data = current_user.email != user
-        if doesnt_own_data:
-            return abort(401, "User emails did not match, currently users may only access their own data.")
 
         path_dict = get_all_worksheet_paths(user, worksheet)
         genes = parse_genes(genes)
@@ -386,7 +368,7 @@ class GeneScatterplot(Resource):
     @ns.response(200, 'png scatterplot image')
     def get(self, user, worksheet, type, gene):
         """A png of a scatter plot colored by a genes value"""
-        if not current_user.is_authenticated:
+        if access_denied(current_user, user, worksheet):
             return abort(403)
 
         from cluster.database.user_models import ExpDimReduct
@@ -421,7 +403,7 @@ class ClusterScatterplot(Resource):
     @ns.response(200, 'png scatterplot image')
     def post(self, user, worksheet, type):
         """A png scatterplot with clusters colored by json color map."""
-        if not current_user.is_authenticated:
+        if access_denied(current_user, user, worksheet):
             return abort(403)
 
         from cluster.database.user_models import ExpDimReduct
@@ -455,6 +437,18 @@ class ClusterScatterplot(Resource):
             scatter_categorical(xys, centers, color_map, cluster),
             mimetype='image/png'
         )
+
+
+def access_denied(current_user_entry, req_user_email, req_worksheet_name):
+    req_user = User.get_by_email(req_user_email)
+    not_public = not worksheet_is_public(req_user, req_worksheet_name)
+    not_theirs = not current_user_entry.email == req_user_email
+    not_in_group = not worksheet_in_user_group(
+        current_user_entry,
+        CellTypeWorksheet.get_worksheet(req_user, req_worksheet_name)
+    )
+    print(not_in_group, "not in group")
+    return not_theirs and not_public and not_in_group
 
 
 def graph_protions(centers, data, color_map):
