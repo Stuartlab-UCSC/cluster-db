@@ -268,11 +268,24 @@ def create_worksheet(email, worksheet_name, dataset_name, cluster_name):
     )
 
 
+@click.command(help="Remove database entries for a worksheet.")
+@click.argument('email')
+@click.argument('worksheet_name')
+@with_appcontext
+def remove_worksheet(email, worksheet_name):
+    from cluster.database.user_models import delete_worksheet_entries
+    delete_worksheet_entries(
+        db.session,
+        email,
+        worksheet_name,
+    )
+    print("worksheet removed")
+
 CLICK_COMMANDS = (
     create_user, create_worksheet, all_users,
     clear_users, load_scanpy, load_tsv, create_state,
     to_pickle, scanpy_obs_keys, create_group,
-    add_worksheet_group, add_user_group
+    add_worksheet_group, add_user_group, remove_worksheet
 )
 
 
