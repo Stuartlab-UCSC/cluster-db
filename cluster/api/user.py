@@ -524,7 +524,7 @@ def scatter_continuous(xys, centers, gene):
     # This is a binning hack to deal with the distributions of count type data.
     # linear color mappings do not do well because of outliers that stretch the scale.
     gene_vector_has_zeros = (gene==0).sum() != 0 and gene.min() == 0
-    if gene_vector_has_zeros:
+    if False: #gene_vector_has_zeros
         # Do the binning:
         # one bin for zeros
         # 3 bins for non zeros
