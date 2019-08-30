@@ -319,3 +319,33 @@ def add_worksheet_entries(
             session.commit()
 
         return ws
+
+
+def delete_worksheet_entries(
+        session,
+        user_email,
+        worksheet_name
+):
+    """Delete all worksheet entities in the database."""
+    ctw = CellTypeWorksheet.get_worksheet(User.get_by_email(user_email), worksheet_name)
+
+    user_exp = UserExpression.get_by_id(ctw.expression_id)
+
+
+    reduct = ExpDimReduct.query.filter(ExpDimReduct.expression_id == user_exp.id).first()
+    print(reduct)
+
+    cluster = ExpCluster.query.filter(ExpCluster.expression_id == user_exp.id).first()
+    print(cluster.id)
+
+    marker_table = ClusterGeneTable.query.filter(
+        ClusterGeneTable.cluster_id == cluster.id
+    ).first()
+
+    session.delete(cluster)
+    session.delete(ctw)
+    session.delete(user_exp)
+    session.delete(reduct)
+    session.delete(marker_table)
+    session.commit()
+
