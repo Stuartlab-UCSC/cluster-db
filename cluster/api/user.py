@@ -440,14 +440,20 @@ class ClusterScatterplot(Resource):
 
 
 def access_denied(current_user_entry, req_user_email, req_worksheet_name):
+
     req_user = User.get_by_email(req_user_email)
     not_public = not worksheet_is_public(req_user, req_worksheet_name)
-    not_theirs = not current_user_entry.email == req_user_email
+
+    try:
+        not_theirs = not current_user_entry.email == req_user_email
+    except AttributeError as NotSignedIn:
+        not_theirs = True
+
     not_in_group = not worksheet_in_user_group(
         current_user_entry,
         CellTypeWorksheet.get_worksheet(req_user, req_worksheet_name)
     )
-    print(not_in_group, "not in group")
+
     return not_theirs and not_public and not_in_group
 
 
