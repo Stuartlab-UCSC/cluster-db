@@ -8,10 +8,13 @@ import os
 
 
 def worksheet_in_user_group(user_entry, worksheet_entry):
-    # Users always belong to their own worksheet.
-    if user_entry.id == worksheet_entry.user_id:
-        return True
-    return bool(len(set(user_entry.groups).intersection(set(worksheet_entry.groups))))
+    try:
+        # Users always belong to their own worksheet.
+        if user_entry.id == worksheet_entry.user_id:
+            return True
+        return bool(len(set(user_entry.groups).intersection(set(worksheet_entry.groups))))
+    except AttributeError as NotSignedIn:
+        return "public" in [g.name for g in worksheet_entry.groups]
 
 
 def add_group(session, role_name):
