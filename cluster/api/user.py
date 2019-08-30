@@ -43,8 +43,8 @@ matplotlib.use("Agg")
 ns = api.namespace('user')
 
 
-def worksheet_is_public(user_email, worksheet_name):
-    groups = CellTypeWorksheet.get_worksheet(user_email, worksheet_name).groups
+def worksheet_is_public(user_entry, worksheet_name):
+    groups = [g.name for g in CellTypeWorksheet.get_worksheet(user_entry, worksheet_name).groups]
     return "public" in groups
 
 
@@ -177,6 +177,7 @@ class Worksheet(Resource):
         worksheet_name = worksheet
 
         if access_denied(current_user, user_email, worksheet_name):
+            print("access to %s-%s is denied from %s" % (user_email, worksheet_name, current_user))
             return abort(403)
 
         requested_worksheet_user = User.get_by_email(user_email)
