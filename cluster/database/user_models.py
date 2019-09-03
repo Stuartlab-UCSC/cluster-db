@@ -17,6 +17,14 @@ def worksheet_in_user_group(user_entry, worksheet_entry):
         return "public" in [g.name for g in worksheet_entry.groups]
 
 
+def add_role(session, role_name):
+    role = Role(
+        name=role_name,
+    )
+    session.add(role)
+    session.commit()
+
+
 def add_group(session, role_name):
     group = Group(
         name=role_name,

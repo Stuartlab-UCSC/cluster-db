@@ -12,7 +12,6 @@ from flask_admin import Admin
 
 
 def init_app(app, db):
-    return
     admin = Admin(app, name='CellAtlas Admin', template_mode='bootstrap3')
     admin.add_view(ClusterSolutionView(ClusterSolution, db.session))
     admin.add_view(DatasetView(Dataset, db.session))
