@@ -25,9 +25,9 @@ def add_role(session, role_name):
     session.commit()
 
 
-def add_group(session, role_name):
+def add_group(session, group_name):
     group = Group(
-        name=role_name,
+        name=group_name,
     )
     session.add(group)
     session.commit()
