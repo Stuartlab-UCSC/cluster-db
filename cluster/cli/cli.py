@@ -170,7 +170,7 @@ def create_state(
 @click.option('--celltype_key', default="scorect")
 @with_appcontext
 def load_scanpy(user_email, worksheet_name, scanpy_path, cluster_name,
-                dataset_name, size_by="-log10adjp", color_by="mean", celltype_key=None
+                dataset_name, size_by="zstat", color_by="tstat", celltype_key=None
 ):
     print("reading in data...")
     ad = ad_obj.readh5ad(scanpy_path)
