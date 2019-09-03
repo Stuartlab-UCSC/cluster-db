@@ -18,7 +18,7 @@ import pandas as pd
 import numpy as np
 
 from cluster.user_io import make_worksheet_root, save_worksheet, read_markers_df, read_cluster, write_all_worksheet
-from cluster.database.user_models import get_all_worksheet_paths, add_worksheet_entries, User, Group
+from cluster.database.user_models import get_all_worksheet_paths, add_worksheet_entries, User, Group, Role
 import cluster.database.filename_constants as keys
 
 
@@ -26,7 +26,7 @@ from flask import current_app
 from flask.cli import with_appcontext
 
 from cluster.database import db
-from cluster.database.user_models import add_group
+from cluster.database.user_models import add_role, add_group
 from cluster.database.add_entries import add_entries
 from .create.worksheet_state import generate_worksheet_state
 
@@ -48,6 +48,19 @@ def ensure_values(reset_df):
     return reset_df
 
 
+@click.command(help="Add a User to a Role.")
+@click.argument('user_email')
+@click.argument('role_name')
+@with_appcontext
+def add_user_role(user_email, role_name):
+    user = User.get_by_email(user_email)
+    role = Role.get_by_name(role_name)
+
+    user.roles.append(role)
+    db.session.add(user)
+    db.session.commit()
+
+
 @click.command(help="Add a User to a Group.")
 @click.argument('user_email')
 @click.argument('group_name')
@@ -61,6 +74,13 @@ def add_user_group(user_email, group_name):
     db.session.commit()
 
     #add_group(db.session, group_name)
+
+
+@click.command(help="Add a Role to the User Database.")
+@click.argument('role_name')
+@with_appcontext
+def create_role(role_name):
+    add_role(db.session, role_name)
 
 
 @click.command(help="Add a Group to the User Database.")
@@ -170,7 +190,7 @@ def create_state(
 @click.option('--celltype_key', default="scorect")
 @with_appcontext
 def load_scanpy(user_email, worksheet_name, scanpy_path, cluster_name,
-                dataset_name, size_by="-log10adjp", color_by="mean", celltype_key=None
+                dataset_name, size_by="zstat", color_by="tstat", celltype_key=None
 ):
     print("reading in data...")
     ad = ad_obj.readh5ad(scanpy_path)
@@ -284,8 +304,8 @@ def remove_worksheet(email, worksheet_name):
 CLICK_COMMANDS = (
     create_user, create_worksheet, all_users,
     clear_users, load_scanpy, load_tsv, create_state,
-    to_pickle, scanpy_obs_keys, create_group,
-    add_worksheet_group, add_user_group, remove_worksheet
+    to_pickle, scanpy_obs_keys, create_role, create_group,
+    add_worksheet_group, add_user_role, add_user_group, remove_worksheet
 )
 
 

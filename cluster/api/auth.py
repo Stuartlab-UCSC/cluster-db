@@ -10,10 +10,9 @@ def viewer_url():
 def auth_routes(app):
     @app.route('/user/after-login')
     def after_login():
-        return redirect(viewer_url() + \
-                 '/?u=' + current_user.email + \
-                 '&r=' + ','.join(map(str, current_user.roles)), \
-                 code=302)
+        current_user_roles = ','.join([r.name for r in current_user.roles])
+        signin_url = "%s/?u=%s&r=%s" % (viewer_url(), current_user.email, current_user_roles)
+        return redirect(signin_url, code=302)
 
     @app.route('/user/after-logout')
     def after_logout():
