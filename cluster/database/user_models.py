@@ -87,6 +87,9 @@ class User(SurrogatePK, Model, UserMixin):
     def get_by_email(cls, email):
         return cls.query.filter(cls.email == email).one()
 
+    def __repr__(self):
+        return self.email
+
 
 class UserRoles(SurrogatePK, Model):
     __tablename__ = 'user_roles'
