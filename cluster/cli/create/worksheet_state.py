@@ -69,9 +69,8 @@ def generate_worksheet_state(
 
         colors.fillna(0, inplace=True)
 
-    print(dataframe_to_str(clusters, index=False))
     jdict = {
-        "user": user_email, "worksheet": worksheet_name,
+        "source_user": user_email, "source_worksheet_name": worksheet_name,
         "dataset_name": dataset_name,
         "size_by": size_by,
         "color_by": color_by,
@@ -80,7 +79,7 @@ def generate_worksheet_state(
         "colors": dataframe_to_str(colors),
         "sizes": dataframe_to_str(sizes),
     }
-    #print(jdict["colors"])
+
     return jdict
 
 
