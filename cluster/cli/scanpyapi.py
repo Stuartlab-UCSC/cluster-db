@@ -4,7 +4,9 @@ import pandas as pd
 import numpy as np
 from scipy.sparse.csr import csr_matrix
 
+
 def run_ranked_genes_build_markers_table(ad, cluster_name, n_genes, use_raw):
+
     # n_genes = ad_obj.all_genes_n(ad, use_raw)
     print("executing gene ranking...")
     run_gene_ranking(ad, cluster_name, n_genes, use_raw)

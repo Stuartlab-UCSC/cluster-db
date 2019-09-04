@@ -38,9 +38,8 @@ import math
 import numpy as np
 import json
 import gzip
-import os
 from scipy.stats import hypergeom
-
+from scipy.sparse.csr import csr_matrix
 
 def parse_args():
 
@@ -70,7 +69,7 @@ def parse_args():
     return anndata, counts, cluster_string, out_file
 
 
-from scipy.sparse.csr import csr_matrix
+
 
 
 def get_expression(adata, use_raw):
@@ -101,71 +100,7 @@ def hypergeo(gene_intersection, n_smaller_set, n_larger_set,  total_number_of_ge
     return hypergeom.sf(gene_intersection, total_number_of_genes, n_smaller_set, n_larger_set)
 
 
-def two_averages_fold_change(centroids1, centroids2):
-    # subsetted down to have the same features.
-
-    # Function is broken because accesses global 'centroids' dataframe.
-    raise NotImplementedError
-    markers1 = find_markers_clusters(centroids1)
-    markers2 = find_markers_clusters(centroids2)
-
-    markers1.shape
-    markers2.shape
-
-    n_gene_intersection = len(set(markers1.index).intersection(markers2.index))
-    gene_union = set(markers1.index).union(markers2.index)
-    multiplier = hypergeo_z(n_gene_intersection, *hypergeo_mu_std(len(markers1), len(markers2)))
-
-    centroids1 = centroids[centroids.columns[0:2]]
-    centroids2 = centroids[centroids.columns[-2:]]
-
-    second_largest1 = centroids1.apply(lambda x: x.nlargest(2).iloc[1], axis=1)
-    second_largest2 = centroids2.apply(lambda x: x.nlargest(2).iloc[1], axis=1)
-
-    largest1 = centroids1.apply(lambda x: x.max(), axis=1)
-    largest2 = centroids2.apply(lambda x: x.max(), axis=1)
-
-    largest_cluster1 = centroids1.apply(lambda x: x.idxmax(), axis=1)
-    largest_cluster2 = centroids2.apply(lambda x: x.idxmax(), axis=1)
-
-    cluster_pair_ids = pd.Series(
-        ["%s:%s" % (f,s) for (f,s) in zip(largest_cluster1, largest_cluster2)],
-        index=largest_cluster2.index
-    )
-
-    second_largest_combo = second_largest1 + second_largest2
-    largest_combo = largest1 + largest2
-    cluster_name_df = largest_combo
-    second_largest_combo = np.log2(second_largest_combo + 2)
-    log_centroids = np.log2(largest_combo + 2)
-    two_fc = log_centroids - second_largest_combo
-
-    new_genes = two_fc.index[(two_fc > 1).tolist()]
-    new_cluster_pairs = cluster_pair_ids.loc[new_genes]
-    cluster_pair_scores = {}
-    for cluster_pair_id in new_cluster_pairs.unique():
-        cluster1, cluster2 = cluster_pair_id.split(":")
-        genes_in_pair = new_cluster_pairs.index[new_cluster_pairs == cluster_pair_id]
-        print(len(genes_in_pair))
-
-        try:
-            m1 = set(markers1.index[markers1 == cluster1])
-            m2 = set(markers1.index[markers2 == cluster2])
-            n_gene_intersection = len(m1.intersection(m2))
-            multiplier = hypergeo_z(n_gene_intersection, *hypergeo_mu_std(len(m1), len(m2)))
-            print(multiplier)
-            multiplier = np.max(multiplier, 1)
-        except IndexError:
-            multiplier = 1
-
-        each_genes = set(markers1.index[markers1 == cluster1]).union(markers2.index[markers2 == cluster2])
-        jac = len(each_genes.intersection(genes_in_pair)) / len(each_genes)
-        cluster_pair_scores[cluster_pair_id] = jac * multiplier
-
-    return cluster_pair_scores
-
-
-def log2_fold_change(A,B):
+def log2_fold_change(A, B):
     return math.log(A, 2) - math.log(B, 2)
 
 
@@ -179,24 +114,9 @@ def get_counts(ad, counts):
         return counts
     return get_expression(ad, use_raw=True)
 
-
-
-def find_markers_clusters(centroids):
-    # Find the second largest of each centroid
-    second_largest = centroids.apply(lambda x: x.nlargest(2).iloc[1], axis=1)
-    largest = centroids.max(axis=1)
-    largest_cluster_name = centroids.apply(lambda x: x.idxmax(), axis=1)
-    # Do log transforms with pseudocount
-    second_largest = np.log2(second_largest + 2)
-    log_centroids = np.log2(largest + 2)
-    # Find the log2 fold change from next highest.
-    sdiff = log_centroids.sub(second_largest, axis=0)
-    # Keep only genes that have at least 1 log fold change (fold change of 2) higher than next.
-    marker_genes = sdiff.index[(sdiff >= 1).tolist()]
-    cluster_idd = largest_cluster_name[marker_genes]
-
-    return cluster_idd
-
+def filter_genes(centroids):
+    """returns genes that have std > 0"""
+    return centroids.index[(centroids.std(axis=1) != 0).tolist()]
 
 def find_markers(centroids, cutoff=.5):
     # Find the second largest of each centroid
@@ -213,25 +133,27 @@ def find_markers(centroids, cutoff=.5):
 
 
 def run_pipe(ad, cluster_solution_name="louvain"):
-    marker_dicts = []
     X = get_counts(ad, None)
     X = X.transpose()
-    X = (X / X.sum()) * 10000
-    #print(X.shape)
     X = X.dropna(axis='columns', how='all')
-    #print(X.shape)
-    #print("XXX")
+    #X = (X / X.sum()) * 10000
     cluster_solution = ad.obs[cluster_solution_name]
     cluster_solution = cluster_solution.dropna()
-
+    print(X.shape)
+    print("centroid calc")
     # Calculate each centroid.
-    centroids = pd.DataFrame(index=X.columns)
+    centroids = pd.DataFrame(index=X.columns, columns=cluster_solution.unique())
+    print(centroids.shape)
     for cluster_name in cluster_solution.unique():
         cell_names = cluster_solution.index[(cluster_solution == cluster_name).tolist()]
         centroid = X.loc[cell_names].mean(axis=0)
+        #print(centroid)
         centroids[cluster_name] = centroid
+    print("done, filtering...")
 
-    marker_genes = find_markers(centroids)
+    marker_genes = filter_genes(centroids)
+    #marker_genes = find_markers(centroids, cutoff=0)
+
     #marker_genes = centroids.index.tolist()
     print("found %d possible marker genes" % len(marker_genes))
     #pd.Series(marker_genes).to_csv("trash.txt",index=False)
@@ -240,75 +162,55 @@ def run_pipe(ad, cluster_solution_name="louvain"):
 
     # Now go through all the found marker genes and calculate each metric for each cluster.
     #print(marker_genes)
+    """
+    
     for gene in marker_genes:
         second_largest = centroids.loc[gene].nlargest(2).tolist()[1] + 2
         minimum = centroids.loc[gene].min() + 2
+    """
+    dfs = []
+    for cluster_name in cluster_solution.unique():
+        print("calc for cluster name", cluster_name)
+        df = pd.DataFrame(index=X.columns, columns=["tstat", "zstat", "log2fc", "zpval", "tpval", "cluster"])
+        df['cluster'] = cluster_name
 
-        for cluster_name in cluster_solution.unique():
-            gene_centroid = centroids.loc[gene, cluster_name] + 2
-            cell_names = cluster_solution.index[(cluster_solution == cluster_name).tolist()]
-            other_cell_names = cluster_solution.index[(cluster_solution != cluster_name).tolist()]
+        cell_names = cluster_solution.index[(cluster_solution == cluster_name).tolist()]
+        other_cell_names = cluster_solution.index[(cluster_solution != cluster_name).tolist()]
+        pseudocount = .1
+        df['log2fc'] = np.log2(X.loc[cell_names].mean()+pseudocount) - np.log2(X.loc[other_cell_names].mean()+pseudocount)
 
-            # TP: true positives
-            expressed_in_cluster = (X.loc[cell_names, gene] > 0).sum()
-            # FN: false negatives
-            not_expressed_in_cluster = (X.loc[cell_names, gene] == 0).sum()
-            # FP: false positives
-            expressed_out_cluster = (X.loc[other_cell_names, gene] > 0).sum()
-            # TN: true negatives
-            not_expressed_out_cluster = (X.loc[other_cell_names, gene] > 0).sum()
-            # FP + TN
-            out_size = len(other_cell_names)
-            # TP + FN
-            cluster_size = len(cell_names)
+        # set up for proportions z test
+        expressed_in_cluster = (X.loc[cell_names] > 0).sum()
+        expressed_out_cluster = (X.loc[other_cell_names] > 0).sum()
 
-            # TP / (FP + TP)
-            precision = expressed_in_cluster / (expressed_in_cluster + expressed_out_cluster)
-            # TP / (FN + TP)
-            recall = expressed_in_cluster / (not_expressed_in_cluster + expressed_in_cluster)
+        out_size = len(other_cell_names)
+        cluster_size = len(cell_names)
 
-            # TP / ( TP + FN)
-            sensivity = expressed_in_cluster / cluster_size
-            # TN / (FP + TN)
-            specificity = not_expressed_out_cluster / out_size
+        ztest_df = pd.DataFrame([expressed_in_cluster, expressed_out_cluster])
+        ztest = lambda x: proportions_ztest(
+            count=[x[0], x[1]],
+            nobs=[cluster_size, out_size],
+            alternative='larger'
+        )
 
-            # Accuracy = (TP+TN)/(TP+TN+FP+FN)
-            accuracy = (expressed_in_cluster + not_expressed_out_cluster) / (out_size + cluster_size)
+        zstat_zpval = ztest_df.apply(ztest, axis='index')
+        zstat = zstat_zpval.apply(lambda x: x[0])
+        zpval = zstat_zpval.apply(lambda x: x[1])
 
-            fold_change_next = log2_fold_change(gene_centroid, second_largest)
-            fold_change_min = log2_fold_change(gene_centroid, minimum)
+        ttest = lambda x: ttest_ind(x[cell_names], x[other_cell_names])
+        tstat_tpval = X.apply(ttest, axis="index")
+        tstat = tstat_tpval.apply(lambda x: x[0])
+        tpval = tstat_tpval.apply(lambda x: x[1])
 
-            zstat, zpval = proportions_ztest(
-                count=[expressed_in_cluster, expressed_out_cluster],
-                nobs=[cluster_size, out_size],
-                alternative='larger'
-            )
+        df["tstat"] = tstat
+        df['tpval'] = tpval
+        df["zstat"] = zstat
+        df["zpval"] = zpval
+        df['gene'] = df.index.tolist()
+        dfs.append(df)
 
-            tstat, tpval = ttest_ind(X.loc[cell_names, gene], X.loc[other_cell_names, gene])
-
-            marker_dict = {
-                "gene": gene,
-                "cluster": str(cluster_name),
-                "sensitivity": sensivity.item(),  # (+1 read considered a guess) / n cells IN cluster
-                "specificity": specificity.item(),
-                "precision": precision.item(),  # n +1 reads in cluster / n +1 reads out of cluster
-                "accuracy": accuracy.item(),
-                "recall": recall.item(),  # n +1 reads in cluster / n 0 reads in cluster.
-                "t_pval": tpval.item(),
-                "z_pval": zpval.item(),
-                "z_stat": zstat.item(),
-                "t_stat": tstat.item(),  # (t statistic of gene expression in / out of cluster)
-                "log2_change_vs_min": fold_change_min,  # ( min cluster.... mincluster will always be 0.
-                "log2_change_vs_next": fold_change_next,
-                "mean_expression": centroids.loc[gene, cluster_name].item()
-            }
-
-            marker_dicts += [marker_dict]
-            #print(marker_dict)
-            #pd.DataFrame(marker_dicts).to_csv("trash.csv")
-
-    df = pd.DataFrame(marker_dicts)
-    return df
+    markers_table = pd.concat(dfs, axis=0)
+    return markers_table
 
 
 def main():

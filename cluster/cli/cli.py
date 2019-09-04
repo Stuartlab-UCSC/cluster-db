@@ -123,7 +123,15 @@ def load_tsv(
         clustering = pd.read_csv(cluster_path, sep="\t", index_col=0)
         clustering = clustering[clustering.columns[0]]
         markers = pd.read_csv(markers_path, sep="\t")
-        write_all_worksheet(user_email, worksheet_name, markers=markers, xys=xys, exp=exp, clustering=clustering)
+
+        write_all_worksheet(
+            user_email,
+            worksheet_name,
+            markers=markers,
+            xys=xys,
+            exp=exp,
+            clustering=clustering
+        )
 
     except FileNotFoundError as e:
         print(e)
