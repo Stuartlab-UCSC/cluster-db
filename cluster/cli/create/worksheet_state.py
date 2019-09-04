@@ -117,8 +117,6 @@ def cluster_table(clustering, order=None, mapping=None):
             indxs = df.index[df["cell_type"] == ct]
             df.loc[indxs, "bar_color"] = celltype_col.loc[ct]
 
-
-        #print(mapping)
         mapping[mapping.duplicated()] = ""
         df["column"] = range(len(cluster_counts))
         df["cell_type"] = mapping.values
@@ -126,7 +124,7 @@ def cluster_table(clustering, order=None, mapping=None):
 
 
         #df["bar_color"] = range(len(cluster_counts))
-        df["cell_count"] = cluster_counts.values
+        df["cell_count"] = cluster_counts[mapping.index].values
 
     else:
         df["cluster"] = cluster_counts.index
