@@ -110,7 +110,6 @@ def cluster_table(clustering, order=None, mapping=None):
         df["column"] = range(len(cluster_counts))
         df["cell_type"] = mapping.values
         celltype_col = df[["column", "cell_type"]]
-
         celltype_col = celltype_col.groupby("cell_type").first()['column']
         print(celltype_col)
         for ct in mapping.unique():
@@ -121,9 +120,6 @@ def cluster_table(clustering, order=None, mapping=None):
         df["column"] = range(len(cluster_counts))
         df["cell_type"] = mapping.values
         df["cluster"] = mapping.index.tolist()
-
-
-        #df["bar_color"] = range(len(cluster_counts))
         df["cell_count"] = cluster_counts[mapping.index].values
 
     else:
