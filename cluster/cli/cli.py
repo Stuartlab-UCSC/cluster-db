@@ -55,7 +55,6 @@ def ensure_values(reset_df):
 def add_user_role(user_email, role_name):
     user = User.get_by_email(user_email)
     role = Role.get_by_name(role_name)
-
     user.roles.append(role)
     db.session.add(user)
     db.session.commit()
@@ -72,8 +71,6 @@ def add_user_group(user_email, group_name):
     user.groups.append(group)
     db.session.add(user)
     db.session.commit()
-
-    #add_group(db.session, group_name)
 
 
 @click.command(help="Add a Role to the User Database.")
@@ -96,13 +93,20 @@ def create_group(group_name):
 @click.argument('group_name')
 @with_appcontext
 def add_worksheet_group(email, worksheet_name, group_name):
-    from cluster.database.user_models import CellTypeWorksheet, User, Group
-    user = User.get_by_email(email)
-    ws = CellTypeWorksheet.get_worksheet(user, worksheet_name)
-    group = Group.get_by_name(group_name)
-    ws.groups.append(group)
-    db.session.add(ws)
-    db.session.commit()
+    from cluster.database.user_models import CellTypeWorksheet, User, add_group_to_worksheet
+    from cluster.user_io import add_group_to_state
+
+    ws = CellTypeWorksheet.get_worksheet(
+        User.get_by_email(email),
+        worksheet_name
+    )
+
+    add_group_to_worksheet(db.session, group_name, ws)
+
+    add_group_to_state(
+        make_worksheet_root(email, worksheet_name),
+        group_name
+    )
 
 
 @click.command(help="Add worksheet tsvs to user file system.")

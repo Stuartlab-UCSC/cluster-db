@@ -229,17 +229,22 @@ class Worksheet(Resource):
 
         owns_space = current_user.email == user_email
 
+        group = state.get("group")
+
         if owns_space:
             user_entry = User.get_by_email(user_email)
 
             # Write over the state if the worksheet is already present
             try:
                 from sqlalchemy.orm.exc import NoResultFound
+                from cluster.database.user_models import add_group_to_worksheet
+                from cluster.user_io import add_group_to_state
                 ws_entry = CellTypeWorksheet.get_worksheet(user_entry, worksheet_name)
+                add_group_to_worksheet(db.session, group, ws_entry)
                 save_worksheet(ws_entry.place, state)
 
             # Otherwise, make a new worksheet and save the state.
-            except NoResultFound:
+            except NoResultFound as DoingSaveAs:
                 orig_worksheet_email = state['source_user']
                 orig_worksheet_user = User.get_by_email(orig_worksheet_email)
                 orig_worksheet_name = state['source_worksheet_name']
@@ -254,6 +259,7 @@ class Worksheet(Resource):
                     abort(400, "source worksheet could not be determined")
 
                 new_ws_entry = add_worksheet_entries(db.session, current_user.email, worksheet_name, paths_dict=paths)
+                add_group_to_worksheet(db.session, group, new_ws_entry)
 
                 state['source_user'] = current_user.email
                 state['source_worksheet_name'] = worksheet_name
@@ -263,7 +269,7 @@ class Worksheet(Resource):
                 )
 
                 save_worksheet(
-                    new_ws_entry.place,  # The worksheet just put in there.
+                    new_ws_entry.place,
                     state
                 )
 

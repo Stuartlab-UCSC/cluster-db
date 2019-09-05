@@ -206,6 +206,17 @@ class ClusterGeneTable(SurrogatePK, Model):
         return cls.query.filter(cls.cluster_id == cluster.id).first()
 
 
+def add_group_to_worksheet(session, group_name, ws_entry):
+    if group_name is None:
+        return None
+
+    if group_name not in [g.name for g in ws_entry.groups]:
+        group = Group.get_by_name(group_name)
+        ws_entry.groups.append(group)
+        session.add(ws_entry)
+        session.commit()
+
+
 def get_all_worksheet_paths(user_email, worksheet_name):
     user = User.get_by_email(user_email)
     try:
