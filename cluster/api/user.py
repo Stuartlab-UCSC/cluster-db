@@ -1,6 +1,7 @@
 """
 Protected user endpoints work accessing cell type worksheets.
 """
+from cluster.cli.create.worksheet_state import generate_worksheet_state
 from flask import send_file, request, abort
 from cluster.database import db
 from flask_restplus import Resource
@@ -57,16 +58,16 @@ class WorksheetUpload(Resource):
         if not current_user.is_authenticated:
             return abort(403)
 
-        group = request.args.get("group", None)
-        if group not in [g.name for g in current_user.groups]:
-            return abort(403, "You must be a member of the requested group.")
+        # Todo: add group parser so you can add to a specific group
+        #group = request.args.get("group", None)
 
         ws_root = make_worksheet_root(current_user.email, worksheet)
         make_new_worksheet_dir(ws_root)
         path = get_user_dir(ws_root)
-        file = request.files['file']
+        file = request.files['documents']
 
         tarfilename = os.path.join(path, file.filename)
+
         file.save(tarfilename)
 
         with tarfile.open(tarfilename) as tar:
@@ -77,6 +78,30 @@ class WorksheetUpload(Resource):
                 with open(fout_path, "wb") as fout:
                     fout.write(tfile.read())
 
+        # TODO: need to grab these from the marker table instead of hard code.
+        size_by = "zstat"
+        color_by = "tstat"
+
+        clustering = read_cluster(os.path.join(path, keys.CLUSTERING))
+        try:
+            mapping = read_cluster(os.path.join(path, keys.CELL_TYPE_ANNOTATION))
+        except FileNotFoundError:
+            mapping = None
+
+        state = generate_worksheet_state(
+            current_user.email,
+            worksheet,
+            worksheet,
+            clustering,
+            size_by,
+            color_by,
+            mapping=mapping
+        )
+        save_worksheet(
+            os.path.join(ws_root, keys.STATE),
+            state
+        )
+
         # Now you need to add the worksheet to the database.
         add_worksheet_entries(
             db.session,
@@ -86,8 +111,10 @@ class WorksheetUpload(Resource):
             species=None,
             dataset_name=None,
             cluster_name=None,
-            group_name=group
+            group_name=None
         )
+
+
 
 
 @ns.route('/worksheets')
@@ -95,14 +122,14 @@ class UserWorksheets(Resource):
     @ns.response(200, 'worksheet retrieved', )
     def get(self):
         """Retrieve a list of worksheets available to the user, the list is a user-email/worksheet-name string"""
+
         public_worksheet_keys = [
             "%s/%s" % (User.get_by_id(ws.user_id).email, ws.name)
             for ws in CellTypeWorksheet.get_by_group("public")
         ]
-        print(public_worksheet_keys, "pb keys")
+
         if not current_user.is_authenticated:
             return public_worksheet_keys
-
 
         all_available = []
         users_ws = [
