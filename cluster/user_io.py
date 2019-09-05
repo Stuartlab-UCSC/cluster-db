@@ -149,3 +149,10 @@ def name_transform(filename):
         if key in filename:
             return key
     raise ValueError("The file name could not be transformed into a valid filename constant")
+
+
+def add_group_to_state(worksheet_root, group_name):
+    state_file = os.path.join(worksheet_root, keys.STATE)
+    state = read_saved_worksheet(state_file)
+    state["group"] = group_name
+    save_worksheet(state_file, state)
