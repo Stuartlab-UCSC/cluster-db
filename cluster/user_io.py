@@ -33,6 +33,12 @@ def get_user_dir(worksheet_root):
 
 @add_user_dir
 def save_worksheet(path, pydict):
+    """
+    Save a worksheet to the user directory.
+    :param path: the path into the user directory, e.g. admin@replace.me/test/state.json.gz
+    :param pydict: state representaion
+    :return: None
+    """
     try:
         with gzip.GzipFile(path, 'w') as fout:
             fout.write(
