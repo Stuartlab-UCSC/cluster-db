@@ -22,7 +22,8 @@ from cluster.database.user_models import (
     add_worksheet_entries,
     worksheet_in_user_group,
     get_all_worksheet_paths,
-    add_group_to_worksheet
+    add_group_to_worksheet,
+    user_in_group
 )
 from cluster.user_io import (
     read_markers_df,
@@ -241,7 +242,6 @@ class Worksheet(Resource):
             # Write over the state if the worksheet is already present
             try:
                 ws_entry = CellTypeWorksheet.get_worksheet(user_entry, worksheet_name)
-                add_group_to_worksheet(db.session, group, ws_entry)
                 save_worksheet(ws_entry.place, state)
 
             # Otherwise, make a new worksheet and save the state.
@@ -260,7 +260,13 @@ class Worksheet(Resource):
                     abort(400, "source worksheet could not be determined")
 
                 new_ws_entry = add_worksheet_entries(db.session, current_user.email, worksheet_name, paths_dict=paths)
-                add_group_to_worksheet(db.session, group, new_ws_entry)
+
+                # This is a guard against a user attempting to do a "save as"
+                # with a group they are not apart of, currently we still let them save
+                # but we don't put the worksheet in the group
+                # TODO: think about desired functionality and possibly throw an error
+                if user_in_group(current_user, group):
+                    add_group_to_worksheet(db.session, group, new_ws_entry)
 
                 state['source_user'] = current_user.email
                 state['source_worksheet_name'] = worksheet_name

@@ -7,13 +7,22 @@ from sqlalchemy.orm.exc import NoResultFound
 import os
 
 
+def user_in_group(user_entry, group_name):
+    """Check if a user is in a group. Note this will return false for the special group "public", even
+    though all users are technically in this group."""
+    try:
+        return group_name in [g.name for g in user_entry.groups]
+    except AttributeError as UserNotSignedIn:
+        return False
+
+
 def worksheet_in_user_group(user_entry, worksheet_entry):
     try:
         # Users always belong to their own worksheet.
         if user_entry.id == worksheet_entry.user_id:
             return True
         return bool(len(set(user_entry.groups).intersection(set(worksheet_entry.groups))))
-    except AttributeError as NotSignedIn:
+    except AttributeError as UserNotSignedIn:
         return "public" in [g.name for g in worksheet_entry.groups]
 
 
