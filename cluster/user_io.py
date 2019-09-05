@@ -70,7 +70,7 @@ def make_worksheet_root(user_email, worksheet_name):
 @add_user_dir
 def write_df(worksheet_root, df, type_key):
     path = os.path.join(worksheet_root, type_key)
-    df.to_pickle(path)
+    df.to_pickle(path, protocol=4)
 
 
 @add_user_dir
