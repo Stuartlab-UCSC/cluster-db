@@ -1,7 +1,6 @@
 """
 Protected user endpoints work accessing cell type worksheets.
 """
-from cluster.cli.create.worksheet_state import generate_worksheet_state
 from flask import send_file, request, abort
 from cluster.database import db
 from flask_restplus import Resource
@@ -11,7 +10,8 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import matplotlib
 import io
-from cluster.database.user_models import get_all_worksheet_paths
+from sqlalchemy.orm.exc import NoResultFound
+
 from cluster.database.filename_constants import MARKER_TABLE
 from cluster.database.user_models import (
     User,
@@ -20,7 +20,9 @@ from cluster.database.user_models import (
     ClusterGeneTable,
     CellTypeWorksheet,
     add_worksheet_entries,
-    worksheet_in_user_group
+    worksheet_in_user_group,
+    get_all_worksheet_paths,
+    add_group_to_worksheet
 )
 from cluster.user_io import (
     read_markers_df,
@@ -83,11 +85,14 @@ class WorksheetUpload(Resource):
         color_by = "tstat"
 
         clustering = read_cluster(os.path.join(path, keys.CLUSTERING))
+
         try:
             mapping = read_cluster(os.path.join(path, keys.CELL_TYPE_ANNOTATION))
         except FileNotFoundError:
             mapping = None
 
+        # TODO: this import statement should not NEED to be here, re-org worksheet state to user_io
+        from cluster.cli.create.worksheet_state import generate_worksheet_state
         state = generate_worksheet_state(
             current_user.email,
             worksheet,
@@ -97,6 +102,7 @@ class WorksheetUpload(Resource):
             color_by,
             mapping=mapping
         )
+
         save_worksheet(
             os.path.join(ws_root, keys.STATE),
             state
@@ -113,8 +119,6 @@ class WorksheetUpload(Resource):
             cluster_name=None,
             group_name=None
         )
-
-
 
 
 @ns.route('/worksheets')
@@ -236,9 +240,6 @@ class Worksheet(Resource):
 
             # Write over the state if the worksheet is already present
             try:
-                from sqlalchemy.orm.exc import NoResultFound
-                from cluster.database.user_models import add_group_to_worksheet
-                from cluster.user_io import add_group_to_state
                 ws_entry = CellTypeWorksheet.get_worksheet(user_entry, worksheet_name)
                 add_group_to_worksheet(db.session, group, ws_entry)
                 save_worksheet(ws_entry.place, state)
@@ -440,11 +441,9 @@ class ClusterScatterplot(Resource):
         if access_denied(current_user, user, worksheet):
             return abort(403)
 
-        from cluster.database.user_models import ExpDimReduct
         # Make the table and then throw it in a byte buffer to pass over.
-        from cluster.database.user_models import get_all_worksheet_paths
         paths_dict = get_all_worksheet_paths(user, worksheet)
-        import cluster.database.filename_constants as keys
+
 
         cluster = read_cluster(paths_dict[keys.CLUSTERING])
 

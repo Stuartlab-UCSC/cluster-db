@@ -1,15 +1,10 @@
 """
 Creates worksheet state from files needed to view a worksheet.
-
-TODO: when used a second time abstract with a CLI
 """
-import json, gzip
+import json
+import gzip
 from cluster.api.user import dataframe_to_str, bubble_table
 import pandas as pd
-import numpy as np
-from scipy.spatial.distance import pdist
-#from seriate import seriate
-# finisising making worksheet from scanpy
 
 def read_genes_csv(filename):
     df = pd.read_csv(filename, index_col=0)
@@ -81,7 +76,6 @@ def generate_worksheet_state(
     }
 
     return jdict
-
 
 
 def empty_bubble_table(clustering):
