@@ -91,8 +91,8 @@ class WorksheetUpload(Resource):
                 with open(fout_path, "wb") as fout:
                     fout.write(tfile.read())
 
-        # The first two columns are the size by and color by respectively.
-        size_by, color_by = read_markers_df(os.path.join(path, keys.MARKER_TABLE)).columns[1:3]
+        # Grab first two metric columns for size by and color by.
+        color_by, size_by = read_markers_df(os.path.join(path, keys.MARKER_TABLE)).columns[1:3]
 
         try:
             dotplot_metrics = read_cluster(os.path.join(path, keys.DOTPLOT_SIZE_COLOR_METRICS)).tolist()
