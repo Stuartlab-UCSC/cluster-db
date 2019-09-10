@@ -142,9 +142,9 @@ def write_all_worksheet(user_email, worksheet_name, markers=None, xys=None, exp=
     write_df(worksheet_root, clustering, keys.CLUSTERING)
 
 
-def is_valid_file(tarsfilename):
+def is_valid_file(filename):
     for key in fname_keys:
-        if key in tarsfilename:
+        if key in filename:
             return True
     return False
 
@@ -154,7 +154,7 @@ def name_transform(filename):
     for key in fname_keys:
         if key in filename:
             return key
-    raise ValueError("The file name could not be transformed into a valid filename constant")
+    raise ValueError("The file name could not be transformed into a valid filename constant", filename)
 
 
 def add_group_to_state(worksheet_root, group_name):
