@@ -6,6 +6,7 @@ import gzip
 from cluster.api.user import dataframe_to_str, bubble_table
 import pandas as pd
 
+
 def read_genes_csv(filename):
     df = pd.read_csv(filename, index_col=0)
     genes = set()
@@ -30,7 +31,9 @@ def generate_worksheet_state(
         color_by,
         markers_df=None,
         genes=[],
-        mapping=None
+        mapping=None,
+        dotplot_metrics = None,
+        group = None
 ):
     """
 
@@ -74,6 +77,12 @@ def generate_worksheet_state(
         "colors": dataframe_to_str(colors),
         "sizes": dataframe_to_str(sizes),
     }
+
+    if dotplot_metrics is not None:
+        jdict["dotplot_vars"] = dotplot_metrics
+
+    if group is not None:
+        jdict["group"] = group
 
     return jdict
 
