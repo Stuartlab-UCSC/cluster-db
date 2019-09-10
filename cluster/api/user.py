@@ -57,12 +57,21 @@ def worksheet_is_public(user_entry, worksheet_name):
 class WorksheetUpload(Resource):
     @ns.response(200, 'worksheet uploaded', )
     def post(self, worksheet):
-        """Load a .tar.gz cell type worksheet file with a signed in user"""
+        """Load a cell type worksheet formatted file as a signed in user"""
+        group = request.args.get("group", None)
+
+        # If they are requesting to put the worksheet in a group
+        # then we need to make sure the group is there, otherwise fail with a code.
+        if group is not None:
+            from cluster.database.user_models import Group
+            from sqlalchemy.orm.exc import NoResultFound
+            try:
+                Group.get_by_name(group)
+            except NoResultFound:
+                abort(422)
+
         if not current_user.is_authenticated:
             return abort(403)
-
-        # Todo: add group parser so you can add to a specific group
-        #group = request.args.get("group", None)
 
         ws_root = make_worksheet_root(current_user.email, worksheet)
         make_new_worksheet_dir(ws_root)
@@ -101,7 +110,9 @@ class WorksheetUpload(Resource):
             clustering,
             size_by,
             color_by,
-            mapping=mapping
+            mapping=mapping,
+            dotplot_metrics=dotplot_metrics,
+            group=group
         )
 
         save_worksheet(
@@ -118,7 +129,7 @@ class WorksheetUpload(Resource):
             species=None,
             dataset_name=None,
             cluster_name=None,
-            group_name=None
+            group_name=group
         )
 
 
