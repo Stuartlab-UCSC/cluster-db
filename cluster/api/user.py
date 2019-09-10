@@ -94,13 +94,17 @@ class WorksheetUpload(Resource):
         size_by = "zstat"
         color_by = "tstat"
 
-        clustering = read_cluster(os.path.join(path, keys.CLUSTERING))
+        try:
+            dotplot_metrics = read_cluster(os.path.join(path, keys.DOTPLOT_SIZE_COLOR_METRICS)).tolist()
+        except FileNotFoundError:
+            dotplot_metrics = None
 
         try:
             mapping = read_cluster(os.path.join(path, keys.CELL_TYPE_ANNOTATION))
         except FileNotFoundError:
             mapping = None
 
+        clustering = read_cluster(os.path.join(path, keys.CLUSTERING))
         # TODO: this import statement should not NEED to be here, re-org worksheet state to user_io
         from cluster.cli.create.worksheet_state import generate_worksheet_state
         state = generate_worksheet_state(
