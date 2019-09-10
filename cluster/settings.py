@@ -52,15 +52,16 @@ USER_ENABLE_USERNAME = False  # email auth only, no username is used
 
 # Generic
 USER_APP_NAME = "UCSC Cell Atlas"  # in and email templates and page footers
-USER_AUTO_LOGIN = False
+USER_AUTO_LOGIN = True
 USER_AUTO_LOGIN_AFTER_REGISTER = False
 USER_AUTO_LOGIN_AT_LOGIN = False
+USER_AUTO_LOGIN_AFTER_RESET_PASSWORD = True
 USER_EMAIL_SENDER_NAME = USER_APP_NAME
 USER_EMAIL_SENDER_EMAIL = '"UCSC Cell Atlas" <hexmap@ucsc.edu>'
 
 # Endpoints
 USER_EDIT_USER_PROFILE_URL = '/user/change-password'
-USER_AFTER_CHANGE_PASSWORD_ENDPOINT = 'check_email'
+USER_AFTER_CHANGE_PASSWORD_ENDPOINT = 'user.login'
 USER_AFTER_CONFIRM_ENDPOINT = 'user.login'
 USER_AFTER_FORGOT_PASSWORD_ENDPOINT = 'check_email'
 USER_AFTER_LOGIN_ENDPOINT = 'after_login'
