@@ -82,6 +82,7 @@ class WorksheetUpload(Resource):
 
         file.save(tarfilename)
 
+        # Unpack the tar file into the appropriate directory.
         with tarfile.open(tarfilename) as tar:
             members = [m for m in tar.getmembers() if m.isfile() and is_valid_file(m.name)]
             for member in members:
@@ -167,7 +168,6 @@ class UserWorksheets(Resource):
 
         all_available.extend(public_worksheet_keys)
         # remove duplicates from a user's own worksheet being a member of their group.
-        print(all_available)
         all_available = list(set(all_available))
         return all_available
 
@@ -314,7 +314,7 @@ class GeneTable(Resource):
         #print(user, worksheet)
         paths = get_all_worksheet_paths(user, worksheet)
         #print([f.name for f in CellTypeWorksheet.get_user_worksheets(user_entry)])
-        print(CellTypeWorksheet.get_worksheet(user_entry, worksheet))
+        #print(CellTypeWorksheet.get_worksheet(user_entry, worksheet))
 
         # Make the table and then throw it in a byte buffer to pass over.
         gene_table = read_markers_df(paths[keys.MARKER_TABLE])
