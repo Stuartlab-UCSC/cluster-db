@@ -445,9 +445,17 @@ class GeneScatterplot(Resource):
 
         return send_file(
             png,
+            attachment_filename=rand_png_filename(),
             mimetype='image/png'
         )
 
+import string
+import random
+def random_generator(size=6, chars=string.ascii_uppercase + string.digits):
+    return ''.join(random.choice(chars) for x in range(size))
+
+def rand_png_filename():
+    return random_generator(12) + ".png"
 
 @ns.route('/<string:user>/worksheet/<string:worksheet>/scatterplot/<string:type>')
 @ns.param('user', 'user id')
