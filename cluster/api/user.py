@@ -545,10 +545,13 @@ def scatter_categorical(xys, centers, color_map, clusters):
     """
     plt.axis('off')
     data = join_xys_clusters(xys, clusters)
+    n_clusters = len(clusters.unique())
+    n_samples = xys.shape[0]
     for xs, ys, cx, cy, color, label in graph_protions(centers, data, color_map):
         plt.scatter(
             x=xs,
             y=ys,
+            s=scatter_dot_size(n_samples),
             color=color,
             marker=".",
             alpha=1,
@@ -559,7 +562,7 @@ def scatter_categorical(xys, centers, color_map, clusters):
             (cx, cy),
             horizontalalignment='center',
             verticalalignment='center',
-            size=15, weight='bold',
+            size=scatter_label_size(n_clusters), weight='bold',
             color="black"
         )
 
@@ -581,6 +584,8 @@ def scatter_continuous(xys, centers, gene):
     """
     plt.axis('off')
     cm = plt.cm.get_cmap('coolwarm')
+
+    # TODO:
     # This is a binning hack to deal with the distributions of count type data.
     # linear color mappings do not do well because of outliers that stretch the scale.
     gene_vector_has_zeros = (gene==0).sum() != 0 and gene.min() == 0
@@ -618,7 +623,7 @@ def scatter_continuous(xys, centers, gene):
         plt.legend()
 
     else:
-        sc = plt.scatter(x=xys['x'], y=xys['y'], marker=".", c=gene, alpha=1, cmap=cm, norm=None, edgecolor='none')
+        sc = plt.scatter(x=xys['x'], y=xys['y'], s=scatter_dot_size(xys.shape[0]), marker=".", c=gene, alpha=1, cmap=cm, norm=None, edgecolor='none')
         plt.colorbar(sc)
 
     # Annotate the clusters at their centroids.
@@ -628,7 +633,7 @@ def scatter_continuous(xys, centers, gene):
             (centers.loc[label]["x"], centers.loc[label]["y"]),
             horizontalalignment='center',
             verticalalignment='center',
-            size=15, weight='bold',
+            size=scatter_label_size(centers.shape[0]), weight='bold',
             color="black"
         )
 
@@ -639,6 +644,22 @@ def scatter_continuous(xys, centers, gene):
     img_bytes.seek(0)
     plt.close()
     return img_bytes
+
+
+def scatter_dot_size(n_samples):
+    if n_samples > 20000:
+        size = 2
+    else:
+        size = 20
+    return size
+
+
+def scatter_label_size(n_clusters):
+    if n_clusters > 20:
+        size = 8
+    else:
+        size = 15
+    return size
 
 
 def centroids(xys, cluster):
