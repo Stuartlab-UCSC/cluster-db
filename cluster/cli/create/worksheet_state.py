@@ -126,10 +126,14 @@ def cluster_table(clustering, order=None, mapping=None):
         df["cell_count"] = cluster_counts[mapping.index].values
 
     else:
+        df["column"] = range(len(cluster_counts))
         df["cluster"] = cluster_counts.index
         df["cell_count"] = cluster_counts.values
-        df["bar_color"] = df['column']
+        df["bar_color"] = 0
+        #df["cell_type"] = "Unknown"
 
+    print("clusters df in state with mapping", mapping)
+    print(df.head())
     return df
 
 
