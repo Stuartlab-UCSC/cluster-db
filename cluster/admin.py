@@ -1,14 +1,47 @@
 
-# Admin page functionality.
-
+# Admin mail and page functionality.
+import os
 from flask_user import current_user
 from flask_admin.contrib.sqla import ModelView
 from cluster.database.data_models import ClusterSolution, Dataset
 from cluster.database.user_models import User, Role
 from flask_admin import Admin
+from flask_mail import Mail, Message
+
+mail = None
 
 # To add a batch action, perhaps to add many users to a role:
 # https://flask-admin.readthedocs.io/en/latest/advanced/
+
+
+def mail_admin(message, app):
+    if current_user.is_authenticated:
+        sender = current_user.email
+        cc = current_user.email
+    else:
+        sender = 'unauthenticated@ucsc.edu'
+        cc = None
+    msg = Message('I wish that...', sender=sender, cc=cc,
+        recipients=[app.config['MAIL_USERNAME']])
+        #recipients=[os.environ.get("CLUSTERDB_EMAIL")])
+
+    msg.body = message
+    msg.html = '<p>' + message + '<p>'
+    mail.send(msg)
+
+
+def admin_routes(app):
+    # Handle the test route.
+    # Please leave this route for testing by the client.
+    @app.route('/test')
+    def test_route():
+        return 'Just testing the clusterDb server'
+
+    # Handle the mail-to-admin route.
+    @app.route('/mail-admin/<string:message>')
+    def mail_admin_route(message):
+        mail_admin(message, app)
+        return 'Mailed'
 
 
 def init_app(app, db):
@@ -17,6 +50,9 @@ def init_app(app, db):
     admin.add_view(DatasetView(Dataset, db.session))
     admin.add_view(UserView(User, db.session))
     admin.add_view(RoleView(Role, db.session))
+    admin_routes(app)
+    global mail
+    mail = Mail(app)
 
 
 class BaseView(ModelView):
