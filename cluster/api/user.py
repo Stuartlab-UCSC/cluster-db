@@ -502,20 +502,32 @@ class ClusterScatterplot(Resource):
 
 def access_denied(current_user_entry, req_user_email, req_worksheet_name):
 
+    # Public worksheets are accessible by anyone.
     req_user = User.get_by_email(req_user_email)
-    not_public = not worksheet_is_public(req_user, req_worksheet_name)
-
+    if worksheet_is_public(req_user, req_worksheet_name):
+        return False
+        
+    # Owners of worksheets may access them.
     try:
-        not_theirs = not current_user_entry.email == req_user_email
+        if current_user_entry.email == req_user_email:
+            return False
     except AttributeError as NotSignedIn:
-        not_theirs = True
+        return True
 
-    not_in_group = not worksheet_in_user_group(
+    # Group members may access worksheets belonging to the group.
+    in_group = worksheet_in_user_group(
         current_user_entry,
         CellTypeWorksheet.get_worksheet(req_user, req_worksheet_name)
     )
+    if in_group:
+        return False
 
-    return not_theirs and not_public and not_in_group
+    # Admins have access to all worksheets.
+    if current_user.has_roles('admin'):
+        return False
+        
+    # Otherwise access is denied.
+    return True
 
 
 def graph_protions(centers, data, color_map):
