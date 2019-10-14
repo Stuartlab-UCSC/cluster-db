@@ -4,7 +4,7 @@ import os
 from flask_user import current_user
 from flask_admin.contrib.sqla import ModelView
 from cluster.database.data_models import ClusterSolution, Dataset
-from cluster.database.user_models import User, Role
+from cluster.database.user_models import CellTypeWorksheet, Group, Role, User
 from flask_admin import Admin
 from flask_mail import Mail, Message
 
@@ -46,10 +46,12 @@ def admin_routes(app):
 
 def init_app(app, db):
     admin = Admin(app, name='CellAtlas Admin', template_mode='bootstrap3')
+    admin.add_view(CellTypeWorksheetView(CellTypeWorksheet, db.session))
     admin.add_view(ClusterSolutionView(ClusterSolution, db.session))
     admin.add_view(DatasetView(Dataset, db.session))
-    admin.add_view(UserView(User, db.session))
+    admin.add_view(GroupView(Group, db.session))
     admin.add_view(RoleView(Role, db.session))
+    admin.add_view(UserView(User, db.session))
     admin_routes(app)
     global mail
     mail = Mail(app)
@@ -65,6 +67,14 @@ class BaseView(ModelView):
         if not current_user.is_authenticated:
             return False
         return current_user.has_roles('admin')
+
+
+class CellTypeWorksheetView(BaseView):
+
+    list = ('id', 'place', 'name', 'user_id', 'expression_id', 'groups')
+    column_filters = list
+    column_list = list
+    column_searchable_list = ('id', 'place', 'name', 'user_id', 'expression_id')
 
 
 class ClusterSolutionView(BaseView):
@@ -87,6 +97,14 @@ class DatasetView(BaseView):
     column_searchable_list = list
 
 
+class GroupView(BaseView):
+
+    list = ('id', 'name', 'members', 'cellTypeWorksheets')
+    column_filters = list
+    column_list = list
+    column_searchable_list = ('id', 'name')
+
+
 class RoleView(BaseView):
 
     list = ('id', 'name', 'members')
@@ -97,7 +115,7 @@ class RoleView(BaseView):
 
 class UserView(BaseView):
 
-    list = ('id', 'email', 'roles', 'active', 'email_confirmed_at')
+    list = ('id', 'email', 'roles', 'groups', 'active', 'email_confirmed_at')
     can_create = False
     column_filters = list
     column_list = list
@@ -111,4 +129,4 @@ class UserView(BaseView):
     }
 
     def __str__(self):
-        return self.name  # shows role names rather than IDs
+        return self.name

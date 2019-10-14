@@ -62,10 +62,14 @@ class Group(SurrogatePK, Model):
     id = Column(Integer(), primary_key=True)
     name = Column(String(80), unique=True)
     members = relationship('User', secondary='user_groups')
+    cellTypeWorksheets = relationship('CellTypeWorksheet', secondary='worksheet_groups')
 
     @classmethod
     def get_by_name(cls, name):
         return cls.query.filter(cls.name == name).one()
+
+    def __repr__(self):
+        return self.name
 
 
 class User(SurrogatePK, Model, UserMixin):
@@ -126,9 +130,18 @@ class CellTypeWorksheet(SurrogatePK, Model):
     groups = relationship(
         'Group',
         secondary="worksheet_groups",
-         backref=backref('group', lazy='dynamic')
+        backref=backref('worksheets', lazy='dynamic')
     )
 
+    # TODO make these work for the admin.
+    @classmethod
+    def get_all_worksheets(cls):
+        return cls.query.all()
+
+    @classmethod
+    def get_all_worksheet_names(cls):
+        return [ws.name for ws in cls.get_all_worksheets()]
+    
     @classmethod
     def get_user_worksheets(cls, user):
         return cls.query.filter(cls.user_id == user.id)
@@ -156,6 +169,9 @@ class CellTypeWorksheet(SurrogatePK, Model):
         ws_names = [CellTypeWorksheet.get_by_id(ws_id) for ws_id in ws_ids]
         return ws_names
 
+    def __repr__(self):
+        return self.place
+
 
 class UserExpression(SurrogatePK, Model):
     __tablename__ = "userexpression"
@@ -168,6 +184,9 @@ class UserExpression(SurrogatePK, Model):
     @classmethod
     def get_by_worksheet(cls, worksheet):
         return UserExpression.query.filter(UserExpression.id == worksheet.expression_id).one()
+        
+    def __repr__(self):
+        return self.place
 
 
 class WorksheetGroup(SurrogatePK, Model):
@@ -192,6 +211,9 @@ class ExpDimReduct(SurrogatePK, Model):
     def get_by_expression(cls, expression):
         return cls.query.filter(cls.expression_id == expression.id).first()
 
+    def __repr__(self):
+        return self.place
+
 
 class ExpCluster(SurrogatePK, Model):
     __tablename__ = "expcluster"
@@ -204,6 +226,9 @@ class ExpCluster(SurrogatePK, Model):
     def get_cluster(cls, expression):
         return cls.query.filter(cls.expression_id == expression.id).one()
 
+    def __repr__(self):
+        return self.place
+
 
 class ClusterGeneTable(SurrogatePK, Model):
     __table_name__= "clustergenetable"
@@ -213,6 +238,9 @@ class ClusterGeneTable(SurrogatePK, Model):
     @classmethod
     def get_table(cls, cluster):
         return cls.query.filter(cls.cluster_id == cluster.id).first()
+
+    def __repr__(self):
+        return self.place
 
 
 def add_group_to_worksheet(session, group_name, ws_entry):

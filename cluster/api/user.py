@@ -143,6 +143,15 @@ class UserWorksheets(Resource):
     def get(self):
         """Retrieve a list of worksheets available to the user, the list is a user-email/worksheet-name string"""
 
+        # Admins get to access everything.
+        if current_user.is_authenticated and current_user.has_roles('admin'):
+            admin_worksheet_keys = [
+                "%s/%s" % (User.get_by_id(ws.user_id).email, ws.name)
+                for ws in CellTypeWorksheet.get_all_worksheets()
+            ]
+            return admin_worksheet_keys
+
+        # Everyone gets to access public worksheets.
         public_worksheet_keys = [
             "%s/%s" % (User.get_by_id(ws.user_id).email, ws.name)
             for ws in CellTypeWorksheet.get_by_group("public")
@@ -151,6 +160,7 @@ class UserWorksheets(Resource):
         if not current_user.is_authenticated:
             return public_worksheet_keys
 
+        # Owners get to access their own worksheets.
         all_available = []
         users_ws = [
             "%s/%s" % (current_user.email, wsname)
@@ -158,6 +168,7 @@ class UserWorksheets(Resource):
         ]
         all_available.extend(users_ws)
 
+        # Group members may access worksheets belonging to the group.
         for group in current_user.groups:
             worksheet_keys = [
                 "%s/%s" % (User.get_by_id(ws.user_id).email, ws.name)
