@@ -534,7 +534,8 @@ def access_denied(current_user_entry, req_user_email, req_worksheet_name):
         return False
 
     # Admins have access to all worksheets.
-    if current_user.has_roles('admin'):
+    if current_user_entry.is_authenticated \
+        and current_user_entry.has_roles('admin'):
         return False
         
     # Otherwise access is denied.
