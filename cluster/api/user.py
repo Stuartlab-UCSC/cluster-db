@@ -23,7 +23,8 @@ from cluster.database.user_models import (
     worksheet_in_user_group,
     get_all_worksheet_paths,
     add_group_to_worksheet,
-    user_in_group
+    user_in_group,
+    delete_worksheet_entries
 )
 from cluster.user_io import (
     read_markers_df,
@@ -242,6 +243,25 @@ class Worksheet(Resource):
         worksheet = CellTypeWorksheet.get_worksheet(requested_worksheet_user, worksheet_name)
 
         return read_saved_worksheet(worksheet.place)
+
+
+    @ns.response(200, 'worksheet removed', )
+    def delete(self, user, worksheet):
+        """Remove a worksheet."""
+        user_email = user
+        worksheet_name = worksheet
+
+        if access_denied(current_user, user_email, worksheet_name):
+            print("access to %s-%s is denied from %s" % (user_email, worksheet_name, current_user))
+            return abort(403)
+
+        requested_worksheet_user = User.get_by_email(user_email)
+            
+        delete_worksheet_entries(
+            db.session,
+            user_email,
+            worksheet_name,
+        )
 
 
     @ns.response(200, 'worksheet received')

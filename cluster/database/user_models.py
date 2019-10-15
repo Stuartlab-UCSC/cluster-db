@@ -133,7 +133,6 @@ class CellTypeWorksheet(SurrogatePK, Model):
         backref=backref('worksheets', lazy='dynamic')
     )
 
-    # TODO make these work for the admin.
     @classmethod
     def get_all_worksheets(cls):
         return cls.query.all()
@@ -170,7 +169,8 @@ class CellTypeWorksheet(SurrogatePK, Model):
         return ws_names
 
     def __repr__(self):
-        return self.place
+        return ('<CellTypeWorksheet(place=%s, name=%s, user_id=%s, expression_id=%s>' %
+            (self.place, self.name, self.user_id, self.expression_id))
 
 
 class UserExpression(SurrogatePK, Model):
