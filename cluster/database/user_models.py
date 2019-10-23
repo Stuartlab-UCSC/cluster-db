@@ -151,15 +151,10 @@ class CellTypeWorksheet(SurrogatePK, Model):
 
     @classmethod
     def get_worksheet(cls, user, worksheet_name):
-        user_ws = cls.query.filter(and_(
-            cls.user_id == user.id,
-            cls.name == worksheet_name
-        )).one()
-        not_found = user_ws is None
-        if not_found:
-            return None
-
-        return user_ws
+       return cls.query.filter(and_(
+                cls.user_id == user.id,
+                cls.name == worksheet_name
+            )).one()
 
     @classmethod
     def get_by_group(cls, group_name):

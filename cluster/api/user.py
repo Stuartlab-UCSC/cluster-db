@@ -49,7 +49,11 @@ ns = api.namespace('user')
 
 
 def worksheet_is_public(user_entry, worksheet_name):
-    groups = [g.name for g in CellTypeWorksheet.get_worksheet(user_entry, worksheet_name).groups]
+    try:
+        groups = [g.name for g in \
+            CellTypeWorksheet.get_worksheet(user_entry, worksheet_name).groups]
+    except NoResultFound:
+        return False
     return "public" in groups
 
 
@@ -59,28 +63,52 @@ class WorksheetUpload(Resource):
     @ns.response(200, 'worksheet uploaded', )
     def post(self, worksheet):
         """Load a cell type worksheet formatted file as a signed in user"""
-        group = request.args.get("group", None)
+        
+        if not current_user.is_authenticated:
+            return abort(403)
 
-        # If they are requesting to put the worksheet in a group
-        # then we need to make sure the group is there, otherwise fail with a code.
+        # Be sure the worksheet name is not yet used by this user,
+        # otherwise fail with a code.
+        from cluster.database.user_models import CellTypeWorksheet
+        from sqlalchemy.orm.exc import NoResultFound
+        existingWorksheet = None
+        try:
+            existingWorksheet = CellTypeWorksheet.get_worksheet(
+                current_user, worksheet)
+        except NoResultFound:
+            pass # this is a good thing
+        if existingWorksheet:
+            abort(422, 'A worksheet by that name already exists: ' + worksheet)
+
+        # If they are requesting to put the worksheet in a group then
+        # we need to make sure the group is there, otherwise fail with a code.
+        group = request.args.get("group", None)
+        dataset = request.args.get("dataset", None)
+        cluster_name = request.args.get("cluster_name", None)
+        description = request.args.get("description", None)
+            
+        # TODO just for testing
+        #import time
+        #time.sleep(1)
+        #return
+        
         if group is not None:
             from cluster.database.user_models import Group
             from sqlalchemy.orm.exc import NoResultFound
             try:
                 Group.get_by_name(group)
             except NoResultFound:
-                abort(422)
+                abort(422, 'group not found: ' + group)
 
-        if not current_user.is_authenticated:
-            return abort(403)
-
+        # Make the directories needed.
         ws_root = make_worksheet_root(current_user.email, worksheet)
         make_new_worksheet_dir(ws_root)
         path = get_user_dir(ws_root)
+        
+        # Get the tar file from the request and save it.
+        from werkzeug.utils import secure_filename
         file = request.files['documents']
-
-        tarfilename = os.path.join(path, file.filename)
-
+        tarfilename = os.path.join(path, secure_filename(file.filename))
         file.save(tarfilename)
 
         # Unpack the tar file into the appropriate directory.
@@ -117,7 +145,10 @@ class WorksheetUpload(Resource):
             color_by,
             mapping=mapping,
             dotplot_metrics=dotplot_metrics,
-            group=group
+            group=group,
+            dataset=dataset,
+            cluster_name=cluster_name,
+            description=description,
         )
 
         save_worksheet(
@@ -240,8 +271,11 @@ class Worksheet(Resource):
 
         requested_worksheet_user = User.get_by_email(user_email)
 
-        worksheet = CellTypeWorksheet.get_worksheet(requested_worksheet_user, worksheet_name)
-
+        try:
+            worksheet = CellTypeWorksheet.get_worksheet(requested_worksheet_user, worksheet_name)
+        except NoResultFound:
+            abort(422, 'Worksheet not found: ' + worksheet_name)
+            
         return read_saved_worksheet(worksheet.place)
 
 

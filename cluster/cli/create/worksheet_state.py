@@ -33,7 +33,10 @@ def generate_worksheet_state(
         genes=[],
         mapping=None,
         dotplot_metrics = None,
-        group = None
+        group = None,
+        cluster_name = None,
+        dataset = None,
+        description = None,
 ):
     """
 
@@ -76,13 +79,22 @@ def generate_worksheet_state(
         "genes": dataframe_to_str(genes_df, index=False),
         "colors": dataframe_to_str(colors),
         "sizes": dataframe_to_str(sizes),
-    }
+}
 
     if dotplot_metrics is not None:
         jdict["dotplot_vars"] = dotplot_metrics
 
     if group is not None:
         jdict["group"] = group
+
+    if cluster_name is not None:
+        jdict["cluster_name"] = cluster_name
+
+    if dataset is not None:
+        jdict["dataset"] = dataset
+
+    if description is not None:
+        jdict["description"] = description
 
     return jdict
 
