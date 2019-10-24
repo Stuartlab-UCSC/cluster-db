@@ -14,16 +14,19 @@ mail = None
 # https://flask-admin.readthedocs.io/en/latest/advanced/
 
 
-def mail_admin(message, app):
+def mail_admin(subject, message, app):
+    print('########### \nconfig.defaultSender, username, password:',
+        app.config['MAIL_DEFAULT_SENDER'],
+        app.config['MAIL_USERNAME'],
+        app.config['MAIL_PASSWORD'])
     if current_user.is_authenticated:
-        sender = current_user.email
+        user = current_user.email
         cc = current_user.email
     else:
-        sender = 'unauthenticated@ucsc.edu'
+        user = 'anonymous user'
         cc = None
-    msg = Message('I wish that...', sender=sender, cc=cc,
-        recipients=[app.config['MAIL_USERNAME']])
-        #recipients=[os.environ.get("CLUSTERDB_EMAIL")])
+    subject = 'from ' + user + ': I wish the ' + subject + ' would...'
+    msg = Message(subject, cc=cc, recipients=[app.config['MAIL_USERNAME']])
 
     msg.body = message
     msg.html = '<p>' + message + '<p>'
@@ -38,9 +41,10 @@ def admin_routes(app):
         return 'Just testing the clusterDb server'
 
     # Handle the mail-to-admin route.
-    @app.route('/mail-admin/<string:message>')
-    def mail_admin_route(message):
-        mail_admin(message, app)
+    @app.route('/mail-admin/subject/<string:subject>/message/<string:message>')
+    # /mail-admin/subject/cell-type/message/' + text
+    def mail_admin_route(subject, message):
+        mail_admin(subject, message, app)
         return 'Mailed'
 
 
