@@ -15,10 +15,6 @@ mail = None
 
 
 def mail_admin(subject, message, app):
-    print('########### \nconfig.defaultSender, username, password:',
-        app.config['MAIL_DEFAULT_SENDER'],
-        app.config['MAIL_USERNAME'],
-        app.config['MAIL_PASSWORD'])
     if current_user.is_authenticated:
         user = current_user.email
         cc = current_user.email
