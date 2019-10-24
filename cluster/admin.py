@@ -17,7 +17,7 @@ mail = None
 def mail_admin(subject, message, app):
     if current_user.is_authenticated:
         user = current_user.email
-        cc = current_user.email
+        cc = [current_user.email]
     else:
         user = 'anonymous user'
         cc = None
