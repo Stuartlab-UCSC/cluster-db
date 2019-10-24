@@ -164,8 +164,7 @@ class CellTypeWorksheet(SurrogatePK, Model):
         return ws_names
 
     def __repr__(self):
-        return ('<CellTypeWorksheet(place=%s, name=%s, user_id=%s, expression_id=%s>' %
-            (self.place, self.name, self.user_id, self.expression_id))
+        return ('%s' % (self.place))
 
 
 class UserExpression(SurrogatePK, Model):
@@ -383,7 +382,7 @@ def delete_worksheet_entries(
         user_email,
         worksheet_name
 ):
-    """Delete all worksheet entities in the database."""
+    """Delete a worksheet in the database."""
     ctw = CellTypeWorksheet.get_worksheet(User.get_by_email(user_email), worksheet_name)
 
     user_exp = UserExpression.get_by_id(ctw.expression_id)
@@ -399,10 +398,11 @@ def delete_worksheet_entries(
         ClusterGeneTable.cluster_id == cluster.id
     ).first()
 
-    session.delete(cluster)
+    # TODO delete any data that is not used by another.
+    #session.delete(cluster)
     session.delete(ctw)
-    session.delete(user_exp)
-    session.delete(reduct)
-    session.delete(marker_table)
+    #session.delete(user_exp)
+    #session.delete(reduct)
+    #session.delete(marker_table)
     session.commit()
 

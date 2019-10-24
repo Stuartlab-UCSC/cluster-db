@@ -4,7 +4,9 @@ import os
 from flask_user import current_user
 from flask_admin.contrib.sqla import ModelView
 from cluster.database.data_models import ClusterSolution, Dataset
-from cluster.database.user_models import CellTypeWorksheet, Group, Role, User
+from cluster.database.user_models import CellTypeWorksheet, \
+    ClusterGeneTable, ExpCluster, ExpDimReduct, Group, Role, User, \
+    UserExpression
 from flask_admin import Admin
 from flask_mail import Mail, Message
 
@@ -47,10 +49,14 @@ def admin_routes(app):
 def init_app(app, db):
     admin = Admin(app, name='CellAtlas Admin', template_mode='bootstrap3')
     admin.add_view(CellTypeWorksheetView(CellTypeWorksheet, db.session))
-    admin.add_view(ClusterSolutionView(ClusterSolution, db.session))
-    admin.add_view(DatasetView(Dataset, db.session))
+    admin.add_view(ClusterGeneTableView(ClusterGeneTable, db.session))
+    #admin.add_view(ClusterSolutionView(ClusterSolution, db.session))
+    #admin.add_view(DatasetView(Dataset, db.session))
+    admin.add_view(ExpClusterView(ExpCluster, db.session))
+    admin.add_view(ExpDimReductView(ExpDimReduct, db.session))
     admin.add_view(GroupView(Group, db.session))
     admin.add_view(RoleView(Role, db.session))
+    admin.add_view(UserExpressionView(UserExpression, db.session))
     admin.add_view(UserView(User, db.session))
     admin_routes(app)
     global mail
@@ -70,15 +76,20 @@ class BaseView(ModelView):
 
 
 class CellTypeWorksheetView(BaseView):
-
     list = ('id', 'place', 'name', 'user_id', 'expression_id', 'groups')
     column_filters = list
     column_list = list
     column_searchable_list = ('id', 'place', 'name', 'user_id', 'expression_id')
 
 
-class ClusterSolutionView(BaseView):
+class ClusterGeneTableView(BaseView):
+    list = ('id', 'place', 'cluster_id')
+    column_filters = list
+    column_list = list
+    column_searchable_list = list
 
+
+class ClusterSolutionView(BaseView):
     list = ('id', 'name', 'description', 'method',
         'method_implementation', 'method_url', 'method_parameters', 'scores',
         'analyst', 'likes', 'dataset_id')
@@ -88,7 +99,6 @@ class ClusterSolutionView(BaseView):
 
 
 class DatasetView(BaseView):
-
     list = ('id', 'name', 'uuid', 'species', 'organ',
         'cell_count', 'disease', 'platform', 'description', 'data_source_url',
          'publication_url')
@@ -97,8 +107,21 @@ class DatasetView(BaseView):
     column_searchable_list = list
 
 
-class GroupView(BaseView):
+class ExpClusterView(BaseView):
+    list = ('id', 'name', 'place', 'expression_id')
+    column_filters = list
+    column_list = list
+    column_searchable_list = list
 
+
+class ExpDimReductView(BaseView):
+    list = ('id', 'name', 'place', 'expression_id')
+    column_filters = list
+    column_list = list
+    column_searchable_list = list
+
+
+class GroupView(BaseView):
     list = ('id', 'name', 'members', 'cellTypeWorksheets')
     column_filters = list
     column_list = list
@@ -106,15 +129,20 @@ class GroupView(BaseView):
 
 
 class RoleView(BaseView):
-
     list = ('id', 'name', 'members')
     column_filters = list
     column_list = list
     column_searchable_list = ('id', 'name')
 
 
-class UserView(BaseView):
+class UserExpressionView(BaseView):
+    list = ('id', 'species', 'organ', 'name', 'place')
+    column_filters = list
+    column_list = list
+    column_searchable_list = list
 
+
+class UserView(BaseView):
     list = ('id', 'email', 'roles', 'groups', 'active', 'email_confirmed_at')
     can_create = False
     column_filters = list

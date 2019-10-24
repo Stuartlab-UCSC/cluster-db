@@ -197,7 +197,7 @@ def create_state(
 @click.argument('user_email')
 @click.argument('worksheet_name')
 @click.argument('scanpy_path')
-@click.option('--cluster_name', default="louvain")
+@click.option('--cluster_name', default="")
 @click.option('--dataset_name', default="")
 @click.option('--celltype_key', default="scorect")
 @with_appcontext
