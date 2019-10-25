@@ -76,17 +76,17 @@ class BaseView(ModelView):
 
 
 class CellTypeWorksheetView(BaseView):
-    list = ('id', 'place', 'name', 'user_id', 'expression_id', 'groups')
+    list = ('id', 'place', 'name', 'user_', 'user_expression', 'groups')
     column_filters = list
     column_list = list
-    column_searchable_list = ('id', 'place', 'name', 'user_id', 'expression_id')
+    column_searchable_list = ('id', 'place', 'name')
 
 
 class ClusterGeneTableView(BaseView):
-    list = ('id', 'place', 'cluster_id')
+    list = ('id', 'place', 'exp_cluster')
     column_filters = list
     column_list = list
-    column_searchable_list = list
+    column_searchable_list = ('id', 'place')
 
 
 class ClusterSolutionView(BaseView):
@@ -108,28 +108,28 @@ class DatasetView(BaseView):
 
 
 class ExpClusterView(BaseView):
-    list = ('id', 'name', 'place', 'expression_id')
+    list = ('id', 'name', 'place', 'user_expression')
     column_filters = list
     column_list = list
-    column_searchable_list = list
+    column_searchable_list = ('id', 'name', 'place')
 
 
 class ExpDimReductView(BaseView):
-    list = ('id', 'name', 'place', 'expression_id')
+    list = ('id', 'name', 'place', 'user_expression')
     column_filters = list
     column_list = list
-    column_searchable_list = list
+    column_searchable_list = ('id', 'name', 'place')
 
 
 class GroupView(BaseView):
-    list = ('id', 'name', 'members', 'cellTypeWorksheets')
+    list = ('id', 'name', 'members', 'cell_type_worksheets')
     column_filters = list
     column_list = list
     column_searchable_list = ('id', 'name')
 
 
 class RoleView(BaseView):
-    list = ('id', 'name', 'members')
+    list = ('id', 'name', 'users_')
     column_filters = list
     column_list = list
     column_searchable_list = ('id', 'name')

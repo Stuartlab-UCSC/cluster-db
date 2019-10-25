@@ -47,7 +47,7 @@ class Role(SurrogatePK, Model):
     id = Column(Integer(), primary_key=True)
     name = Column(String(80), unique=True)
     description = Column(String(255))
-    members = relationship('User', secondary='user_roles')
+    users_ = relationship('User', secondary='user_roles')
 
     @classmethod
     def get_by_name(cls, name):
@@ -62,7 +62,7 @@ class Group(SurrogatePK, Model):
     id = Column(Integer(), primary_key=True)
     name = Column(String(80), unique=True)
     members = relationship('User', secondary='user_groups')
-    cellTypeWorksheets = relationship('CellTypeWorksheet', secondary='worksheet_groups')
+    cell_type_worksheets = relationship('CellTypeWorksheet', secondary='worksheet_groups')
 
     @classmethod
     def get_by_name(cls, name):
@@ -127,6 +127,12 @@ class CellTypeWorksheet(SurrogatePK, Model):
     expression_id = Column(Integer(), ForeignKey('userexpression.id'))
     __table_args__ = (UniqueConstraint('name', 'user_id', name="ws:user"),)
 
+    user_ = relationship(
+        'User',
+        backref=backref('worksheets', lazy='dynamic'))
+    user_expression = relationship(
+        'UserExpression',
+        backref=backref('worksheets', lazy='dynamic'))
     groups = relationship(
         'Group',
         secondary="worksheet_groups",
@@ -201,6 +207,10 @@ class ExpDimReduct(SurrogatePK, Model):
     place = Column(String, nullable=False)
     expression_id = Column(Integer, ForeignKey("userexpression.id"), nullable=False)
 
+    user_expression = relationship(
+        'UserExpression',
+        backref=backref('expDimReducts', lazy='dynamic'))
+    
     @classmethod
     def get_by_expression(cls, expression):
         return cls.query.filter(cls.expression_id == expression.id).first()
@@ -216,6 +226,10 @@ class ExpCluster(SurrogatePK, Model):
     id = Column(Integer(), primary_key=True)
     expression_id = Column(Integer, ForeignKey("userexpression.id"), nullable=False)
 
+    user_expression = relationship(
+        'UserExpression',
+        backref=backref('expClusters', lazy='dynamic'))
+
     @classmethod
     def get_cluster(cls, expression):
         return cls.query.filter(cls.expression_id == expression.id).one()
@@ -228,6 +242,10 @@ class ClusterGeneTable(SurrogatePK, Model):
     __table_name__= "clustergenetable"
     place = Column(String, nullable=False)
     cluster_id = Column(Integer, ForeignKey("expcluster.id"), nullable=False)
+
+    exp_cluster = relationship(
+        'ExpCluster',
+        backref=backref('cluster_gene_table', lazy='dynamic'))
 
     @classmethod
     def get_table(cls, cluster):
