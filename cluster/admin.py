@@ -76,7 +76,7 @@ class BaseView(ModelView):
 
 
 class CellTypeWorksheetView(BaseView):
-    list = ('id', 'place', 'name', 'user_', 'user_expression', 'groups')
+    list = ('id', 'place', 'groups', 'user_expression', 'user_', 'name')
     column_filters = list
     column_list = list
     column_searchable_list = ('id', 'place', 'name')
@@ -136,7 +136,7 @@ class RoleView(BaseView):
 
 
 class UserExpressionView(BaseView):
-    list = ('id', 'species', 'organ', 'name', 'place')
+    list = ('id', 'name', 'place', 'species', 'organ')
     column_filters = list
     column_list = list
     column_searchable_list = list
