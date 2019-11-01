@@ -1,0 +1,17 @@
+
+# !/usr/bin/env bash
+# startCli
+
+# USAGE:
+#   cd $CLUSTERDB    # the root of the git install
+#   source bin/startCli
+
+export FLASK_APP=cluster
+export FLASK_ENV=development  # for debug information
+source $CLUSTERDB/env/bin/activate
+
+# List all high-level functions
+flask --help
+
+# Get documentation for a specific function
+#flask create-worksheet --help

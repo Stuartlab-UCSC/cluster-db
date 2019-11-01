@@ -21,17 +21,10 @@ virtualenv -p python3 env
 source env/bin/activate
 
 pip install -r requirements.txt
+
+export CLUSTERDB=full.path.to.your.git.install.directory
 ```
 Now you've installed the app and it's dependencies.
-
-If the install has gone correctly you should be able to view the command line interface documentation.
-```
-source env/bin/activate
-export FLASK_APP=cluster
-# List all high-level functions
-flask --help
-# Get documentation for a specific function
-flask create-worksheet --help
 ```
 To run the server locally use flask's api:
 ```
@@ -49,7 +42,7 @@ export BACKGROUND=1
 export HOST=localhost
 export PORT=9000
 export HTTPS=1
-# Set this if you are also running the client side of the application.
+# Set this if you are also running the web client side of the application.
 export VIEWER_URL=https://cellatlas.ucsc.edu/
 export WWW_SOCKET=127.0.0.1:$PORT
 # Expose machine specific security variables to the environment.
@@ -58,8 +51,21 @@ source $CLUSTERDB/
 ```
 Now you can start the app via our start script from the cluster-db directory:
 ```
-cd path/cluster-db
-export CLUSTERDB=$(pwd)
+cd $CLUSTERDB
 bin/start
 ```
-To see the database from the front-end you will need to follow the installation instructions for the [USCS Cell Atlas](https://github.com/Stuartlab-UCSC/cell-atlas). 
+To stop the app:
+```
+ps -eaf | grep flask
+```
+Kill the lowest process number for the flask process running.
+
+
+To run CLI commands:
+```
+cd $CLUSTERDB
+source bin/startCli
+```
+
+To see the database from the front-end you will need to follow the installation instructions for 
+the [USCS Cell Atlas](https://github.com/Stuartlab-UCSC/cell-atlas). 
