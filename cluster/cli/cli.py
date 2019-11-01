@@ -18,7 +18,7 @@ import pandas as pd
 import numpy as np
 
 from cluster.user_io import make_worksheet_root, save_worksheet, read_markers_df, read_cluster, write_all_worksheet
-from cluster.database.user_models import get_all_worksheet_paths, add_worksheet_entries, User, Group, Role
+from cluster.database.user_models import get_all_worksheet_paths, add_worksheet_entries, User, Role
 import cluster.database.filename_constants as keys
 
 
@@ -26,7 +26,7 @@ from flask import current_app
 from flask.cli import with_appcontext
 
 from cluster.database import db
-from cluster.database.user_models import add_role, add_group
+from cluster.database.user_models import add_role
 from cluster.database.add_entries import add_entries
 from .create.worksheet_state import generate_worksheet_state
 
@@ -60,19 +60,6 @@ def add_user_role(user_email, role_name):
     db.session.commit()
 
 
-@click.command(help="Add a User to a Group.")
-@click.argument('user_email')
-@click.argument('group_name')
-@with_appcontext
-def add_user_group(user_email, group_name):
-    user = User.get_by_email(user_email)
-    group = Group.get_by_name(group_name)
-
-    user.groups.append(group)
-    db.session.add(user)
-    db.session.commit()
-
-
 @click.command(help="Add a Role to the User Database.")
 @click.argument('role_name')
 @with_appcontext
@@ -80,14 +67,7 @@ def create_role(role_name):
     add_role(db.session, role_name)
 
 
-@click.command(help="Add a Group to the User Database.")
-@click.argument('group_name')
-@with_appcontext
-def create_group(group_name):
-    add_group(db.session, group_name)
-
-
-@click.command(help="Add a worksheet to a group in the user database.")
+@click.command(help="Add a worksheet to a group/role in the user database.")
 @click.argument('email')
 @click.argument('worksheet_name')
 @click.argument('group_name')
@@ -316,8 +296,8 @@ def remove_worksheet(email, worksheet_name):
 CLICK_COMMANDS = (
     create_user, create_worksheet, all_users,
     clear_users, load_scanpy, load_tsv, create_state,
-    to_pickle, scanpy_obs_keys, create_role, create_group,
-    add_worksheet_group, add_user_role, add_user_group, remove_worksheet
+    to_pickle, scanpy_obs_keys, create_role,
+    add_worksheet_group, add_user_role, remove_worksheet
 )
 
 
