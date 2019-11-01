@@ -75,10 +75,10 @@ class BaseView(ModelView):
 
 
 class CellTypeWorksheetView(BaseView):
-    list = ('id', 'place', 'groups', 'user_expression', 'user_', 'name')
+    list = ('id', 'user_', 'name', 'groups', 'place', 'user_expression', )
     column_filters = list
     column_list = list
-    column_searchable_list = ('id', 'place', 'name')
+    column_searchable_list = ('id', 'name', 'place')
 
 
 class ClusterGeneTableView(BaseView):
