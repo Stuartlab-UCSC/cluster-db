@@ -5,6 +5,9 @@
 *.lst
 *.gmt
 *.tsv
+*.tgz
+*.gz
+*.tar
 
 # machine specific config
 clusterDbConfig.sh
