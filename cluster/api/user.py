@@ -93,10 +93,10 @@ class WorksheetUpload(Resource):
         #return
         
         if group is not None:
-            from cluster.database.user_models import Role
+            from cluster.database.user_models import Group
             from sqlalchemy.orm.exc import NoResultFound
             try:
-                Role.get_by_name(group)
+                Group.get_by_name(group)
             except NoResultFound:
                 abort(422, 'group not found: ' + group)
 
@@ -200,9 +200,8 @@ class UserWorksheets(Resource):
         ]
         all_available.extend(users_ws)
 
-        # Members with this group role may access
-        # worksheets belonging to the group.
-        for group in current_user.roles:
+        # Group members may access worksheets belonging to the group.
+        for group in current_user.groups:
             worksheet_keys = [
                 "%s/%s" % (User.get_by_id(ws.user_id).email, ws.name)
                 for ws in CellTypeWorksheet.get_by_group(group.name)
@@ -210,7 +209,7 @@ class UserWorksheets(Resource):
             all_available.extend(worksheet_keys)
 
         all_available.extend(public_worksheet_keys)
-        # Remove dups when a user's own worksheet is a member of this group.
+        # remove duplicates from a user's own worksheet being a member of their group.
         all_available = list(set(all_available))
         return all_available
 
@@ -342,9 +341,9 @@ class Worksheet(Resource):
                 new_ws_entry = add_worksheet_entries(db.session, current_user.email, worksheet_name, paths_dict=paths)
 
                 # This is a guard against a user attempting to do a "save as"
-                # with a group they are not apart of, currently we still let
-                # them save but we don't put the worksheet in the group
-                # TODO: throw an error if the user is not in the group
+                # with a group they are not apart of, currently we still let them save
+                # but we don't put the worksheet in the group
+                # TODO: think about desired functionality and possibly throw an error
                 if user_in_group(current_user, group):
                     add_group_to_worksheet(db.session, group, new_ws_entry)
 
@@ -580,7 +579,7 @@ def access_denied(current_user_entry, req_user_email, req_worksheet_name):
     except AttributeError as NotSignedIn:
         return True
 
-    # Members with this group role may access worksheets belonging to the group.
+    # Group members may access worksheets belonging to the group.
     in_group = worksheet_in_user_group(
         current_user_entry,
         CellTypeWorksheet.get_worksheet(req_user, req_worksheet_name)

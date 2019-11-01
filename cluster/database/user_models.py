@@ -8,11 +8,10 @@ import os
 
 
 def user_in_group(user_entry, group_name):
-    # Check if a user is in a group role.
-    # Note this will return false for the special group "public", even though
-    # all users are technically in this group.
+    """Check if a user is in a group. Note this will return false for the special group "public", even
+    though all users are technically in this group."""
     try:
-        return group_name in [g.name for g in user_entry.roles]
+        return group_name in [g.name for g in user_entry.groups]
     except AttributeError as UserNotSignedIn:
         return False
 
@@ -22,7 +21,7 @@ def worksheet_in_user_group(user_entry, worksheet_entry):
         # Users always belong to their own worksheet.
         if user_entry.id == worksheet_entry.user_id:
             return True
-        return bool(len(set(user_entry.roles).intersection(set(worksheet_entry.groups))))
+        return bool(len(set(user_entry.groups).intersection(set(worksheet_entry.groups))))
     except AttributeError as UserNotSignedIn:
         return "public" in [g.name for g in worksheet_entry.groups]
 
@@ -35,12 +34,34 @@ def add_role(session, role_name):
     session.commit()
 
 
+def add_group(session, group_name):
+    group = Group(
+        name=group_name,
+    )
+    session.add(group)
+    session.commit()
+
+
 class Role(SurrogatePK, Model):
     __tablename__ = 'role'
     id = Column(Integer(), primary_key=True)
     name = Column(String(80), unique=True)
     description = Column(String(255))
     users_ = relationship('User', secondary='user_roles')
+
+    @classmethod
+    def get_by_name(cls, name):
+        return cls.query.filter(cls.name == name).one()
+
+    def __repr__(self):
+        return self.name
+
+
+class Group(SurrogatePK, Model):
+    __tablename__ = 'group'
+    id = Column(Integer(), primary_key=True)
+    name = Column(String(80), unique=True)
+    members = relationship('User', secondary='user_groups')
     cell_type_worksheets = relationship('CellTypeWorksheet', secondary='worksheet_groups')
 
     @classmethod
@@ -72,6 +93,9 @@ class User(SurrogatePK, Model, UserMixin):
         backref=backref('users', lazy='dynamic')
     )
 
+    groups = relationship('Group', secondary="user_groups",
+                         backref=backref('users', lazy='dynamic'))
+
     @classmethod
     def get_by_email(cls, email):
         return cls.query.filter(cls.email == email).one()
@@ -85,6 +109,13 @@ class UserRoles(SurrogatePK, Model):
     id = Column(Integer(), primary_key=True)
     user_id = Column(Integer(), ForeignKey('user.id', ondelete='CASCADE'))
     role_id = Column(Integer(), ForeignKey('role.id', ondelete='CASCADE'))
+
+
+class UserGroups(SurrogatePK, Model):
+    __tablename__ = 'user_groups'
+    id = Column(Integer(), primary_key=True)
+    user_id = Column(Integer(), ForeignKey('user.id', ondelete='CASCADE'))
+    group_id = Column(Integer(), ForeignKey('group.id', ondelete='CASCADE'))
 
 
 class CellTypeWorksheet(SurrogatePK, Model):
@@ -103,7 +134,7 @@ class CellTypeWorksheet(SurrogatePK, Model):
         'UserExpression',
         backref=backref('worksheets', lazy='dynamic'))
     groups = relationship(
-        'Role',
+        'Group',
         secondary="worksheet_groups",
         backref=backref('worksheets', lazy='dynamic')
     )
@@ -133,7 +164,7 @@ class CellTypeWorksheet(SurrogatePK, Model):
 
     @classmethod
     def get_by_group(cls, group_name):
-        group = Role.get_by_name(group_name)
+        group = Group.get_by_name(group_name)
         ws_ids = [wsg.worksheet_id for wsg in WorksheetGroup.get_by_group(group)]
         ws_names = [CellTypeWorksheet.get_by_id(ws_id) for ws_id in ws_ids]
         return ws_names
@@ -161,7 +192,7 @@ class UserExpression(SurrogatePK, Model):
 class WorksheetGroup(SurrogatePK, Model):
     __tablename__ = "worksheet_groups"
     id = Column(Integer(), primary_key=True)
-    group_id = Column(Integer(), ForeignKey('role.id'))
+    group_id = Column(Integer(), ForeignKey('group.id'))
     worksheet_id = Column(Integer(), ForeignKey('worksheet.id'))
 
     @classmethod
@@ -229,7 +260,7 @@ def add_group_to_worksheet(session, group_name, ws_entry):
         return None
 
     if group_name not in [g.name for g in ws_entry.groups]:
-        group = Role.get_by_name(group_name)
+        group = Group.get_by_name(group_name)
         ws_entry.groups.append(group)
         session.add(ws_entry)
         session.commit()
@@ -356,7 +387,7 @@ def add_worksheet_entries(
         session.commit()
 
         if group_name is not None:
-            group = Role.get_by_name(group_name)
+            group = Group.get_by_name(group_name)
             ws.groups.append(group)
             session.add(ws)
             session.commit()

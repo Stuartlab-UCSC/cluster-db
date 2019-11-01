@@ -5,7 +5,8 @@ from flask_user import current_user
 from flask_admin.contrib.sqla import ModelView
 from cluster.database.data_models import ClusterSolution, Dataset
 from cluster.database.user_models import CellTypeWorksheet, \
-    ClusterGeneTable, ExpCluster, ExpDimReduct, Role, User, UserExpression
+    ClusterGeneTable, ExpCluster, ExpDimReduct, Group, Role, User, \
+    UserExpression
 from flask_admin import Admin
 from flask_mail import Mail, Message
 
@@ -53,6 +54,7 @@ def init_app(app, db):
     #admin.add_view(DatasetView(Dataset, db.session))
     admin.add_view(ExpClusterView(ExpCluster, db.session))
     admin.add_view(ExpDimReductView(ExpDimReduct, db.session))
+    admin.add_view(GroupView(Group, db.session))
     admin.add_view(RoleView(Role, db.session))
     admin.add_view(UserExpressionView(UserExpression, db.session))
     admin.add_view(UserView(User, db.session))
@@ -74,10 +76,10 @@ class BaseView(ModelView):
 
 
 class CellTypeWorksheetView(BaseView):
-    list = ('id', 'user_', 'name', 'groups', 'place', 'user_expression', )
+    list = ('id', 'place', 'groups', 'user_expression', 'user_', 'name')
     column_filters = list
     column_list = list
-    column_searchable_list = ('id', 'name', 'place')
+    column_searchable_list = ('id', 'place', 'name')
 
 
 class ClusterGeneTableView(BaseView):
@@ -119,8 +121,15 @@ class ExpDimReductView(BaseView):
     column_searchable_list = ('id', 'name', 'place')
 
 
+class GroupView(BaseView):
+    list = ('id', 'name', 'members', 'cell_type_worksheets')
+    column_filters = list
+    column_list = list
+    column_searchable_list = ('id', 'name')
+
+
 class RoleView(BaseView):
-    list = ('id', 'name', 'users_', 'cell_type_worksheets')
+    list = ('id', 'name', 'users_')
     column_filters = list
     column_list = list
     column_searchable_list = ('id', 'name')
@@ -134,7 +143,7 @@ class UserExpressionView(BaseView):
 
 
 class UserView(BaseView):
-    list = ('id', 'email', 'roles', 'active', 'email_confirmed_at')
+    list = ('id', 'email', 'roles', 'groups', 'active', 'email_confirmed_at')
     can_create = False
     column_filters = list
     column_list = list
