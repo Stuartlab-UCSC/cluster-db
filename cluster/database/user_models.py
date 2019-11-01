@@ -26,35 +26,12 @@ def worksheet_in_user_group(user_entry, worksheet_entry):
         return "public" in [g.name for g in worksheet_entry.groups]
 
 
-def add_role(session, role_name):
-    role = Role(
-        name=role_name,
-    )
-    session.add(role)
-    session.commit()
-
-
 def add_group(session, group_name):
     group = Group(
         name=group_name,
     )
     session.add(group)
     session.commit()
-
-
-class Role(SurrogatePK, Model):
-    __tablename__ = 'role'
-    id = Column(Integer(), primary_key=True)
-    name = Column(String(80), unique=True)
-    description = Column(String(255))
-    users_ = relationship('User', secondary='user_roles')
-
-    @classmethod
-    def get_by_name(cls, name):
-        return cls.query.filter(cls.name == name).one()
-
-    def __repr__(self):
-        return self.name
 
 
 class Group(SurrogatePK, Model):
@@ -87,12 +64,6 @@ class User(SurrogatePK, Model, UserMixin):
     first_name = Column(String(100, collation='NOCASE'), nullable=False, server_default='')
     last_name = Column(String(100, collation='NOCASE'), nullable=False, server_default='')
 
-    roles = relationship(
-        'Role',
-        secondary="user_roles",
-        backref=backref('users', lazy='dynamic')
-    )
-
     groups = relationship('Group', secondary="user_groups",
                          backref=backref('users', lazy='dynamic'))
 
@@ -102,13 +73,6 @@ class User(SurrogatePK, Model, UserMixin):
 
     def __repr__(self):
         return self.email
-
-
-class UserRoles(SurrogatePK, Model):
-    __tablename__ = 'user_roles'
-    id = Column(Integer(), primary_key=True)
-    user_id = Column(Integer(), ForeignKey('user.id', ondelete='CASCADE'))
-    role_id = Column(Integer(), ForeignKey('role.id', ondelete='CASCADE'))
 
 
 class UserGroups(SurrogatePK, Model):

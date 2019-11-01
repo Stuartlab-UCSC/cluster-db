@@ -176,7 +176,7 @@ class UserWorksheets(Resource):
         """Retrieve a list of worksheets available to the user, the list is a user-email/worksheet-name string"""
 
         # Admins get to access everything.
-        if current_user.is_authenticated and current_user.has_roles('admin'):
+        if current_user.is_authenticated and user_in_group(current_user, 'admin'):
             admin_worksheet_keys = [
                 "%s/%s" % (User.get_by_id(ws.user_id).email, ws.name)
                 for ws in CellTypeWorksheet.get_all_worksheets()
@@ -589,7 +589,7 @@ def access_denied(current_user_entry, req_user_email, req_worksheet_name):
 
     # Admins have access to all worksheets.
     if current_user_entry.is_authenticated \
-        and current_user_entry.has_roles('admin'):
+        and user_in_group(current_user_entry, 'admin'):
         return False
         
     # Otherwise access is denied.

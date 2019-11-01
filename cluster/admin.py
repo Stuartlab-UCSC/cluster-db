@@ -5,14 +5,14 @@ from flask_user import current_user
 from flask_admin.contrib.sqla import ModelView
 from cluster.database.data_models import ClusterSolution, Dataset
 from cluster.database.user_models import CellTypeWorksheet, \
-    ClusterGeneTable, ExpCluster, ExpDimReduct, Group, Role, User, \
-    UserExpression
+    ClusterGeneTable, ExpCluster, ExpDimReduct, Group, User, \
+    user_in_group, UserExpression
 from flask_admin import Admin
 from flask_mail import Mail, Message
 
 mail = None
 
-# To add a batch action, perhaps to add many users to a role:
+# To add a batch action, perhaps to add many users to a group:
 # https://flask-admin.readthedocs.io/en/latest/advanced/
 
 
@@ -55,7 +55,6 @@ def init_app(app, db):
     admin.add_view(ExpClusterView(ExpCluster, db.session))
     admin.add_view(ExpDimReductView(ExpDimReduct, db.session))
     admin.add_view(GroupView(Group, db.session))
-    admin.add_view(RoleView(Role, db.session))
     admin.add_view(UserExpressionView(UserExpression, db.session))
     admin.add_view(UserView(User, db.session))
     admin_routes(app)
@@ -72,7 +71,7 @@ class BaseView(ModelView):
     def is_accessible(self):
         if not current_user.is_authenticated:
             return False
-        return current_user.has_roles('admin')
+        return user_in_group(current_user, 'admin')
 
 
 class CellTypeWorksheetView(BaseView):
@@ -128,13 +127,6 @@ class GroupView(BaseView):
     column_searchable_list = ('id', 'name')
 
 
-class RoleView(BaseView):
-    list = ('id', 'name', 'users_')
-    column_filters = list
-    column_list = list
-    column_searchable_list = ('id', 'name')
-
-
 class UserExpressionView(BaseView):
     list = ('id', 'name', 'place', 'species', 'organ')
     column_filters = list
@@ -143,11 +135,11 @@ class UserExpressionView(BaseView):
 
 
 class UserView(BaseView):
-    list = ('id', 'email', 'roles', 'groups', 'active', 'email_confirmed_at')
+    list = ('id', 'email', 'groups', 'active', 'email_confirmed_at')
     can_create = False
     column_filters = list
     column_list = list
-    column_searchable_list = ('id', 'email') #, 'roles')
+    column_searchable_list = ('id', 'email')
     form_excluded_columns = ('email_confirmed_at', 'password')
     # form_widget_args to make username uneditable?
     form_widget_args = {

@@ -12,7 +12,7 @@ def viewer_url():
 def auth_routes(app):
     @app.route('/user/after-login')
     def after_login():
-        current_user_roles = ','.join([str(r) for r in current_user.roles])
+        current_user_roles = ','.join([str(r) for r in current_user.groups])
         signin_url = "%s/?u=%s&r=%s" % (viewer_url(), current_user.email, current_user_roles)
         return redirect(signin_url, code=302)
 
