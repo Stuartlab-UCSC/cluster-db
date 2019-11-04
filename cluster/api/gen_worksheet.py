@@ -2,7 +2,7 @@
 """
 Temporary place for unused code.
 """
-
+"""
 def generate_worksheet(user, worksheet):
     """Generates a worksheet on the fly."""
 
@@ -54,3 +54,4 @@ def generate_worksheet(user, worksheet):
         "scatterplot_url": scatterplot_url
     }
     return resp
+"""
