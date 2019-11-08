@@ -13,13 +13,14 @@ import datetime
 import os
 import click
 from decorator import decorator
-import cluster.cli.scanpyapi as ad_obj
+import cluster.ingest.scanpyapi as ad_obj
 import pandas as pd
 import numpy as np
 
 from cluster.user_io import make_worksheet_root, save_worksheet, read_markers_df, read_cluster, write_all_worksheet
 from cluster.database.user_models import get_all_worksheet_paths, add_worksheet_entries, User, Group
 import cluster.database.filename_constants as keys
+from cluster.ingest.ingest import ingest_scanpy
 
 
 from flask import current_app
@@ -185,24 +186,12 @@ def create_state(
 def load_scanpy(user_email, worksheet_name, scanpy_path, cluster_name,
                 dataset_name, size_by="zstat", color_by="tstat", celltype_key=None
 ):
-    print("reading in data...")
-    ad = ad_obj.readh5ad(scanpy_path)
-    mapping = ad_obj.celltype_mapping(ad, cluster_name, celltype_key)
-    use_raw = ad_obj.has_raw(ad)
-    xys = ad_obj.get_xys(ad, key="X_umap")
-
-    from .create.marker_vals_from_anndata import run_pipe
-    markers_df = run_pipe(ad, cluster_name)
-    clustering = ad_obj.get_obs(ad, cluster_name)
-
-    #print(ad.var_names)
-    # Need to use all of the genes of NA's will come about in the data.
-
-    genes = []
-
-    exp = ad_obj.get_expression(ad, use_raw)
-
-    write_all_worksheet(user_email, worksheet_name, xys=xys, exp=exp, clustering=clustering, markers=markers_df)
+    (xys, exp, clustering, markers) =
+        ingest_scanpy(user_email, worksheet_name, scanpy_path, cluster_name,
+        dataset_name, size_by, color_by, celltype_key)
+        
+    write_all_worksheet(user_email, worksheet_name, xys=xys, exp=exp,
+        clustering=clustering, markers=markers_df)
 
     print("making state...")
 

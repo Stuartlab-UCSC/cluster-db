@@ -5,7 +5,7 @@ import numpy as np
 from scipy.sparse.csr import csr_matrix
 
 def get_obs(ad, obs_key):
-    """Retruns pandas series of observation annotations"""
+    """Returns pandas series of observation annotations"""
     return ad.obs[obs_key]
 
 
@@ -59,7 +59,7 @@ def get_expression(adata, use_raw):
 
 
 '''
-# unused codde
+# unused code
 def run_ranked_genes_build_markers_table(ad, cluster_name, n_genes, use_raw):
 
     # n_genes = ad_obj.all_genes_n(ad, use_raw)
