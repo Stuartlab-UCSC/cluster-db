@@ -8,7 +8,7 @@
 
 export FLASK_APP=cluster
 export FLASK_ENV=development  # for debug information
-source $CLUSTERDB/env/bin/activate
+source $CLUSTERDB/instance/env/bin/activate
 
 # List all high-level functions
 flask --help
