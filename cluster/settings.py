@@ -36,6 +36,10 @@ SECRET_KEY = os.environ.get(
 USER_USER_SESSION_EXPIRATION = 604800
 
 # Flask-Mail SMTP server settings
+DEFAULT_MAIL_SENDER = os.environ.get("CLUSTERDB_EMAIL")
+DEFAULT_MAX_EMAILS = 5
+
+# Flask-Mail SMTP server settings
 MAIL_SERVER = 'smtp.gmail.com'
 MAIL_PORT = 465
 

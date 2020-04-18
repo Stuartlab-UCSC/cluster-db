@@ -8,7 +8,7 @@ from cluster.database.user_models import CellTypeWorksheet, \
     ClusterGeneTable, ExpCluster, ExpDimReduct, Group, User, \
     user_in_group, UserExpression
 from flask_admin import Admin
-from flask_mail import Mail, Message
+from flask_sendmail import Mail, Message
 
 mail = None
 
@@ -23,11 +23,15 @@ def mail_admin(subject, message, app):
     else:
         user = 'anonymous user'
         cc = None
-    subject = 'from ' + user + ': I wish the ' + subject + ' would...'
-    msg = Message(subject, cc=cc, recipients=[app.config['MAIL_USERNAME']])
 
-    msg.body = message
-    msg.html = '<p>' + message + '<p>'
+    admin = app.config['MAIL_USERNAME']
+    msg = Message(
+        subject='from ' + user + ': I wish the ' + subject + ' would...',
+        recipients=[admin],
+        sender=admin,
+        cc=cc,
+        body=message
+    )
     mail.send(msg)
 
 

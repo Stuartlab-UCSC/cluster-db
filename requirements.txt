@@ -15,6 +15,7 @@ Flask-Cors==3.0.7
 Flask-Login==0.4.1
 Flask-Mail==0.9.1
 flask-restplus==0.12.1
+Flask-Sendmail==0.1
 Flask-SQLAlchemy==2.3.2
 Flask-User==1.0.1.5
 Flask-WTF==0.14.2

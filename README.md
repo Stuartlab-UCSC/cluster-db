@@ -82,4 +82,4 @@ to point to your instance-specific directory.
 
 ## Front-end
 To see the database from the front-end you will need to follow the installation instructions for 
-the [USCS Cell Atlas](https://github.com/Stuartlab-UCSC/cell-atlas). 
+the [UCSC Cell Atlas](https://github.com/Stuartlab-UCSC/cell-atlas). 

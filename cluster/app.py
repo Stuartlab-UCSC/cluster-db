@@ -79,8 +79,10 @@ def create_app(config={}):
 
     with app.app_context():
         db.create_all()
-        UserManager(app, db, User)
-
+        user_manager = UserManager(app, db, User)
+        from flask_user.email_adapters import SendmailEmailAdapter
+        user_manager.email_adapter = SendmailEmailAdapter(app)
+  
     if not app.testing:
         setup_logger()
 
