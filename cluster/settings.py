@@ -2,11 +2,17 @@ import os
 
 
 def directory_back_from_this_file():
+    """
+    # This block is if you are using the 'instance' directory under 
     return os.path.join(
         os.path.split(
             os.path.split(os.path.abspath(__file__))[0]
         )
     [0], "instance")
+    """
+    return os.path.split(
+        os.path.split(os.path.abspath(__file__))[0]
+    )[0]
 
 # Used for default location of database
 CLUSTERDB = os.path.join(directory_back_from_this_file(), "cluster.db")
