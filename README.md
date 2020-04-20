@@ -12,9 +12,9 @@ or check out the front-end application for
 Our current path for installation is to clone the git repository and work inside a python virtual 
 environment.
 
-Python3.6+, pip, virtualenv, and github are required for the installation.
+Python3.6, pip, virtualenv, and github are required for the installation.
 ```
-cd path/to/work/dir
+cd path/to/install/dir
 
 git clone https://github.com/stuartlab-UCSC/cluster-db.git
 
@@ -22,14 +22,17 @@ cd cluster-db
 
 mkdir instance
 
-virtualenv -p python3 instance/env
+python3.6 -m venv instance/env
 
 source instance/env/bin/activate
 
 pip install -r requirements.txt
 
-export CLUSTERDB=full.path.to.your.git.install.directory
+export CLUSTERDB=full/path/to/install/dir
 ```
+
+Put the CLUSTERDB env var into your logon script.
+
 Now you've installed the app and it's dependencies.
 
 ## Start
@@ -76,7 +79,7 @@ source bin/startCli
 ```
 
 ## Instance files
-Your config, database, and uploaded cell type worksheets ingest data will be in 
+Your config, log file, database, and uploaded cell type worksheets ingest data will be in 
 $CLUSTERDB/instance. If you want them somewhere else, make a symbolic link of 'instance'
 to point to your instance-specific directory.
 

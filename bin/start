@@ -4,13 +4,14 @@
 # NOTE: The env var CLUSTERDB must point to the git package install directory
 #       before running this script.
 
+cd $CLUSTERDB
 # The install-specific configuration.
-source $CLUSTERDB/instance/clusterDbConfig.sh
+source instance/clusterDbConfig.sh
 
 # The Install-independent start-up.
 # TODO build a real production server
 if [ $BACKGROUND ]; then
-    nohup flask run -h $HOST -p $PORT --with-threads &> log &
+    nohup flask run -h $HOST -p $PORT --with-threads &> instance/log &
 else
     flask run -h $HOST -p $PORT --with-threads
 fi
