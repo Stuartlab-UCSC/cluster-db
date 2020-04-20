@@ -83,6 +83,7 @@ class CellTypeWorksheetView(BaseView):
     column_filters = list
     column_list = list
     column_searchable_list = ('id', 'name', 'place')
+    form_excluded_columns = ('groups')
 
 
 class ClusterGeneTableView(BaseView):
@@ -129,6 +130,7 @@ class GroupView(BaseView):
     column_filters = list
     column_list = list
     column_searchable_list = ('id', 'name')
+    form_excluded_columns = ('members')
 
 
 class UserExpressionView(BaseView):
@@ -144,7 +146,7 @@ class UserView(BaseView):
     column_filters = list
     column_list = list
     column_searchable_list = ('id', 'email')
-    form_excluded_columns = ('email_confirmed_at', 'password')
+    form_excluded_columns = ('email_confirmed_at', 'password', 'groups')
     # form_widget_args to make username uneditable?
     form_widget_args = {
         'other_field': {
