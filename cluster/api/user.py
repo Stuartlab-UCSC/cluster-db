@@ -175,25 +175,26 @@ class UserWorksheets(Resource):
     def get(self):
         """Retrieve a list of worksheets available to the user, the list is a user-email/worksheet-name string"""
 
-        # Admins get to access everything.
-        if current_user.is_authenticated and user_in_group(current_user, 'admin'):
-            admin_worksheet_keys = [
-                "%s/%s" % (User.get_by_id(ws.user_id).email, ws.name)
-                for ws in CellTypeWorksheet.get_all_worksheets()
-            ]
-            return admin_worksheet_keys
-
         # Everyone gets to access public worksheets.
-        public_worksheet_keys = [
+        all_available = [
             "%s/%s" % (User.get_by_id(ws.user_id).email, ws.name)
             for ws in CellTypeWorksheet.get_by_group("public")
         ]
 
         if not current_user.is_authenticated:
-            return public_worksheet_keys
+            return all_available
+
+        # Admins get to access to all worksheets.
+        if user_in_group(current_user, 'admin'):
+            admin_worksheet_keys = []
+            for ws in CellTypeWorksheet.get_all_worksheets():
+                email = 'no_user'
+                if ws.user_id != None:
+                    email = User.get_by_id(ws.user_id).email
+                admin_worksheet_keys.append("%s/%s" % (email, ws.name))
+            return admin_worksheet_keys
 
         # Owners get to access their own worksheets.
-        all_available = []
         users_ws = [
             "%s/%s" % (current_user.email, wsname)
             for wsname in CellTypeWorksheet.get_user_worksheet_names(current_user)
@@ -208,7 +209,6 @@ class UserWorksheets(Resource):
             ]
             all_available.extend(worksheet_keys)
 
-        all_available.extend(public_worksheet_keys)
         # remove duplicates from a user's own worksheet being a member of their group.
         all_available = list(set(all_available))
         return all_available
