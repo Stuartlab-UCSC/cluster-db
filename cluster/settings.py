@@ -35,24 +35,9 @@ SECRET_KEY = os.environ.get(
 
 USER_USER_SESSION_EXPIRATION = 604800
 
-# Flask-Mail SMTP server settings
+# Flask-Sendmail settings
 DEFAULT_MAIL_SENDER = os.environ.get("CLUSTERDB_EMAIL")
 DEFAULT_MAX_EMAILS = 5
-
-# Flask-Mail SMTP server settings
-MAIL_SERVER = 'smtp.gmail.com'
-MAIL_PORT = 465
-
-MAIL_USE_SSL = True
-MAIL_USE_TLS = False
-MAIL_DEFAULT_SENDER = os.environ.get("CLUSTERDB_EMAIL")
-MAIL_USERNAME = os.environ.get("CLUSTERDB_EMAIL")
-MAIL_PASSWORD = os.environ.get("CLUSTERDB_EMAIL_PW")
-
-if MAIL_PASSWORD is None or MAIL_USERNAME is None:
-    USER_ENABLE_EMAIL = False
-
-MAIL_DEFAULT_SENDER = '"UCSC Cell Atlas" <hexmap@ucsc.edu>'
 
 # Features
 USER_ENABLE_USERNAME = False  # email auth only, no username is used
