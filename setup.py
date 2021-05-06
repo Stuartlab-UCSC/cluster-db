@@ -21,6 +21,6 @@ setup(
     install_requires=[
         'flask-restplus==0.12.1',
         'pytest==4.0.2',
-        'flask-cors==3.0.7'
+        'flask-cors==3.0.9'
     ],
 )
